@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import tornado.httpserver
 import tornado.ioloop
@@ -6,6 +7,8 @@ import tornado.options
 import tornado.web
 import os.path
 import logging
+
+import util.gen_features
 
 
 from tornado.options import define, options
