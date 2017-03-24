@@ -35,9 +35,12 @@ class Application(tornado.web.Application):
 
 
 class HomeHandler(tornado.web.RequestHandler):
+    # def get(self):
+    #     greeting = self.get_argument('greeting', 'Hello')
+    #     self.write(greeting + ', friendly user!')
+
     def get(self):
-        greeting = self.get_argument('greeting', 'Hello')
-        self.write(greeting + ', friendly user!')
+        self.render('topodemo.html') 
 
 def main():
     tornado.options.parse_command_line()
