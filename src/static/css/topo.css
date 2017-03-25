@@ -1,0 +1,28 @@
+
+.container-fluid {
+    padding-top: 170px;
+	padding-right: 10px;
+	padding-left: 10px;
+}
+
+/*.row-fluid {
+	width: 100%;
+
+}
+
+.sidebar-nav {
+	position: fixed;
+	width: 200px;
+	left: 0px;
+	bottom: 0;
+	top: 44px;
+	background: #eee;
+	padding: 9px 0;
+	z-index: 10;
+	transition: all 500ms ease;
+
+}
+
+.console-bar {
+	position: relative;
+}*/

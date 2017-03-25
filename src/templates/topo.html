@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+<link rel="stylesheet" href="../static/css/demo.css">
+
+
+{% block tree %}
+<div class="panel-group" id="accordion">
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" 
+				   href="#collapseOne">
+					numpy
+				</a>
+			</h4>
+		</div>
+		<div id="collapseOne" class="panel-collapse collapse in">
+			<div class="panel-body">
+				aaaaaaaaaaaa 
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" 
+				   href="#collapseTwo">
+					pandas
+				</a>
+			</h4>
+		</div>
+		<div id="collapseTwo" class="panel-collapse collapse">
+			<div class="panel-body">
+				aaaaaaaaaaaa
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" 
+				   href="#collapseThree">
+					sklearn
+				</a>
+			</h4>
+		</div>
+		<div id="collapseThree" class="panel-collapse collapse">
+			<div class="panel-body">
+				aaaaaaaaaaaa
+			</div>
+		</div>
+	</div>
+</div>
+
+{% end %}
+
+
+{% block body %}
+		
+
+        <div class="jtk-demo-main">
+
+            <!-- demo -->
+            <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan" id="canvas">
+                <div class="window" id="sourceWindow1">
+                    <strong>Window 1</strong>
+                    <a href="#" id="enableDisableSource">disable</a>
+                </div>
+                <div class="window smallWindow" id="targetWindow2"><strong>Window 2</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
+                <div class="window smallWindow" id="targetWindow3"><strong>Window 3</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
+                <div class="window smallWindow" id="targetWindow4"><strong>Window 4</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
+                <div class="window smallWindow" id="targetWindow5"><strong>Window 5</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
+                <div class="window smallWindow" id="targetWindow6"><strong>Window 6</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
+            </div>
+			<!-- /demo -->
+        </div>
+		
+		<script src="../static/js/jsplumb.min.js"></script>
+		
+		<script src="../static/js/demo.js"></script>
+		<script src="../static/js/demo-list.js"></script>
+		
+{% end %}
+
+{% block console %}
+<div  class="jtk-demo-main">
+	<div class="input-group">
+		<input type="text" class="form-control">
+		<span class="input-group-btn">
+			<button class="btn btn-default" type="button">
+				Go!
+			</button>
+		</span>
+	</div><!-- /input-group -->
+</div>
+
+{% end %}

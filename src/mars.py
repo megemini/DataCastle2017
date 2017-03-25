@@ -12,7 +12,7 @@ import util.gen_features
 
 
 from tornado.options import define, options
-define("port", default=8000, help="run on the given port", type=int)
+define("port", default=8008, help="run on the given port", type=int)
 
 
 class Application(tornado.web.Application):
@@ -21,7 +21,7 @@ class Application(tornado.web.Application):
             (r"/", HomeHandler),
         ]
         settings = dict(
-            ml_title=u"Machine Learning",
+            mars_title=u"Machine Learning",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             xsrf_cookies=True,
@@ -40,7 +40,7 @@ class HomeHandler(tornado.web.RequestHandler):
     #     self.write(greeting + ', friendly user!')
 
     def get(self):
-        self.render('topodemo.html') 
+        self.render('topo.html') 
 
 def main():
     tornado.options.parse_command_line()
