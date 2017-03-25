@@ -1,3 +1,4 @@
+jupyter-kernel-gateway==1.2.0
 matplotlib==1.5.3
 numpy==1.11.3
 pandas==0.19.2
