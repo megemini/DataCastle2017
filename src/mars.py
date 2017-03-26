@@ -83,11 +83,12 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         parsed = tornado.escape.json_decode(message)
         run_scripts = {
             "id": str(uuid.uuid4()),
-            # "body": parsed["body"],
+            "run_script": parsed["run_script"],
             }
         # chat["html"] = tornado.escape.to_basestring(
         #     self.render_string("message.html", message=chat))
 
+        logging.info("run_script is : " + run_scripts["run_script"])        
         # TODO: get results from jupyter
         results = "some results"
 
@@ -106,7 +107,7 @@ def main():
     http_server = tornado.httpserver.HTTPServer(Application())
     http_server.listen(options.port)
 
-    logging.debug('Server started : http://localhost' + str(options.port))
+    logging.info('Server started : http://localhost' + str(options.port))
 
     tornado.ioloop.IOLoop.current().start()
 

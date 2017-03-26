@@ -131,20 +131,17 @@ $(document).ready(function() {
     });
     // $("#message").select();
     updater.start();
+
 });
 
 function newMessage(form) {
-	// alert(form)
     var message = form.formToDict();
-    // alert(JSON.stringify(form))
-    // updater.socket.send(JSON.stringify(message));
-    updater.socket.send(JSON.stringify({"id":123, "message":"ok"}));
+    updater.socket.send(JSON.stringify(message));
     // form.find("input[type=text]").val("").select();
 }
 
 jQuery.fn.formToDict = function() {
     var fields = this.serializeArray();
-    // alert(fields)
     var json = {}
     for (var i = 0; i < fields.length; i++) {
         json[fields[i].name] = fields[i].value;
@@ -168,9 +165,10 @@ var updater = {
     showMessage: function(message) {
         // var existing = $("#console");
         // if (existing.length > 0) return;
+        alert(message.html);
         var node = $(message.html);
-        node.hide();
-        $("#console").append(node);
+        // node.hide();
+        $("#console-div").append(node);
         node.slideDown();
     }
 };

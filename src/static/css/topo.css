@@ -5,6 +5,10 @@
 	padding-left: 10px;
 }
 
+.canvas {
+    background: url('../img/canvas.jpeg') repeat center #eee;
+
+}
 /*.row-fluid {
 	width: 100%;
 
