@@ -10,6 +10,26 @@ jsPlumb.ready(function () {
     ];
 
     var instance = window.instance = jsPlumb.getInstance({
+        ConnectionOverlays: [
+            [ "Arrow", {
+                location: 1,
+                visible:true,
+                width:21,
+                length:21,
+                id:"ARROW",
+                events:{
+                    click:function() { alert("you clicked on the arrow overlay")}
+                }
+            } ],
+            [ "Label", {
+                location: 0.1,
+                id: "label",
+                cssClass: "aLabel",
+                events:{
+                    tap:function() { alert("hey"); }
+                }
+            }]
+        ],
         // drag options
         DragOptions: { cursor: "pointer", zIndex: 2000 },
         // default to a gradient stroke from blue to green.
@@ -19,7 +39,7 @@ jsPlumb.ready(function () {
                 [ 1, "#558822" ]
             ] },
             stroke: "#558822",
-            strokeWidth: 10
+            strokeWidth: 2
         },
         Container: "canvas"
     });
@@ -65,14 +85,15 @@ jsPlumb.ready(function () {
             filterExclude:true,
             maxConnections: -1,
             endpoint:[ "Dot", { radius: 7, cssClass:"small-blue" } ],
-            anchor:sourceAnchors
+            anchor:sourceAnchors,
+            connector: [ "Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true } ],
         });
 
         // configure the .smallWindows as targets.
         instance.makeTarget(smallWindows, {
             dropOptions: { hoverClass: "hover" },
             anchor:"Top",
-            endpoint:[ "Dot", { radius: 11, cssClass:"large-green" } ]
+            endpoint:[ "Dot", { radius: 11, cssClass:"large-green" } ],
         });
 
         // and finally connect a couple of small windows, just so its obvious what's going on when this demo loads.           
@@ -81,4 +102,100 @@ jsPlumb.ready(function () {
     });
 
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
+
+
+    // $("#addnode").click(function(){
+    //     alert("what happened");
+    // });
+
+    // bind a double click listener to "canvas"; add new node when this occurs.
+    // jsPlumb.on($("#accordion"), "click", function(e) {
+    //     alert()
+    //     alert(e.offsetX + e.offsetY);
+    // });
+
+
+
+    window.jsplumbUtils = {
+
+        initNode: function(el) {
+
+            // initialise draggable elements.
+            instance.draggable(el);
+
+            instance.makeSource(el, {
+                filter: ".ep",
+                anchor: "Continuous",
+                connectorStyle: { stroke: "#5c96bc", strokeWidth: 2, outlineStroke: "transparent", outlineWidth: 4 },
+                connectionType:"basic",
+                extract:{
+                    "action":"the-action"
+                },
+                maxConnections: 2,
+                onMaxConnections: function (info, e) {
+                    alert("Maximum connections (" + info.maxConnections + ") reached");
+                }
+            });
+
+            instance.makeTarget(el, {
+                dropOptions: { hoverClass: "dragHover" },
+                anchor: "Continuous",
+                allowLoopback: true
+            });
+
+            // this is not part of the core demo functionality; it is a means for the Toolkit edition's wrapped
+            // version of this demo to find out about new nodes being added.
+            //
+            instance.fire("jsPlumbDemoNodeAdded", el);
+        },
+
+
+
+        newNode: function(x, y) {
+            var d = document.createElement("div");
+            var id = jsPlumbUtil.uuid();
+            d.className = "window smallWindow";
+            d.id = id;
+            d.innerHTML = id.substring(0, 7) + "<div class=\"ep\"></div>";
+            d.style.left = x + "px";
+            d.style.top = y + "px";
+            instance.getContainer().appendChild(d);
+            this.initNode(d);
+            return d;
+        },
+
+    };
+
+
+
+    // socket
+    // if (!window.console) window.console = {};
+    // if (!window.console.log) window.console.log = function() {};
+
+    // $("#scriptform").live("submit", function() {
+    //     newMessage($(this));
+    //     return false;
+    // });
+    // $("#scriptform").live("keypress", function(e) {
+    //     if (e.keyCode == 13) {
+    //         newMessage($(this));
+    //         return false;
+    //     }
+    // });
+
+    // updater.start();
+
+    // jsPlumb.on(document.getElementById("scriptform"), "submit", function (e) {
+    //     newMessage($(this));
+    //     return false
+    // });
+
+    // jsPlumb.on(document.getElementById("scriptform"), "keypress", function (e) {
+    //     if (e.keyCode == 13) {
+    //         newMessage($(this));
+    //         return false;
+    //     }
+    // });
+
+    // updater.start();
 });	

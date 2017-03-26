@@ -1,14 +1,17 @@
 # Milestone -- 3-days
 ## 2017/03/25
 * Choose frameworks
- - tornado
- - jupyter-kernel-gateway
- - jsplumb
+    * tornado
+    * jupyter-kernel-gateway
+    * jsplumb
+    * jquery
+    * bootstrap
 * With dependency
- - sklearn
- - numpy
- - pandas
- - tensorflow
+    * sklearn
+    * xgboost
+    * numpy
+    * pandas
+    * tensorflow
 
 ## 2017/03/28
 

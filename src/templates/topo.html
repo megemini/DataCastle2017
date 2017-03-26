@@ -1,22 +1,25 @@
 {% extends "base.html" %}
 <link rel="stylesheet" href="../static/css/demo.css">
 
-
 {% block tree %}
 <div class="panel-group" id="accordion">
-	<div class="panel panel-default">
+	<div class="panel panel-default" id="Data">
 		<div class="panel-heading">
 			<h4 class="panel-title">
 				<a data-toggle="collapse" data-parent="#accordion" 
 				   href="#collapseOne">
-					numpy
+					Data
 				</a>
 			</h4>
 		</div>
 		<div id="collapseOne" class="panel-collapse collapse in">
-			<div class="panel-body">
-				aaaaaaaaaaaa 
+			<div class="panel-body" id="File" onclick="AddNode('Data', 'File')">
+				Add File 
 			</div>
+<!-- 			<div class="panel-body" id="File">
+				Add File 
+			</div>
+ -->
 		</div>
 	</div>
 	<div class="panel panel-default">
@@ -24,7 +27,7 @@
 			<h4 class="panel-title">
 				<a data-toggle="collapse" data-parent="#accordion" 
 				   href="#collapseTwo">
-					pandas
+					Model
 				</a>
 			</h4>
 		</div>
@@ -39,7 +42,22 @@
 			<h4 class="panel-title">
 				<a data-toggle="collapse" data-parent="#accordion" 
 				   href="#collapseThree">
-					sklearn
+					Evaluate
+				</a>
+			</h4>
+		</div>
+		<div id="collapseThree" class="panel-collapse collapse">
+			<div class="panel-body">
+				aaaaaaaaaaaa
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" 
+				   href="#collapseThree">
+					Visualize
 				</a>
 			</h4>
 		</div>
@@ -74,23 +92,35 @@
 			<!-- /demo -->
         </div>
 		
+
+        
+
 		<script src="../static/js/jsplumb.min.js"></script>
 		
 		<script src="../static/js/demo.js"></script>
-		<script src="../static/js/demo-list.js"></script>
+		<script src="../static/js/topo.js"></script>
+		<!-- <script src="../static/js/demo-list.js"></script> -->
 		
 {% end %}
 
-{% block console %}
-<div  class="jtk-demo-main">
-	<div class="input-group">
-		<input type="text" class="form-control">
-		<span class="input-group-btn">
-			<button class="btn btn-default" type="button">
-				Go!
-			</button>
-		</span>
-	</div><!-- /input-group -->
+{% block console-form %}
+<div class="jtk-demo-main">
+    <form class="bs-example bs-example-form" role="form" id="scriptform">
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="input-group">
+                    <input type="text" class="form-control">
+                    <span class="input-group-btn">
+                        <button class="btn btn-default" type="submit">Go!</button>
+                    </span>
+                </div><!-- /input-group -->
+            </div><!-- /.col-lg-6 -->
+        </div><!-- /.row -->
+    </form>
 </div>
 
+{% block console %}{% end %}
+
 {% end %}
+
+<script src="../static/js/topo.js"></script>
