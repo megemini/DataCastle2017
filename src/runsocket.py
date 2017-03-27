@@ -11,11 +11,13 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.websocket import websocket_connect
 from tornado import gen
 
+from time import sleep
+
 from tornado.options import define, options
 
-define("jport", default=8890, help="jupyter kernel gateway port", type=int)
+define("jport", default=8889, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
-define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
+# define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
 
 # Ref:
@@ -27,48 +29,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
     cache = []
     cache_size = 200
 
-    # def __init__(self):
-    #     waiters = set()
-    #     cache = []
-    #     cache_size = 200
-
-    #     base_url = os.getenv('BASE_GATEWAY_HTTP_URL', 'http://localhost:'+str(options.jport))
-    #     base_ws_url = os.getenv('BASE_GATEWAY_WS_URL', 'ws://localhost:'+str(options.jport))
-
-    #     auth_username = "demouser"
-    #     auth_password = "demopass"
-
-    #     logging.info(base_url)
-    #     logging.info(base_ws_url)
-        
-    #     client = AsyncHTTPClient()
-    #     kernel_id = options.kernel_id
-    #     if not kernel_id:
-    #         response = yield client.fetch(
-    #             '{}/api/kernels'.format(base_url),
-    #             method='POST',
-    #             auth_username=auth_username,
-    #             auth_password=auth_password,
-    #             body=json_encode({'name' : options.lang})
-    #         )
-    #         kernel = json_decode(response.body)
-    #         kernel_id = kernel['id']
-    #         logging.info(
-    #             '''Created kernel {0}. Connect other clients with the following command:
-    #             docker-compose run client --kernel-id={0}
-    #             '''.format(kernel_id)
-    #         )
-            
-    #     ws_req = HTTPRequest(url='{}/api/kernels/{}/channels'.format(
-    #             base_ws_url,
-    #             url_escape(kernel_id)
-    #         ),
-    #         auth_username=auth_username,
-    #         auth_password=auth_password
-    #     )
-
-    #     ws = yield websocket_connect(ws_req)
-    #     logging.info('Connected to kernel websocket')
+    kernel_id = None
 
     def get_compression_options(self):
         # Non-None enables compression with default options.
@@ -123,8 +84,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         logging.info(base_ws_url)
         
         client = AsyncHTTPClient()
-        kernel_id = options.kernel_id
-        if not kernel_id:
+        
+        if not self.kernel_id:
+            logging.info("fetching!!!!!!!!!!")
             response = yield client.fetch(
                 '{}/api/kernels'.format(base_url),
                 method='POST',
@@ -133,16 +95,16 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 body=json_encode({'name' : options.lang})
             )
             kernel = json_decode(response.body)
-            kernel_id = kernel['id']
+            self.kernel_id = kernel['id']
             logging.info(
                 '''Created kernel {0}. Connect other clients with the following command:
                 docker-compose run client --kernel-id={0}
-                '''.format(kernel_id)
+                '''.format(self.kernel_id)
             )
             
         ws_req = HTTPRequest(url='{}/api/kernels/{}/channels'.format(
                 base_ws_url,
-                url_escape(kernel_id)
+                url_escape(self.kernel_id)
             ),
             auth_username=auth_username,
             auth_password=auth_password
@@ -155,29 +117,14 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
             run_results["content"] = self.run_flow(parsed["flow"], ws)
 
         elif channel == "script":
-            # for msg in self.run_script(parsed["code"], ws):
-            msg = self.run_script(parsed["code"], ws)
-            msg = json_decode(msg)
-            msg_type = msg['msg_type']
+            run_results["content"] = yield self.run_script(parsed["code"], ws)
 
-            logging.info('Received message type:', msg_type)
-
-            if msg_type == 'error':
-                logging.info('ERROR')
-                run_results["content"] = msg
-
-            parent_msg_id = msg['parent_header']['msg_id']
-            if msg_type == 'stream' and parent_msg_id == msg_id:
-                logging.info('  Content:', msg['content']['text'])
-                run_results["content"] = msg['content']['text']
-
-            
-
-        logging.info("run_script is : " + run_results["content"])        
-
+        # logging.info("run_script is : " + run_results["content"])        
+        # run_results["content"] = "123123"
+        logging.info(type(run_results["content"]))
 
         run_results["html"] = tornado.escape.to_basestring(
-            render_string("console.html", results=run_results["content"]))
+            self.render_string("console.html", results=run_results["content"]))
 
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
@@ -207,7 +154,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         # Send an execute request
         ws.write_message(json_encode({
             'header': {
-                'username': auth_username,
+                'username': '',
                 'version': '5.0',
                 'session': '',
                 'msg_id': msg_id,
@@ -226,5 +173,28 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
             'buffers': {}
         }))
 
-        return ws.read_message()
-        
+        # return ws.read_message()
+        while 1:
+            msg = yield ws.read_message()
+            logging.info("read msg!!!!!!!!!!!")
+            logging.info(type(msg))
+            logging.info("MSG IS " + msg)
+            msg = json_decode(msg)
+            msg_type = msg['msg_type']
+
+            logging.info('Received message type:', msg_type)
+
+            if msg_type == 'error':
+                logging.info('ERROR')
+                raise gen.Return(msg['content'])
+
+            parent_msg_id = msg['parent_header']['msg_id']
+
+            if msg_type == 'stream' and parent_msg_id == msg_id:
+                logging.info('  Content:', msg['content']['text'])
+                raise gen.Return(msg['content']['text'])
+
+            if msg_type == 'execute_result' and parent_msg_id == msg_id:
+                raise gen.Return(msg['content']['data']['text/plain'])
+                        
+            # TODO: msg_type of assign a var!!!!!!!!!!!!!!
