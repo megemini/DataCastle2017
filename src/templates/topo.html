@@ -108,10 +108,12 @@
     <form  method="post" role="form"  id="scriptform">
         <div class="row">
                 <div class="input-group">
-                    <input type="text" class="form-control" name="run_script">
+                    <input type="text" class="form-control" name="code">
                     <span class="input-group-btn">
                         <button class="btn btn-default" type="submit" >Go!</button>
                     </span>
+                    <input type="hidden" name="channel" value="script">
+
                 </div><!-- /input-group -->
         </div><!-- /.row -->
         {% module xsrf_form_html() %}	

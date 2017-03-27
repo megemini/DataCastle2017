@@ -1,0 +1,1 @@
+{"cus_func1": {"body": "\ndef cus_func(a, b):\n    print (a + b)\n    return a + b\n", "inputs": ["a", "b"]}, "cus_func2": {"body": "\nb = 2\ndef cus_func(a):\n    print (a + b)\n    return a + b\n", "inputs": ["a"]}}

@@ -6,7 +6,8 @@
 }
 
 .canvas {
-    background: url('../img/canvas.jpeg') repeat center #eee;
+	/*from www.duitang.com time.jpg*/
+    background: url('../img/canvas.jpg') repeat center #eee;
 
 }
 /*.row-fluid {

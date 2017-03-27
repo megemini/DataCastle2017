@@ -163,11 +163,9 @@ var updater = {
     },
 
     showMessage: function(message) {
-        // var existing = $("#console");
-        // if (existing.length > 0) return;
         alert(message.html);
         var node = $(message.html);
-        // node.hide();
+        $("#console").remove()
         $("#console-div").append(node);
         node.slideDown();
     }
