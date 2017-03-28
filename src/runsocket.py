@@ -14,7 +14,7 @@ from time import sleep
 
 from tornado.options import define, options
 
-define("jport", default=8888, help="jupyter kernel gateway port", type=int)
+define("jport", default=8889, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
 # define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
@@ -75,7 +75,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         # 1. get websocket from jupyter if not        
         if self.ws == None:
-            self.ws = yield self.get_jupyter_ws()
+            yield self.get_jupyter_ws()
 
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
@@ -93,9 +93,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
 
-
+    @classmethod
     @gen.coroutine
-    def get_jupyter_ws(self, k_id=None):
+    def get_jupyter_ws(cls, k_id=None):
         """
         Get jupyter kernel websocket 
 
@@ -113,9 +113,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         client = AsyncHTTPClient()
 
         if k_id != None:
-            self.kernel_id = k_id
+            cls.kernel_id = k_id
         
-        if not self.kernel_id:
+        if not cls.kernel_id:
             logging.info("fetching!!!!!!!!!!")
             response = yield client.fetch(
                 '{}/api/kernels'.format(base_url),
@@ -125,16 +125,16 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 body=json_encode({'name' : options.lang})
             )
             kernel = json_decode(response.body)
-            self.kernel_id = kernel['id']
+            cls.kernel_id = kernel['id']
             logging.info(
                 '''Created kernel {0}. Connect other clients with the following command:
                 docker-compose run client --kernel-id={0}
-                '''.format(self.kernel_id)
+                '''.format(cls.kernel_id)
             )
             
         ws_req = HTTPRequest(url='{}/api/kernels/{}/channels'.format(
                 base_ws_url,
-                url_escape(self.kernel_id)
+                url_escape(cls.kernel_id)
             ),
             auth_username=auth_username,
             auth_password=auth_password
@@ -143,7 +143,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         ws = yield websocket_connect(ws_req)
         logging.info('Connected to kernel websocket')
 
-        raise gen.Return(ws)
+        cls.ws = ws
+        raise gen.Return()
 
 
     @gen.coroutine

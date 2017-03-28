@@ -32,6 +32,7 @@ class Application(tornado.web.Application):
         )
         super(Application, self).__init__(handlers, **settings)
 
+        RunSocketHandler.get_jupyter_ws()
 
 
 class HomeHandler(tornado.web.RequestHandler):
