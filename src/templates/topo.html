@@ -13,7 +13,7 @@
 			</h4>
 		</div>
 		<div id="collapseOne" class="panel-collapse collapse in">
-			<div class="panel-body" id="File" onclick="AddNode('Data', 'File')">
+			<div class="panel-body" id="File" draggable="true" ondragend="addNode('Data', 'File', event)" onclick="showHelp('Data', 'File')">
 				Add File 
 			</div>
 <!-- 			<div class="panel-body" id="File">
@@ -125,4 +125,3 @@
 </div>
 
 {% end %}
-

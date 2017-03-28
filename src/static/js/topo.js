@@ -76,16 +76,7 @@ var NodeTypeList = {
 
 var nodeList;
 
-// from html event(e) to add one jsplumb node
-function AddNode(mainType, subType, e) {
-	// alert(mainType + subType)
 
-	jsplumbUtils.newNode(500, 300);
-
-	// AddJsplumb(NodeFactory(mainType, subType), e)
-
-
-}
 
 function Node(argument) {
 	// body...
@@ -113,6 +104,28 @@ function run() {
 
 }
 
+///////////////////////////////////////////////////
+// add node
+
+// from html event(e) to add one jsplumb node
+function addNode(mainType, subType, e) {
+
+    // offset of cursor
+    diff = 4
+
+    X = $('#canvas').offset().left + diff
+    Y = $('#accordion').offset().top + diff
+
+    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y);
+
+}
+
+function showHelp(mainType, subType) {
+    alert(mainType)
+}
+
+/////////////////////////////////////////////////////
+// websocket
 
 $(document).ready(function() {
     if (!window.console) window.console = {};
@@ -132,7 +145,10 @@ $(document).ready(function() {
     // $("#message").select();
     updater.start();
 
+
 });
+
+
 
 function newMessage(form) {
     var message = form.formToDict();

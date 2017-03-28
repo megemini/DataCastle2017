@@ -1,6 +1,6 @@
 
 .container-fluid {
-    padding-top: 170px;
+    padding-top: 160px;
 	padding-right: 10px;
 	padding-left: 10px;
 }
@@ -10,6 +10,26 @@
     background: url('../img/canvas.jpg') repeat center #eee;
 
 }
+
+.node {
+	/*position: absolute;*/
+	z-index: 100;
+
+}
+
+.logo {
+	float:right ;
+	padding-top: 16px;
+	padding-right: 64px;
+	z-index: 3000
+}
+
+.run_button {
+	padding-left: 15%;
+	padding-top: 40px;
+}
+
+
 /*.row-fluid {
 	width: 100%;
 

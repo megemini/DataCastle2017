@@ -14,6 +14,12 @@
     * tensorflow
 
 ## 2017/03/28
+- [x] Web <-> management server <-> Jupyter kernel gateway
+- [x] Drag & Drop add one node
+- [ ] Node Structure with inputs & output, labels, close(x) button
+- [ ] Chart
+- [ ] Run & Stop
+- [ ] Run flow with running scripts one-by-one
 
 ## 2017/03/31
 
@@ -26,4 +32,3 @@
 ## 2017/4/12
 
 ## 2017/4/15
-

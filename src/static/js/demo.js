@@ -22,7 +22,7 @@ jsPlumb.ready(function () {
                 }
             } ],
             [ "Label", {
-                location: 0.1,
+                location: 0.5,
                 id: "label",
                 cssClass: "aLabel",
                 events:{
@@ -104,17 +104,6 @@ jsPlumb.ready(function () {
     jsPlumb.fire("jsPlumbDemoLoaded", instance);
 
 
-    // $("#addnode").click(function(){
-    //     alert("what happened");
-    // });
-
-    // bind a double click listener to "canvas"; add new node when this occurs.
-    // jsPlumb.on($("#accordion"), "click", function(e) {
-    //     alert()
-    //     alert(e.offsetX + e.offsetY);
-    // });
-
-
 
     window.jsplumbUtils = {
 
@@ -146,7 +135,7 @@ jsPlumb.ready(function () {
             // this is not part of the core demo functionality; it is a means for the Toolkit edition's wrapped
             // version of this demo to find out about new nodes being added.
             //
-            instance.fire("jsPlumbDemoNodeAdded", el);
+            // instance.fire("jsPlumbDemoNodeAdded", el);
         },
 
 
@@ -167,35 +156,5 @@ jsPlumb.ready(function () {
     };
 
 
-
-    // socket
-    // if (!window.console) window.console = {};
-    // if (!window.console.log) window.console.log = function() {};
-
-    // $("#scriptform").live("submit", function() {
-    //     newMessage($(this));
-    //     return false;
-    // });
-    // $("#scriptform").live("keypress", function(e) {
-    //     if (e.keyCode == 13) {
-    //         newMessage($(this));
-    //         return false;
-    //     }
-    // });
-
-    // updater.start();
-
-    // jsPlumb.on(document.getElementById("scriptform"), "submit", function (e) {
-    //     newMessage($(this));
-    //     return false
-    // });
-
-    // jsPlumb.on(document.getElementById("scriptform"), "keypress", function (e) {
-    //     if (e.keyCode == 13) {
-    //         newMessage($(this));
-    //         return false;
-    //     }
-    // });
-
-    // updater.start();
 });	
+
