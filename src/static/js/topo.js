@@ -43,38 +43,97 @@ Node = {
     //     }
     // };
 
-var NodeTypeList = {
-	// Data: 1.file 2.numpy 3.merge 4.sklearn-pre 
-	"Data": {
-		"File": {
-			inputs: null, 
-			outputs: ["File"], 
-			paras: null},
-		"Merge": {			
-			inputs: ["File_1", "File_2"], 
-			outputs: ["File"], 
-			paras: ["By"]},
-		"Split": {},
-		"Shuffle": {},
-		"Impute": {},
-		"Normalize": {},
-	},
-	// Mining: 1.sklearn-mining 2.tensorflow 3.xgboost
-	"Model": {
-		"RandomForest": {},
-		"SVM": {},
-		"XGBoost": {},
-	},
-	"Evaluate": {
-		"Prediction": {},
-	},
-	"Visualize": {
-		"Hist": {},
-		"Scatter": {},
-	}
-};
+// // TODO: save node vars, and auto-name var
+// var NodeList = null
 
-var nodeList;
+// // TODO: save node structures as json, 
+// // TODO: code python func, inspect.getsource to jupyter. 
+// // Call func: 
+// // (outputName + count) or edited name = 
+// //     func.name + ( + input paras of outputName from up node... + )
+// // TODO: connect two node:
+// //     down node paras = up node ouputName or input/pre-set
+// var NodeStructure = {
+//     "Data": {
+//         "File": {
+//             disName: "File", 
+//             descript: "Read a data file as pandas dataframe.",
+//             func: {
+//                 name: "read_csv",
+//                 input: {
+//                     names: ["File Name", ],
+//                     paras: null,
+//                     types: ["file"],
+//                     descripts: ["Please choose the file.", ],
+//                     editable: [false, ], // true then edit at web
+//                 },
+//                 output: {
+//                     name: ["Data", ],
+//                     outputName: ["data", ],
+//                     types: ["pandas dataframe"]
+//                     descripts: ["Data from the file.", ],
+//                     content: null,
+//                 },
+//             },
+//         },
+
+//         "Merge": {
+//             disName: "Merge", 
+//             descript: "Merge two data files.",
+//             func: {
+//                 name: "merge_df",
+//                 input: {
+//                     names: ["Data 1", "Data 2", ],
+//                     paras: null,
+//                     types: ["pandas dataframe", "pandas dataframe"],
+//                     descripts: ["Please choose the data.", "Please choose the data.",],
+//                     editable: [false, false, ],
+//                 },
+//                 output: {
+//                     name: ["Data", ],
+//                     outputName: ["merge", ],
+//                     types: ["pandas dataframe"]
+//                     descripts: ["Data merged from two files.", ],
+//                     content: null,
+//                 },
+//             },
+//         },   
+//     }
+
+// }
+
+// var NodeTypeList = {
+// 	// Data: 1.file 2.numpy 3.merge 4.sklearn-pre 
+// 	"Data": {
+// 		"File": {
+// 			inputs: null, 
+// 			outputs: ["File"], 
+// 			paras: null},
+// 		"Merge": {			
+// 			inputs: ["File_1", "File_2"], 
+// 			outputs: ["File"], 
+// 			paras: ["By"]},
+// 		"Split": {},
+// 		"Shuffle": {},
+// 		"Impute": {},
+// 		"Normalize": {},
+// 	},
+// 	// Mining: 1.sklearn-mining 2.tensorflow 3.xgboost
+// 	"Model": {
+// 		"RandomForest": {},
+// 		"SVM": {},
+// 		"XGBoost": {},
+// 	},
+// 	"Evaluate": {
+// 		"Prediction": {},
+// 	},
+// 	"Visualize": {
+// 		"Hist": {},
+// 		"Scatter": {},
+// 	}
+// };
+
+// var nodeList;
 
 
 

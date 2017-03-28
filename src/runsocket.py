@@ -41,7 +41,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         # TODO: init with jupyter(import/session management)
-        # TODO: close ws from jupyter?!
+        # TODO: close ws and shutdown kernel from jupyter?!
+        self.ws.close()
         RunSocketHandler.waiters.remove(self)
 
     @classmethod
@@ -199,7 +200,12 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         # Read all messages from jupyter, 
         # and find the response of this msg_id to return
         while 1:
-            msg = yield self.ws.read_message()
+            try:
+                msg = yield self.ws.read_message()
+            except Exception as e:
+                raise gen.Return("Read jupyter message error!")
+
+
             logging.info("read msg!!!!!!!!!!!")
             logging.info(type(msg))
             logging.info("MSG IS " + msg)
