@@ -43,6 +43,8 @@ Node = {
     //     }
     // };
 
+
+// // TODO: node color
 // // TODO: save node vars, and auto-name var
 // var NodeList = null
 
@@ -166,16 +168,27 @@ function run() {
 ///////////////////////////////////////////////////
 // add node
 
+var nodeCount = 0
+
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
 
     // offset of cursor
-    diff = 4
+    diffX = 12.5 * 16 / 2
+    diffY = 4 * 16 / 2
 
-    X = $('#canvas').offset().left + diff
-    Y = $('#accordion').offset().top + diff
+    X = $('#canvas').offset().left + diffX
+    Y = $('#accordion').offset().top + diffY
 
-    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y);
+    node = {
+        id: "node" + nodeCount,
+        inputs: [{id:nodeCount + "1", name:"input1"}, {id:nodeCount + "2", name:"input2"}],
+        output: [{id:nodeCount + "1", name:"output"}]
+    }
+
+    nodeCount = nodeCount + 1
+
+    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, node);
 
 }
 

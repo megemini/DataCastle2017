@@ -29,6 +29,40 @@
 	padding-top: 40px;
 }
 
+.endpointSourceLabel {
+	z-index: 5000
+}
+
+.endpointTargetLabel {
+	z-index: 5000
+}
+
+.closeNode {
+    right:0px;
+    top:0px;
+    position:absolute;
+}
+
+.closeNode:hover {
+    cursor: pointer;
+}
+/*.ep {
+    position: absolute;
+    bottom: 37%;
+    right: 5px;
+    width: 100px;
+    height: 40px;
+    background-color: orange;
+    cursor: pointer;
+    box-shadow: 0 0 2px black;
+    -webkit-transition: -webkit-box-shadow 0.25s ease-in;
+    -moz-transition: -moz-box-shadow 0.25s ease-in;
+    transition: box-shadow 0.25s ease-in;
+}
+
+.ep:hover {
+    box-shadow: 0 0 6px black;
+}*/
 
 /*.row-fluid {
 	width: 100%;

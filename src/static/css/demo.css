@@ -44,19 +44,19 @@
 }
 
 .enableDisableTarget {
-    color:white;
-    right:5px;
-    top:5px;
+    /*color:white;*/
+    right:0px;
+    top:0px;
     position:absolute;
-    font-size:12px;
+    /*font-size:12px;*/
 }
 
 .enableDisableTarget:visited, .enableDisableTarget:focus {
-    color:white;
+    /*color:white;*/
 }
 
 .enableDisableTarget:hover {
-    color: orange;
+    /*color: orange;*/
 }
 
 .element-disabled {

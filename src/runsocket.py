@@ -14,7 +14,7 @@ from time import sleep
 
 from tornado.options import define, options
 
-define("jport", default=8889, help="jupyter kernel gateway port", type=int)
+define("jport", default=8888, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
 # define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
@@ -42,7 +42,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
     def on_close(self):
         # TODO: init with jupyter(import/session management)
         # TODO: close ws and shutdown kernel from jupyter?!
-        self.ws.close()
+        # self.ws.close()
         RunSocketHandler.waiters.remove(self)
 
     @classmethod
@@ -96,10 +96,11 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
     @classmethod
     @gen.coroutine
-    def get_jupyter_ws(cls, k_id=None):
+    def get_jupyter_ws(cls, user_id=None):
         """
         Get jupyter kernel websocket 
 
+        TODO: with user id assign websocket
         """
 
         base_url = os.getenv('BASE_GATEWAY_HTTP_URL', 'http://localhost:'+str(options.jport))
@@ -113,8 +114,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         client = AsyncHTTPClient()
 
-        if k_id != None:
-            cls.kernel_id = k_id
+        if user_id != None:
+            raise gen.Return()
         
         if not cls.kernel_id:
             logging.info("fetching!!!!!!!!!!")
@@ -175,27 +176,35 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         msg_id = uuid4().hex
 
-        # Send an execute request
-        self.ws.write_message(json_encode({
-            'header': {
-                'username': '',
-                'version': '5.0',
-                'session': '',
-                'msg_id': msg_id,
-                'msg_type': 'execute_request'
-            },
-            'parent_header': {},
-            'channel': 'shell',
-            'content': {
-                'code': script,
-                'silent': False,
-                'store_history': True,
-                'user_expressions' : {},
-                'allow_stdin' : False
-            },
-            'metadata': {},
-            'buffers': {}
-        }))
+        if self.ws == None:
+            yield self.get_jupyter_ws()
+
+        try:
+            # Send an execute request
+            self.ws.write_message(json_encode({
+                'header': {
+                    'username': '',
+                    'version': '5.0',
+                    'session': '',
+                    'msg_id': msg_id,
+                    'msg_type': 'execute_request'
+                },
+                'parent_header': {},
+                'channel': 'shell',
+                'content': {
+                    'code': script,
+                    'silent': False,
+                    'store_history': True,
+                    'user_expressions' : {},
+                    'allow_stdin' : False
+                },
+                'metadata': {},
+                'buffers': {}
+            }))
+        except Exception as e:
+            raise gen.Return("Write jupyter message error!")
+
+
 
         # Read all messages from jupyter, 
         # and find the response of this msg_id to return
