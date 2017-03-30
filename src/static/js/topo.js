@@ -63,11 +63,11 @@ Node = {
 //             func: {
 //                 name: "read_csv",
 //                 input: {
-//                     names: ["File Name", ],
+//                     names: ["File Name", "Header Names"],
 //                     paras: null,
-//                     types: ["file"],
-//                     descripts: ["Please choose the file.", ],
-//                     editable: [false, ], // true then edit at web
+//                     types: ["file", "list"],
+//                     descripts: ["Please choose the file.", "Enter the header names"],
+//                     editable: [false, true], // true then edit at web
 //                 },
 //                 output: {
 //                     name: ["Data", ],
