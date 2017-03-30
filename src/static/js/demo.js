@@ -377,6 +377,8 @@ jsPlumb.ready(function () {
     };
 
 
+    // highlight
+    // hljs.initHighlightingOnLoad();
 });	
 
 // jsPlumb.ready(function () {

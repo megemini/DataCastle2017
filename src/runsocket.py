@@ -15,7 +15,7 @@ from tornado.options import define, options
 from util import fileutil, scriptutil
 from func import *
 
-define("jport", default=8888, help="jupyter kernel gateway port", type=int)
+define("jport", default=8889, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
 # define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
@@ -177,8 +177,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         logging.info(file_path)
         logging.info(data.get_csv(file_path))
 
+        inputs = {"file": file_path}
 
-        f1 = scriptutil.get_script(data.get_csv, None, "output_csv_1")
+        f1 = scriptutil.get_script(data.get_csv, inputs, "output_csv_1")
 
         run_results = yield self.run_script(f1)
 
@@ -242,65 +243,61 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
             msg = json_decode(msg)
             msg_type = msg['msg_type']
-
-            # logging.info('Received message type:', msg_type)
-
-            if msg_type == 'error':
-                logging.info("ERROR!!!!!!!!!!!!!!!!!msg['content']['evalue']")
-                logging.info(msg['content']['evalue'])
-                raise gen.Return([msg['content']['evalue']])
-
+            msg_channel = msg['channel']
             parent_msg_id = msg['parent_header']['msg_id']
 
-            # if parent_msg_id == msg_id:
-            #     logging.info(msg)
-
-            if msg_type == 'stream' and parent_msg_id == msg_id:
-                logging.info("!!!!!!!!!!!!!!!msg['content']['text']:")
-                logging.info(msg['content']['text'])
-                raise gen.Return([msg['content']['text']])
-
-            if msg_type == 'execute_result' and parent_msg_id == msg_id:
-                logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
-                logging.info(msg['content']['data']['text/plain'])
-
-                if msg['content']['data'].get("text/html"):
-                    raise gen.Return([msg['content']['data']['text/html']])
-
-                raise gen.Return([msg['content']['data']['text/plain']])
-
-            if msg_type == 'execute_reply' and parent_msg_id == msg_id:
-                if len(msg['content']['payload']) > 0:
-                    # logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!msg")
-                    # logging.info(msg)
-                    logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
-                    # logging.info(msg['content']['payload'][0]['data']['text/plain'])
-                    raise gen.Return([msg['content']['payload'][0]['data']['text/plain']])   
-
-                logging.info("msg['content']['payload']:")
-                # logging.info(msg)
-                raise gen.Return(["OK"])
-                # TODO: msg_type of assign a var!!!!!!!!!!!!!!
+            # shell(execute_request) --> 
+            # iopub(status: busy) --> 
+            # iopub(execute_input) --> 
+            # iopub(execute_result) -->
+            # iopub(status: idle) --> 
+            # shell(execute_reply)
 
 
-            if msg_type == 'display_data' and parent_msg_id == msg_id:
-                logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                raise gen.Return([msg['content']['data']['image/png'], "image"])
+            if msg_channel == "iopub":
+                """
+                read iopub message
+                """
+
+                if msg_type == 'error':
+                    logging.info("ERROR!!!!!!!!!!!!!!!!!msg['content']['evalue']")
+                    logging.info(msg['content']['evalue'])
+                    raise gen.Return([msg['content']['evalue']])
+
+                if msg_type == 'stream' and parent_msg_id == msg_id:
+                    logging.info("!!!!!!!!!!!!!!!msg['content']['text']:")
+                    logging.info(msg['content']['text'])
+                    raise gen.Return([msg['content']['text']])
+
+                if msg_type == 'execute_result' and parent_msg_id == msg_id:
+                    logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
+                    logging.info(msg['content']['data']['text/plain'])
+
+                    if msg['content']['data']["text/html"] != None:
+                        raise gen.Return([msg['content']['data']['text/html']])
+
+                    raise gen.Return([msg['content']['data']['text/plain']])
+
+                if msg_type == 'display_data' and parent_msg_id == msg_id:
+                    logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                    raise gen.Return([msg['content']['data']['image/png'], "image"])
+
+            elif msg_channel == "shell":
+                """
+                read shell message, the last message with a session
+                """
+                if msg_type == 'execute_reply' and parent_msg_id == msg_id:
+                    if len(msg['content']['payload']) > 0:
+                        logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
+                        raise gen.Return([msg['content']['payload'][0]['data']['text/plain']])   
+
+                    logging.info("msg['content']['payload']:")
+                    raise gen.Return(["OK"])
+
+
+                    # TODO: msg_type of assign a var!!!!!!!!!!!!!!
 
 
 
-                # logging.info(msg)
-
-                # if msg['content']['data'].get('image/png') != None:
-                    
-                #     logging.info(msg['content']['data']['image/png'])
-                    
-                # else:
 
 
-
-
-            # except Exception as e:
-                # raise gen.Return("Read jupyter message error!")
-                # yield self.get_jupyter_ws()
-                # pass

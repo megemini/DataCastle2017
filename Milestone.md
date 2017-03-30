@@ -17,11 +17,15 @@
 - [x] Web <-> management server <-> Jupyter kernel gateway
 - [x] Drag & Drop add one node
 - [ ] Node Structure with inputs & output, labels, close(x) button
-- [ ] Chart
+- [X] Chart: read image from jupyter
 - [ ] Run & Stop
 - [ ] Run flow with running scripts one-by-one
 
 ## 2017/03/31
+- [x] Add node, delete node, connect node,
+- [ ] Table style
+- [ ] Float/drag console div
+- [ ] Code style/highlight
 
 ## 2017/4/3
 
