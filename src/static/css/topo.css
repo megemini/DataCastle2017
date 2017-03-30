@@ -38,13 +38,21 @@
 }
 
 .closeNode {
-    right:0px;
-    top:0px;
+    right:2px;
+    top:2px;
     position:absolute;
 }
 
 .closeNode:hover {
     cursor: pointer;
+}
+
+
+.console-content {
+	white-space: pre-wrap;
+	height:800px;
+	overflow: auto;
+
 }
 /*.ep {
     position: absolute;

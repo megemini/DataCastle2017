@@ -86,10 +86,15 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         elif channel == "script":
             run_results["content"] = yield self.run_script(parsed["code"])
 
+        logging.info("type(run_results content) is ")
         logging.info(type(run_results["content"]))
 
-        run_results["html"] = tornado.escape.to_basestring(
-            self.render_string("console.html", results=run_results["content"]))
+        if len(run_results["content"]) > 1:
+            run_results["html"] = tornado.escape.to_basestring(
+                self.render_string("image.html", results=(run_results["content"][0])))
+        else:
+            run_results["html"] = tornado.escape.to_basestring(
+                self.render_string("console.html", results=(run_results["content"][0])))
 
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
@@ -202,38 +207,75 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 'buffers': {}
             }))
         except Exception as e:
-            raise gen.Return("Write jupyter message error!")
+            raise gen.Return(["Write jupyter message error!"])
 
 
 
         # Read all messages from jupyter, 
         # and find the response of this msg_id to return
         while 1:
-            try:
-                msg = yield self.ws.read_message()
-            except Exception as e:
-                raise gen.Return("Read jupyter message error!")
-
+            # try:
+            msg = yield self.ws.read_message()
 
             logging.info("read msg!!!!!!!!!!!")
             logging.info(type(msg))
-            logging.info("MSG IS " + msg)
+            # logging.info("MSG IS " + msg)
+
             msg = json_decode(msg)
             msg_type = msg['msg_type']
 
-            logging.info('Received message type:', msg_type)
+            # logging.info('Received message type:', msg_type)
 
             if msg_type == 'error':
-                logging.info('ERROR')
-                raise gen.Return(msg['content'])
+                logging.info("ERROR!!!!!!!!!!!!!!!!!msg['content']['evalue']")
+                logging.info(msg['content']['evalue'])
+                raise gen.Return([msg['content']['evalue']])
 
             parent_msg_id = msg['parent_header']['msg_id']
 
+            # if parent_msg_id == msg_id:
+            #     logging.info(msg)
+
             if msg_type == 'stream' and parent_msg_id == msg_id:
-                logging.info('  Content:', msg['content']['text'])
-                raise gen.Return(msg['content']['text'])
+                logging.info("!!!!!!!!!!!!!!!msg['content']['text']:")
+                logging.info(msg['content']['text'])
+                raise gen.Return([msg['content']['text']])
 
             if msg_type == 'execute_result' and parent_msg_id == msg_id:
-                raise gen.Return(msg['content']['data']['text/plain'])
-                        
-            # TODO: msg_type of assign a var!!!!!!!!!!!!!!
+                logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
+                logging.info(msg['content']['data']['text/plain'])
+                raise gen.Return([msg['content']['data']['text/plain']])
+
+            if msg_type == 'execute_reply' and parent_msg_id == msg_id:
+                if len(msg['content']['payload']) > 0:
+                    # logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!msg")
+                    # logging.info(msg)
+                    logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
+                    # logging.info(msg['content']['payload'][0]['data']['text/plain'])
+                    raise gen.Return([msg['content']['payload'][0]['data']['text/plain']])   
+
+                logging.info("msg['content']['payload']:")
+                # logging.info(msg)
+                raise gen.Return(["OK"])
+                # TODO: msg_type of assign a var!!!!!!!!!!!!!!
+
+
+            if msg_type == 'display_data' and parent_msg_id == msg_id:
+                logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                raise gen.Return([msg['content']['data']['image/png'], "image"])
+                
+                # logging.info(msg)
+
+                # if msg['content']['data'].get('image/png') != None:
+                    
+                #     logging.info(msg['content']['data']['image/png'])
+                    
+                # else:
+
+
+
+
+            # except Exception as e:
+                # raise gen.Return("Read jupyter message error!")
+                # yield self.get_jupyter_ws()
+                # pass
