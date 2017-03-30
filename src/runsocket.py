@@ -1,18 +1,19 @@
+# -*- coding: utf-8 -*-
 
 import tornado.web
 import tornado.websocket
-import os.path
 import logging
+import os
 
 from uuid import uuid4
 from tornado.escape import json_encode, json_decode, url_escape
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from tornado.websocket import websocket_connect
 from tornado import gen
-
-from time import sleep
-
 from tornado.options import define, options
+
+from util import fileutil, scriptutil
+from func import *
 
 define("jport", default=8888, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
@@ -66,12 +67,12 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
 
         logging.info("got message %r", message)
-        parsed = tornado.escape.json_decode(message)
 
+        # 0. get parsed message
+        parsed = tornado.escape.json_decode(message)
         channel = parsed["channel"]
 
         run_results = {}
-
         run_results["content"] = ""
 
         # 1. get websocket from jupyter if not        
@@ -80,8 +81,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
-        if channel == "flow":
-            run_results["content"] = yield self.run_flow(parsed["flow"])
+        if channel == "run":
+            run_results["content"] = yield self.run_flow(parsed["run"])
 
         elif channel == "script":
             run_results["content"] = yield self.run_script(parsed["code"])
@@ -99,9 +100,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
 
-    @classmethod
+
     @gen.coroutine
-    def get_jupyter_ws(cls, user_id=None):
+    def get_jupyter_ws(self, user_id=None):
         """
         Get jupyter kernel websocket 
 
@@ -122,7 +123,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         if user_id != None:
             raise gen.Return()
         
-        if not cls.kernel_id:
+        if not self.kernel_id:
             logging.info("fetching!!!!!!!!!!")
             response = yield client.fetch(
                 '{}/api/kernels'.format(base_url),
@@ -132,16 +133,16 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 body=json_encode({'name' : options.lang})
             )
             kernel = json_decode(response.body)
-            cls.kernel_id = kernel['id']
+            self.kernel_id = kernel['id']
             logging.info(
                 '''Created kernel {0}. Connect other clients with the following command:
                 docker-compose run client --kernel-id={0}
-                '''.format(cls.kernel_id)
+                '''.format(self.kernel_id)
             )
             
         ws_req = HTTPRequest(url='{}/api/kernels/{}/channels'.format(
                 base_ws_url,
-                url_escape(cls.kernel_id)
+                url_escape(self.kernel_id)
             ),
             auth_username=auth_username,
             auth_password=auth_password
@@ -150,21 +151,38 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         ws = yield websocket_connect(ws_req)
         logging.info('Connected to kernel websocket')
 
-        cls.ws = ws
+        self.ws = ws
+
+        yield self.run_script(scriptutil.init_script())
+
         raise gen.Return()
 
-
     @gen.coroutine
-    def run_flow(self, shell):
-        logging.info("Running shell")
-        logging.info(shell)
+    def run_flow(self, flow):
+        logging.info("Running flow")
+        logging.info(flow)
         logging.info('Sending message ')
 
-        l = len(shell)
-        while l > 0:
-            l = l -1
-            yield "ok"
+        # TODO: run flow util stop/end
+        # l = len(shell)
+        # while l > 0:
+        #     l = l -1
+        #     yield "ok"
 
+        file_path = fileutil.get_path("user_info_train.txt")
+
+        head_user_info = ['id', 'gender', 'job', 'education', 'marital', 'household']
+
+        # 
+        logging.info(file_path)
+        logging.info(data.get_csv(file_path))
+
+
+        f1 = scriptutil.get_script(data.get_csv, None, "output_csv_1")
+
+        run_results = yield self.run_script(f1)
+
+        raise gen.Return(run_results)
 
     @gen.coroutine
     def run_script(self, script):
@@ -172,6 +190,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         Run script with jupyter kernel gateway
 
         """
+
         auth_username = "demouser"
         auth_password = "demopass"
 
@@ -244,6 +263,10 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
             if msg_type == 'execute_result' and parent_msg_id == msg_id:
                 logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
                 logging.info(msg['content']['data']['text/plain'])
+
+                if msg['content']['data'].get("text/html"):
+                    raise gen.Return([msg['content']['data']['text/html']])
+
                 raise gen.Return([msg['content']['data']['text/plain']])
 
             if msg_type == 'execute_reply' and parent_msg_id == msg_id:
@@ -263,7 +286,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
             if msg_type == 'display_data' and parent_msg_id == msg_id:
                 logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
                 raise gen.Return([msg['content']['data']['image/png'], "image"])
-                
+
+
+
                 # logging.info(msg)
 
                 # if msg['content']['data'].get('image/png') != None:

@@ -32,12 +32,13 @@ class Application(tornado.web.Application):
         )
         super(Application, self).__init__(handlers, **settings)
 
-        # init jupyter websocket
-        RunSocketHandler.get_jupyter_ws()
 
 
 class HomeHandler(tornado.web.RequestHandler):
     def get(self):
+
+        # TODO: manage session/kernel id
+
         self.render('topo.html') 
 
 

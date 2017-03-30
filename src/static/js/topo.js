@@ -161,8 +161,12 @@ function AddJsplumb(node, e) {
 function run() {
 	alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
 
+    var flow = {
+        "channel": "run",
+        "run": "tell me why..."
+    }
 
-
+    updater.socket.send(JSON.stringify(flow));
 }
 
 ///////////////////////////////////////////////////

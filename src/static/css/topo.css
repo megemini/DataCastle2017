@@ -29,6 +29,10 @@
 	padding-top: 40px;
 }
 
+.run_button:hover {
+    cursor: pointer;
+}
+
 .endpointSourceLabel {
 	z-index: 5000
 }
