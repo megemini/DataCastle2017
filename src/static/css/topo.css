@@ -29,9 +29,10 @@
 	padding-top: 40px;
 }
 
-.run_button:hover {
+.run_button :hover {
     cursor: pointer;
 }
+
 
 .endpointSourceLabel {
 	z-index: 5000
@@ -53,10 +54,15 @@
 
 
 .console-content {
-    white-space: pre-wrap;    
+    /*white-space: pre-wrap;    */
     height:820px;
     overflow: auto;
+    width: 100%
 
+}
+
+.console-div {
+	padding-top: 5px
 }
 /*.ep {
     position: absolute;

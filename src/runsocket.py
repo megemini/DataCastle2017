@@ -15,7 +15,7 @@ from tornado.options import define, options
 from util import fileutil, scriptutil
 from func import *
 
-define("jport", default=8889, help="jupyter kernel gateway port", type=int)
+define("jport", default=8888, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
 # define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
@@ -169,17 +169,26 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         #     l = l -1
         #     yield "ok"
 
+
+        # Get inputs from flow
+        # ALL inputs are STRING!!!
+
         file_path = fileutil.get_path("user_info_train.txt")
 
-        head_user_info = ['id', 'gender', 'job', 'education', 'marital', 'household']
+        head_user_info = "['id', 'gender', 'job', 'education', 'marital', 'household']"
 
         # 
         logging.info(file_path)
         logging.info(data.get_csv(file_path))
 
-        inputs = {"file": file_path}
+        inputs = {
+            'file': {'value': file_path, 'type': 's'}, 
+            # 'names': {'value': head_user_info, 'type': 'o'}
+            }
 
-        f1 = scriptutil.get_script(data.get_csv, inputs, "output_csv_1")
+        output = "output_csv_1"
+
+        f1 = scriptutil.get_script(data.get_csv, inputs, output)
 
         run_results = yield self.run_script(f1)
 
@@ -273,7 +282,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
                     logging.info(msg['content']['data']['text/plain'])
 
-                    if msg['content']['data']["text/html"] != None:
+                    # if there is text/html returned, then return this first, instead of text/plain
+                    if msg['content']['data'].get('text/html'):
                         raise gen.Return([msg['content']['data']['text/html']])
 
                     raise gen.Return([msg['content']['data']['text/plain']])

@@ -135,28 +135,26 @@ Node = {
 // 	}
 // };
 
-// var nodeList;
 
 
 
-function Node(argument) {
-	// body...
-}
+
+
 
 // inputs/outputs with endpoints, paras with default value and editable
-function NodeFactory(mainType, subType) {
-	this.nodeType = NodeTypeList[mainType][subType];
+// function NodeFactory(mainType, subType) {
+// 	this.nodeType = NodeTypeList[mainType][subType];
 
-	this.inputs = this.nodeType.inputs;
-	this.outputs = this.nodeType.outputs;
-	this.paras = this.nodeType.paras;
+// 	this.inputs = this.nodeType.inputs;
+// 	this.outputs = this.nodeType.outputs;
+// 	this.paras = this.nodeType.paras;
 
-	return node
-}
+// 	return node
+// }
 
-function AddJsplumb(node, e) {
-	// body...
-}
+// function AddJsplumb(node, e) {
+// 	// body...
+// }
 
 function run() {
 	alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
@@ -173,26 +171,166 @@ function run() {
 // add node
 
 var nodeCount = 0
+var nodeList = {
+    "Data": {
+        "File": {
+            count: 0,
+            },
+
+        "Merge": {
+            count: 0,
+            },
+        },
+    }
+
+var inputsList = {}
+var outputList = {}
+
+// Get node type list from server when init
+var nodeTypeList = {
+    "Data": {
+        "File": {
+            display: "File", 
+            description: "Read a data file as pandas dataframe. \n Inputs: - file: csv file \n - names: header names \n Output: pandas dataframe",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                func: {
+                    funcName: "get_csv",
+                    funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputsDefaults: ["None"], // used for edit paras
+                },
+                output:{
+                    name: null,
+                    content: null,
+                },
+            },
+        },
+
+        "Merge": {
+            display: "Merge", 
+            description: "Merge two data files by columns. \n Inputs: - file1: dataframe \n - file2: dataframe - by: columns \n Output: pandas dataframe",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                func: {
+                    funcName: "merge_df",
+                    funcInputs: ["file1", "file2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputsDefaults: ["id"], // used for edit paras
+                },
+                output:{
+                    name: null,
+                    content: null,
+                },                
+            },
+        },
+    },
+}
+
+
+// function initNodeList() {
+//     for (var i = nodeTypeList.length - 1; i >= 0; i--) {
+//         var mainType = nodeTypeList.mainType
+//         var subType = nodeTypeList.subType
+
+//         if (typeof nodeList[mainType] === "undefined" && nodeList[mainType] === null) {
+//             nodeList[mainType] = {}
+//         }
+
+//         if (typeof nodeList[mainType][subType] === "undefined" && nodeList[mainType][subType] === null) {
+//             nodeList[mainType][subType] = {}
+//             // count for node, in case of delete node, always + 1
+//             nodeList[mainType][subType].count = 0
+//         }
+        
+//     }
+// }
+
+function initNode(mainType, subType) {
+    var nodeId = nodeList[mainType][subType].count
+    nodeList[mainType][subType].count = nodeId + 1
+
+    var node = {}
+    node.name = mainType + subType + nodeId
+    var nodeName = node.name
+
+    node.mainType = mainType
+    node.subType = subType
+    node.inputs = []
+    node.outputName = "output" + nodeName
+    node.output = null
+
+    var funcInputs = nodeTypeList[mainType][subType].content.func.funcInputs
+    var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
+    var lenInputs = funcInputs.length
+    var lenInputsDefaults = funcInputsDefaults.length
+
+    node.inputsJs = []
+    for (var i = (lenInputs - lenInputsDefaults) - 1; i >= 0; i--) {
+        node.inputsJs[i] = {}
+        node.inputsJs[i].name = funcInputs[i]
+        node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
+    }
+
+    nodeList[mainType][subType][nodeName] = node
+
+    return node
+} 
+
+function editNodeInputs(node, inputs) {
+    var mainType = node.mainType
+    var subType = node.subType
+    var nodeName = node.name
+    nodeList[mainType][subType][nodeName].inputs = inputs
+}
+
+function editNodeOutputName(node, outputName) {
+    var mainType = node.mainType
+    var subType = node.subType
+    var nodeName = node.name
+    nodeList[mainType][subType][nodeName].outputName = outputName
+}
+
+function editNodeOutput(node, output) {
+    var mainType = node.mainType
+    var subType = node.subType
+    var nodeName = node.name
+    nodeList[mainType][subType][nodeName].output = output
+}
+
+function deleteNode(node) {
+    var mainType = node.mainType
+    var subType = node.subType
+    var nodeName = node.name
+    nodeList[mainType][subType][nodeName] = null
+}
 
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
 
     // offset of cursor
-    diffX = 12.5 * 16 / 2
-    diffY = 4 * 16 / 2
+    var diffX = 12.5 * 16 / 2
+    var diffY = 4 * 16 / 2
 
-    X = $('#canvas').offset().left + diffX
-    Y = $('#accordion').offset().top + diffY
+    var X = $('#canvas').offset().left + diffX
+    var Y = $('#accordion').offset().top + diffY
 
-    node = {
-        id: "node" + nodeCount,
-        inputs: [{id:nodeCount + "1", name:"input1"}, {id:nodeCount + "2", name:"input2"}],
-        output: [{id:nodeCount + "1", name:"output"}]
+    // 0. add node info to node list
+    var newNode = initNode(mainType, subType)
+
+    // 1. add node for jsplumb at canvas
+    var node = {
+        id: newNode.name,
+        inputs: newNode.inputsJs,
+        output: [{id:newNode.outputName, name: newNode.outputName}]
     }
 
-    nodeCount = nodeCount + 1
-
     jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, node);
+
+    // 2. add description/inputs/output at console
+
 
 }
 
@@ -221,6 +359,11 @@ $(document).ready(function() {
     // $("#message").select();
     updater.start();
 
+
+
+    // TODO: init node type list & node list from server
+
+    // TODO: from node type list, generate node tree
 
 });
 
@@ -258,7 +401,7 @@ var updater = {
         alert(message.html);
         var node = $(message.html);
         $("#console").remove()
-        $("#console-div").append(node);
+        $("#console-output").append(node);
         node.slideDown();
     }
 };

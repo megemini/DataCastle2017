@@ -126,7 +126,7 @@
                 <div class="input-group">
                     <input type="text" class="form-control" name="code">
                     <span class="input-group-btn">
-                        <button class="btn btn-default" type="submit" >Go!</button>
+                        <button class="btn btn-default" type="submit" >Go</button>
                     </span>
                     <input type="hidden" name="channel" value="script">
 
@@ -134,10 +134,56 @@
         </div><!-- /.row -->
         {% module xsrf_form_html() %}	
     </form>
-</div>
 
-<div id="console-div">
-	
+	<div id="console-div" class="row console-div">
+		<div class="panel-group" id="accordion-console">
+			<div class="panel panel-default" id="description">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion-console" 
+						   href="#collapse-description">
+							<h4><strong>Description</strong></h4>
+						</a>
+					</h4>
+				</div>
+				<div id="collapse-description" class="panel-collapse collapse in">
+					<div class="panel-body" id="func-description">
+						Add File 
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion-console" 
+						   href="#collapse-inputs">
+							<h4><strong>Inputs</strong></h4>
+						</a>
+					</h4>
+				</div>
+				<div id="collapse-inputs" class="panel-collapse collapse">
+					<div class="panel-body" id="func-inputs">
+						input1, input2
+					</div>
+				</div>
+			</div>
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4 class="panel-title">
+						<a data-toggle="collapse" data-parent="#accordion-console" 
+						   href="#collapse-output">
+							<h4><strong>Output</strong></h4>
+						</a>
+					</h4>
+				</div>
+				<div id="collapse-output" class="panel-collapse collapse">
+					<div class="panel-body" id="func-inputs">
+						output
+						<div id="console-output"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
-
 {% end %}
