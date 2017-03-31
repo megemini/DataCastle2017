@@ -7,7 +7,7 @@
 """
 import pandas as pd
 
-def get_csv(file, names=None):
+def get_csv(file="user_info_train.txt", names=None):
 	"""
 	get csv use pandas
 	"""

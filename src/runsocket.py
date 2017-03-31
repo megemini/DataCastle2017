@@ -15,7 +15,7 @@ from tornado.options import define, options
 from util import fileutil, scriptutil
 from func import *
 
-define("jport", default=8888, help="jupyter kernel gateway port", type=int)
+define("jport", default=8889, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
 # define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 

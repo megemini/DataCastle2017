@@ -131,7 +131,9 @@ jsPlumb.ready(function () {
     // });
 
     jsPlumb.on($("#canvas"), "click", ".nodeForEvent", function (e) {
-        // alert("click node -- show node info")
+        // alert(e.srcElement.id)
+        var node = getNodeById(e.srcElement.id)
+        showNodeInfo(node)
     });
 
     // // click listener for enable/disable in the small green boxes

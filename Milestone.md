@@ -16,7 +16,7 @@
 ## 2017/03/28
 - [x] Web <-> management server <-> Jupyter kernel gateway
 - [x] Drag & Drop add one node
-- [ ] Node Structure with inputs & output, labels, close(x) button
+- [x] Node Structure with inputs & output, labels, close(x) button
 - [X] Chart: read image from jupyter
 - [ ] Run & Stop
 - [ ] Run flow with running scripts one-by-one
@@ -26,6 +26,8 @@
 - [ ] Table style
 - [ ] Float/drag console div
 - [ ] Code style/highlight
+- [x] Console description/inputs/output
+- [x] With Node structure, create node/jsplumb.
 
 ## 2017/4/3
 

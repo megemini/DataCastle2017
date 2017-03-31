@@ -183,6 +183,8 @@ var nodeList = {
         },
     }
 
+var nodeListByName = {}
+var connectList = {}
 var inputsList = {}
 var outputList = {}
 
@@ -199,7 +201,8 @@ var nodeTypeList = {
                 func: {
                     funcName: "get_csv",
                     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                    funcInputsDefaults: ["None"], // used for edit paras
+                    funcInputsCount: 0,
+                    funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
                 },
                 output:{
                     name: null,
@@ -218,6 +221,7 @@ var nodeTypeList = {
                 func: {
                     funcName: "merge_df",
                     funcInputs: ["file1", "file2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputsCount: 2,
                     funcInputsDefaults: ["id"], // used for edit paras
                 },
                 output:{
@@ -258,23 +262,28 @@ function initNode(mainType, subType) {
 
     node.mainType = mainType
     node.subType = subType
-    node.inputs = []
+    node.inputs = [] // save up node's output
     node.outputName = "output" + nodeName
     node.output = null
 
     var funcInputs = nodeTypeList[mainType][subType].content.func.funcInputs
     var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
-    var lenInputs = funcInputs.length
-    var lenInputsDefaults = funcInputsDefaults.length
+    var funcInputsCount = nodeTypeList[mainType][subType].content.func.funcInputsCount
 
+    node.funcInputs = funcInputs
+    node.funcInputsCount = funcInputsCount
+    node.funcInputsDefaults = funcInputsDefaults
+    // inputs.length === inputsjs.length then could recursive run flow
     node.inputsJs = []
-    for (var i = (lenInputs - lenInputsDefaults) - 1; i >= 0; i--) {
+    for (var i = funcInputsCount - 1; i >= 0; i--) {
         node.inputsJs[i] = {}
         node.inputsJs[i].name = funcInputs[i]
         node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
     }
 
     nodeList[mainType][subType][nodeName] = node
+    nodeListByName[nodeName] = node
+
 
     return node
 } 
@@ -330,8 +339,82 @@ function addNode(mainType, subType, e) {
     jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, node);
 
     // 2. add description/inputs/output at console
+    showNodeInfo(newNode)
+}
+
+function getNodeById(id) {
+    return getNodeByName(id)
+}
+
+function getNodeByName(name) {
+    return nodeListByName[name]
+}
+
+function showNodeInfo(node) {
+    showDescription(node)
+    showInputs(node)
+    showOutput(node)
+}
+
+function showDescription(node) {
+    // TODO:
+}
+
+function showInputs(node) {
+    $("#func-inputs").empty()
+
+    for (var i = node.funcInputsDefaults.length - 1; i >= 0; i--) {
+        var d = document.createElement("div")
+        d.className = "input-group"
+
+        var s = document.createElement("span")
+        s.className = "input-group-addon"
+        s.innerHTML = node.funcInputs[node.funcInputsCount + i]
+
+        var t = document.createElement("input")
+        t.type = "text"
+        t.className = "form-control"
+        t.value = node.funcInputsDefaults[i]
+
+        d.append(s)
+        d.append(t)
+
+        $("#func-inputs").append(d)
+    }
+}
+
+function showOutput(node) {
+    $("#func-output").empty()
+    var d = document.createElement("div")
+    d.className = "input-group"
+
+    var s = document.createElement("span")
+    s.className = "input-group-addon"
+    s.innerHTML = "Output Name"
+
+    var t = document.createElement("input")
+    t.type = "text"
+    t.className = "form-control"
+    t.value = node.outputName
+    t.onclick = "clicktext()"
+
+    // TODO: bind event to input property change or make a button
+    t.id = "asdfasdfasdfafd"
+
+    $("asdfasdfasdfafd").live('input propertychange', function() {
+        alert("asdfasdfasdfasd")
+        alert($(this).val())
+    });
 
 
+    d.append(s)
+    d.append(t)
+
+    $("#func-output").append(d)
+}
+
+function clicktext() {
+    alert("asdfasdf")
 }
 
 function showHelp(mainType, subType) {
