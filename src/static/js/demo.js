@@ -130,19 +130,79 @@ jsPlumb.ready(function () {
     //     jsPlumbUtil.consume(e);
     // });
 
+    // click node event
     jsPlumb.on($("#canvas"), "click", ".nodeForEvent", function (e) {
-        // alert(e.srcElement.id)
+
+        if (typeof e.srcElement.id === "undefined" || e.srcElement.id === null || e.srcElement.id == "") {
+            // alert("nothing")
+            return
+        } 
+
+        // alert("e.srcElement.id" + e.srcElement.id)
         var node = getNodeById(e.srcElement.id)
-        showNodeInfo(node)
+
+        if (typeof node === "undefined" || node === null) {
+            clearNodeInfo()
+        }
+        else {
+            showNodeInfo(node)
+
+        }
+
+        // console.log(node)
+
+        // TODO: get all nodes connected TO this node show connected nodes
+        jsplumbUtils.getUpNodes(e.srcElement.id)
+
+        // instance.selectEndpoints({target:e.srcElement.id}).each(function(endpoint) {
+
+        //     // console.log(endpoint)
+
+        //     // endpoint.connections[i].sourceId is node name of source/output
+        //     for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+        //         console.log("Show up node")
+        //         console.log(endpoint.connections[i].sourceId)
+        //     }
+        //     // 
+
+        // })
+
+        // TODO: get all nodes connected FROM this node show connected nodes
+        jsplumbUtils.getDownNodes(e.srcElement.id)
+        // instance.selectEndpoints({source:e.srcElement.id}).each(function(endpoint) {
+
+        //     // console.log(endpoint)
+
+        //     // endpoint.connections[i].sourceId is node name of source/output
+        //     for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+        //         console.log("Show down node")
+        //         console.log(endpoint.connections[i].targetId)
+        //     }
+        //     // 
+
+        // })
+
+        currentNodeId = e.srcElement.id
+
+        jsPlumbUtil.consume(e);
+
     });
 
     // // click listener for enable/disable in the small green boxes
     jsPlumb.on($("#canvas"), "click", ".closeNode", function (e) {
+        
+
         var targetDiv = (e.target || e.srcElement).parentNode;
         // console.log(e)
         // console.log("targetDiv " + targetDiv.id)
 
         toId = targetDiv.id
+
+        // clear current node id and clear node info from console
+        if (currentNodeId == toId) {
+            currentNodeId = null
+            clearNodeInfo()
+        }
 
         // var targetAnchors = sourceList.toId
         // var sourceAnchors = targetList.toId
@@ -166,7 +226,7 @@ jsPlumb.ready(function () {
         // var state = instance.toggleTargetEnabled(targetDiv);
         // this.innerHTML = (state ? "disable" : "enable");
         // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
-        alert("close")
+        alert("close and current node id is " + currentNodeId)
 
         jsPlumbUtil.consume(e);
     });
@@ -179,6 +239,13 @@ jsPlumb.ready(function () {
 
     // connection func
     instance.bind("connection", function (connInfo, originalEvent) {
+
+        // TODO: if source and target not same, then detach
+        if (false) {
+            instance.detach(connInfo.connection);
+            return 
+        }
+
         if (typeof console !== "undefined")
             console.log("connection", connInfo.connection);
 
@@ -270,6 +337,50 @@ jsPlumb.ready(function () {
     }
 
     window.jsplumbUtils = {
+
+        getUpNodes: function (nodeName) {
+            var upList = []
+
+            instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show up node")
+                    console.log(endpoint.connections[i].sourceId)
+                    upList.push(endpoint.connections[i].sourceId)
+                }
+                // 
+                
+
+            })
+
+            return upList
+        },
+
+        getDownNodes: function (nodeName) {
+            var downList = []
+
+            instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show down node")
+                    console.log(endpoint.connections[i].targetId)
+                    downList.push(endpoint.connections[i].targetId)
+                }
+                // 
+                
+
+            })
+
+            return downList
+        },
 
         initNode: function(el, node) {
 
@@ -368,7 +479,7 @@ jsPlumb.ready(function () {
             d.className = "window smallWindow nodeForEvent";
             d.id = node.id;
             // d.innerHTML = node.id + "<img class=\"enableDisableTarget\" src=\"../static/img/close.png\">";
-            d.innerHTML = node.id + "<img class=\"closeNode\" src=\"../static/img/close.png\">";
+            d.innerHTML = node.name + "<img class=\"closeNode\" src=\"../static/img/close.png\">";
             d.style.left = x + "px";
             d.style.top = y + "px";
             instance.getContainer().appendChild(d);

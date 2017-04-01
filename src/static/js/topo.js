@@ -159,18 +159,101 @@ Node = {
 function run() {
 	alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
 
+    // TODO: test for down side nodes idle
+    // for (var key in nodeListByName)  {
+    //     console.log(nodeListByName[key])
+    // }
+
+    // return
+
+    // 0. check current node to run
+    if (currentNodeId == null) {
+        alert("Please choose a node!")
+        return 
+    }
+
+    // TODO: unshift up nodes until all is start node!!!
+    var runNodesList = []
+
+    var node = getNodeById(currentNodeId)
+
+    if (!isStartNode(node)) {
+        var upList = getUpNodes(node.name)
+
+    }
+
+
+    
+    if (!upList.isStartNode) 
+
+
+    // function setDownNodesIdle(nodeName) {
+    //     var downList = getDownNodes(nodeName)
+    //     console.log("Show down list from setDownNodesIdle")
+    //     console.log(downList)
+
+    //     // recursive set node down to idle
+    //     if (downList.length > 0) {
+    //         for (var i = downList.length - 1; i >= 0; i--) {
+    //             setDownNodesIdle(downList[i])
+    //         }
+    //     }
+
+    //     getNodeByName(nodeName).status = STATUS.IDLE
+
+    //     return true
+    // }
+
+
+
+
+    var test = function () {
+        alert("test")
+    }
+
+    // 1. get nodes downside-up
+    for (var i = Things.length - 1; i >= 0; i--) {
+        Things[i]
+    }
+
+    // 2. run nodes upside-down, one-by-one
+
     var flow = {
         "channel": "run",
         "run": "tell me why..."
     }
 
-    updater.socket.send(JSON.stringify(flow));
+    alert("current node is " + currentNodeId)
+
+    // updater.socket.send(JSON.stringify(flow));
+}
+
+function runOneStep(node) {
+    if (node.status == STATUS.DONE) {
+        return true
+    }
+
+
+}
+
+function isStartNode(node) {
+    if (node.inputsJs.length == 0) {
+        return true
+    }
+    else {
+        return false
+    }
+}
+
+function isEndNode(node) {
+    // TODO: 
+    return false
 }
 
 ///////////////////////////////////////////////////
 // add node
 
-var nodeCount = 0
+// var nodeCount = 0
 var nodeList = {
     "Data": {
         "File": {
@@ -184,9 +267,17 @@ var nodeList = {
     }
 
 var nodeListByName = {}
-var connectList = {}
-var inputsList = {}
-var outputList = {}
+// var connectList = {}
+// var inputsList = {}
+// var outputList = {}
+var currentNodeId = null
+
+
+var STATUS = {
+    IDLE : 0,
+    BUSY : 1,
+    DONE : 2,
+}
 
 // Get node type list from server when init
 var nodeTypeList = {
@@ -287,6 +378,9 @@ function initNode(mainType, subType) {
         node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
     }
 
+    node.status = STATUS.IDLE
+    // node.status = STATUS.BUSY
+
     nodeList[mainType][subType][nodeName] = node
     nodeListByName[nodeName] = node
 
@@ -338,6 +432,7 @@ function addNode(mainType, subType, e) {
     // 1. add node for jsplumb at canvas
     var node = {
         id: newNode.name,
+        name: subType,
         inputs: newNode.inputsJs,
         output: [{id:newNode.outputName, name: newNode.outputName}]
     }
@@ -346,6 +441,15 @@ function addNode(mainType, subType, e) {
 
     // 2. add description/inputs/output at console
     showNodeInfo(newNode)
+
+    // 3. set current node is this
+    currentNodeId = newNode.name
+}
+
+function clearNodeInfo() {
+    $("#func-description").empty()
+    $("#func-inputs").empty()
+    $("#func-output").empty()
 }
 
 function getNodeById(id) {
@@ -394,6 +498,9 @@ function showInputs(node) {
             // console.log(e)
             var notIdLength = (node.name + "input").length
             node.funcInputsDefaults[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+
+            // change all nodes downside of status idle
+            setDownNodesIdle(node.name)
         });
 
         d.append(s)
@@ -422,6 +529,9 @@ function showOutput(node) {
         // console.log(e)
         node.outputName = $(this).val()
         // console.log(node)
+
+        // change all nodes downside of status idle
+        setDownNodesIdle(node.name)
     });
 
     d.append(s)
@@ -430,6 +540,30 @@ function showOutput(node) {
     $("#func-output").append(d)
 }
 
+function getUpNodes(nodeName) {
+    return jsplumbUtils.getUpNodes(nodeName)
+}
+
+function getDownNodes(nodeName) {
+    return jsplumbUtils.getDownNodes(nodeName)
+}
+
+function setDownNodesIdle(nodeName) {
+    var downList = getDownNodes(nodeName)
+    console.log("Show down list from setDownNodesIdle")
+    console.log(downList)
+
+    // recursive set node down to idle
+    if (downList.length > 0) {
+        for (var i = downList.length - 1; i >= 0; i--) {
+            setDownNodesIdle(downList[i])
+        }
+    }
+
+    getNodeByName(nodeName).status = STATUS.IDLE
+
+    return true
+}
 
 function showHelp(mainType, subType) {
     $("#func-description").empty()
