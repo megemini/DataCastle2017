@@ -157,7 +157,7 @@ Node = {
 // }
 
 function run() {
-	alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
+    alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
 
     // TODO: test for down side nodes idle
     // for (var key in nodeListByName)  {
@@ -166,47 +166,90 @@ function run() {
 
     // return
 
+    // 0. switch run/stop
+    if (currentStatus == STATUS.IDLE) {
+        currentStatus = STATUS.BUSY
+        runFlow()
+    }
+    else {
+        stopFlow()
+    }
+}
+
+function runFlow() {
     // 0. check current node to run
     if (currentNodeId == null) {
         alert("Please choose a node!")
-        return 
+        currentStatus = STATUS.IDLE
+        return true
     }
 
     // TODO: unshift up nodes until all is start node!!!
-    var runNodesList = []
-
     var node = getNodeById(currentNodeId)
 
-    if (!isStartNode(node)) {
-        var upList = getUpNodes(node.name)
-
+    // 1. this node is done, then just show the info
+    if (node.status == STATUS.DONE) {
+        showNodeInfo(node)
+        currentStatus = STATUS.IDLE
+        return true
     }
 
+    // 2. this node is idle, need run 
+    // 2.1 recursive get run flow node list
+    var runNodesList = []
+    var runQueue = []
+    runQueue.push(node)
+    runNodesList.unshift(node)
+    var enqueueFlag = true
+    while (!(runQueue.length == 0)) {
+        var n = runQueue.shift()
+        
 
-    
-    if (!upList.isStartNode) 
+        var upList = getUpNodes(n.name)
 
+        // console.log("shift node is ")
+        // console.log(n)
+        // console.log("uplist ")
+        // console.log(upList)
 
-    // function setDownNodesIdle(nodeName) {
-    //     var downList = getDownNodes(nodeName)
-    //     console.log("Show down list from setDownNodesIdle")
-    //     console.log(downList)
+        if (upList.length != n.inputsJs.length) {
+            enqueueFlag = false
+            runQueue = []
+            break
+        }
 
-    //     // recursive set node down to idle
-    //     if (downList.length > 0) {
-    //         for (var i = downList.length - 1; i >= 0; i--) {
-    //             setDownNodesIdle(downList[i])
-    //         }
-    //     }
+        for (var i = upList.length - 1; i >= 0; i--) {
+            var upNode = getNodeById(upList[i])
 
-    //     getNodeByName(nodeName).status = STATUS.IDLE
+            // TODO: need not use found... enqueue all the input, and uplift the input
+            // when run node, if already done, then ignore
+            // but, what if cycle?
+            if (upNode.status == STATUS.IDLE && !upNode.found) {
+                upNode.found = true
+                runQueue.push(upNode)
+                runNodesList.unshift(upNode)
+            }
+        }
 
-    //     return true
-    // }
+        // console.log(runQueue.length)
+    }
 
+    if (!enqueueFlag) {
+        showNodeInfo(node)
+        currentStatus = STATUS.IDLE
+        alert("Some nodes need inputs! Please check!")
+        return true
+    }
 
+    console.log("run nodes list is ")
+    console.log(runNodesList)
 
+    currentStatus = STATUS.IDLE
 
+    return
+    // 2.2 get enqueue list then change icon to stop
+
+    // 2.3 run nodes upside-down, one-by-one
     var test = function () {
         alert("test")
     }
@@ -216,7 +259,6 @@ function run() {
         Things[i]
     }
 
-    // 2. run nodes upside-down, one-by-one
 
     var flow = {
         "channel": "run",
@@ -226,6 +268,10 @@ function run() {
     alert("current node is " + currentNodeId)
 
     // updater.socket.send(JSON.stringify(flow));
+}
+
+function stopFlow() {
+
 }
 
 function runOneStep(node) {
@@ -272,12 +318,13 @@ var nodeListByName = {}
 // var outputList = {}
 var currentNodeId = null
 
-
 var STATUS = {
     IDLE : 0,
     BUSY : 1,
     DONE : 2,
 }
+
+var currentStatus = STATUS.IDLE
 
 // Get node type list from server when init
 var nodeTypeList = {
@@ -380,6 +427,7 @@ function initNode(mainType, subType) {
 
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
+    node.found = false
 
     nodeList[mainType][subType][nodeName] = node
     nodeListByName[nodeName] = node
