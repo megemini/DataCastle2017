@@ -6,7 +6,8 @@ Script util
 
 """
 import logging
-from util import funcutil
+# from util 
+import funcutil
 
 def get_script(func, inputs, output):
 	"""

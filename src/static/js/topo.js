@@ -193,7 +193,7 @@ var nodeTypeList = {
     "Data": {
         "File": {
             display: "File", 
-            description: "Read a data file as pandas dataframe. \n Inputs: - file: csv file \n - names: header names \n Output: pandas dataframe",
+            description: "Read a data file as pandas dataframe. \n Inputs: \n - file: csv file \n - names: header names \n Output: pandas dataframe",
             content: {
                 // 1. basic infomation, from user edit
                 name: null, // name for save this node
@@ -213,7 +213,7 @@ var nodeTypeList = {
 
         "Merge": {
             display: "Merge", 
-            description: "Merge two data files by columns. \n Inputs: - file1: dataframe \n - file2: dataframe - by: columns \n Output: pandas dataframe",
+            description: "Merge two data files by columns. \n Inputs: \n - file1: dataframe \n - file2: dataframe - by: columns \n Output: pandas dataframe",
             content: {
                 // 1. basic infomation, from user edit
                 name: null,
@@ -267,12 +267,18 @@ function initNode(mainType, subType) {
     node.output = null
 
     var funcInputs = nodeTypeList[mainType][subType].content.func.funcInputs
-    var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
     var funcInputsCount = nodeTypeList[mainType][subType].content.func.funcInputsCount
+    var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
+    var description = nodeTypeList[mainType][subType].description
+    var display = nodeTypeList[mainType][subType].display
 
-    node.funcInputs = funcInputs
+    node.funcInputs = funcInputs.slice(0)
     node.funcInputsCount = funcInputsCount
-    node.funcInputsDefaults = funcInputsDefaults
+    node.funcInputsDefaults = funcInputsDefaults.slice(0)
+
+    node.display = display
+    node.description = description
+
     // inputs.length === inputsjs.length then could recursive run flow
     node.inputsJs = []
     for (var i = funcInputsCount - 1; i >= 0; i--) {
@@ -357,7 +363,14 @@ function showNodeInfo(node) {
 }
 
 function showDescription(node) {
-    // TODO:
+    // TODO:func-description
+    $("#func-description").empty()
+    var d = document.createElement("pre")
+
+    d.innerHTML = node.description
+
+    $("#func-description").append(d)
+
 }
 
 function showInputs(node) {
@@ -375,6 +388,13 @@ function showInputs(node) {
         t.type = "text"
         t.className = "form-control"
         t.value = node.funcInputsDefaults[i]
+        t.id = node.name + "input" + i
+
+        $(t).on('change', function(e) {
+            // console.log(e)
+            var notIdLength = (node.name + "input").length
+            node.funcInputsDefaults[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+        });
 
         d.append(s)
         d.append(t)
@@ -396,16 +416,13 @@ function showOutput(node) {
     t.type = "text"
     t.className = "form-control"
     t.value = node.outputName
-    t.onclick = "clicktext()"
+    t.id = node.name + "output"
 
-    // TODO: bind event to input property change or make a button
-    t.id = "asdfasdfasdfafd"
-
-    $("asdfasdfasdfafd").live('input propertychange', function() {
-        alert("asdfasdfasdfasd")
-        alert($(this).val())
+    $(t).on('change', function(e) {
+        // console.log(e)
+        node.outputName = $(this).val()
+        // console.log(node)
     });
-
 
     d.append(s)
     d.append(t)
@@ -413,12 +430,19 @@ function showOutput(node) {
     $("#func-output").append(d)
 }
 
-function clicktext() {
-    alert("asdfasdf")
-}
 
 function showHelp(mainType, subType) {
-    alert(mainType)
+    $("#func-description").empty()
+    $("#func-inputs").empty()
+    $("#func-output").empty()
+
+    var d = document.createElement("pre")
+
+    d.innerHTML = nodeTypeList[mainType][subType].description
+
+    $("#func-description").append(d)
+
+
 }
 
 /////////////////////////////////////////////////////
