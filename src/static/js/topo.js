@@ -195,6 +195,10 @@ function runFlow() {
     }
 
     // 2. this node is idle, need run 
+    // 2.0 check circle!!!
+
+
+
     // 2.1 recursive get run flow node list
     var runNodesList = []
     var runQueue = []
@@ -224,8 +228,7 @@ function runFlow() {
             // TODO: need not use found... enqueue all the input, and uplift the input
             // when run node, if already done, then ignore
             // but, what if cycle?
-            if (upNode.status == STATUS.IDLE && !upNode.found) {
-                upNode.found = true
+            if (upNode.status == STATUS.IDLE) {
                 runQueue.push(upNode)
                 runNodesList.unshift(upNode)
             }
