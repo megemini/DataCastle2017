@@ -176,11 +176,15 @@ function run() {
     }
 }
 
+// set runNodesList as global var
+var runNodesList = []
 function runFlow() {
+    runNodesList = []
+
     // 0. check current node to run
     if (currentNodeId == null) {
         alert("Please choose a node!")
-        currentStatus = STATUS.IDLE
+        runFlowDone()
         return true
     }
 
@@ -190,7 +194,7 @@ function runFlow() {
     // 1. this node is done, then just show the info
     if (node.status == STATUS.DONE) {
         showNodeInfo(node)
-        currentStatus = STATUS.IDLE
+        runFlowDone()
         return true
     }
 
@@ -200,7 +204,6 @@ function runFlow() {
 
 
     // 2.1 recursive get run flow node list
-    var runNodesList = []
     var runQueue = []
     runQueue.push(node)
     runNodesList.unshift(node)
@@ -239,7 +242,7 @@ function runFlow() {
 
     if (!enqueueFlag) {
         showNodeInfo(node)
-        currentStatus = STATUS.IDLE
+        runFlowDone()
         alert("Some nodes need inputs! Please check!")
         return true
     }
@@ -248,37 +251,20 @@ function runFlow() {
     console.log(runNodesList)
 
 
-    // 2.2 get enqueue list then change icon to stop, and change nodes color
-
+    // 2.2 get enqueue list then change icon to stop
     $("#run_button_img").attr("src", "../static/img/stop.png"); 
 
-    var n = runNodesList[0].name
-    var nId = "#"+n
-    $(nId).css("background-color", COLORSTATUS.WAIT)
-    // $(nId).css("border", "4px dotted #346789")
+    // 2.3 change nodes color for wait
+    for (var i = runNodesList.length - 1; i >= 0; i--) {
+        setNodeRunStatus(runNodesList[i].name, STATUS.WAIT)
+    }
 
-    currentStatus = STATUS.IDLE
+    runFlowDone()
 
     return
-    // 2.3 run nodes upside-down, one-by-one
-    var test = function () {
-        alert("test")
-    }
-
-    // 1. get nodes downside-up
-    for (var i = Things.length - 1; i >= 0; i--) {
-        Things[i]
-    }
-
-
-    var flow = {
-        "channel": "run",
-        "run": "tell me why..."
-    }
-
-    alert("current node is " + currentNodeId)
-
-    // updater.socket.send(JSON.stringify(flow));
+    // 2.4 run nodes upside-down, one-by-one
+    runOneStep(runNodesList[0])
+    
 }
 
 function stopFlow() {
@@ -286,11 +272,41 @@ function stopFlow() {
 }
 
 function runOneStep(node) {
+
     if (node.status == STATUS.DONE) {
+        
         return true
     }
 
 
+    // updater.socket.send(JSON.stringify(flow));
+}
+
+function runFlowDone() {
+    currentStatus = STATUS.IDLE
+    
+}
+
+function setNodeRunStatus(nodeName, status) {
+    var nId = "#" + nodeName
+    if (status == STATUS.WAIT) {
+        $(nId).css("background-color", COLORSTATUS.WAIT)
+
+    }
+    else if (status == STATUS.BUSY) {
+        $(nId).css("background-color", COLORSTATUS.BUSY)
+
+    }
+    else if (status == STATUS.DONE) {
+        $(nId).css("background-color", COLORSTATUS.DONE)
+
+    }
+    else if (status == STATUS.IDLE) {
+        $(nId).css("background-color", COLORSTATUS.IDLE)
+
+    }
+    
+    
 }
 
 function isStartNode(node) {
@@ -305,6 +321,26 @@ function isStartNode(node) {
 function isEndNode(node) {
     // TODO: 
     return false
+}
+
+function setCurrentNode(nodeId) {
+    $("#"+currentNodeId).css("box-shadow", "")
+    $("#"+currentNodeId).css("-o-box-shadow", "")
+    $("#"+currentNodeId).css("-webkit-box-shadow", "")
+    $("#"+currentNodeId).css("-moz-box-shadow", "")
+
+    currentNodeId = nodeId
+
+    if (nodeId == "" || nodeId == null) {
+
+    }
+    else {
+
+        $("#"+currentNodeId).css("box-shadow", "2px 2px 12px #444")
+        $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 12px #444")
+        $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 12px #444")
+        $("#"+currentNodeId).css("-moz-box-shadow", "2px 2px 12px #fff")
+    }
 }
 
 ///////////////////////////////////////////////////
@@ -528,7 +564,8 @@ function addNode(mainType, subType, e) {
     showNodeInfo(newNode)
 
     // 3. set current node is this
-    currentNodeId = newNode.name
+    setCurrentNode(newNode.name)
+    
 }
 
 function clearNodeInfo() {

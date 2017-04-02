@@ -2,3 +2,5 @@
 ## 2017/3/23
 
 **MARS(Machine Assited Recognition System)**
+
+> jupyter kernelgateway --port 8009

@@ -139,7 +139,8 @@ jsPlumb.ready(function () {
         } 
 
         // alert("e.srcElement.id" + e.srcElement.id)
-        var node = getNodeById(e.srcElement.id)
+        var nodeId = e.srcElement.id
+        var node = getNodeById(nodeId)
 
         if (typeof node === "undefined" || node === null) {
             clearNodeInfo()
@@ -152,7 +153,7 @@ jsPlumb.ready(function () {
         // console.log(node)
 
         // TODO: get all nodes connected TO this node show connected nodes
-        jsplumbUtils.getUpNodes(e.srcElement.id)
+        jsplumbUtils.getUpNodes(nodeId)
 
         // instance.selectEndpoints({target:e.srcElement.id}).each(function(endpoint) {
 
@@ -168,7 +169,7 @@ jsPlumb.ready(function () {
         // })
 
         // TODO: get all nodes connected FROM this node show connected nodes
-        jsplumbUtils.getDownNodes(e.srcElement.id)
+        jsplumbUtils.getDownNodes(nodeId)
         // instance.selectEndpoints({source:e.srcElement.id}).each(function(endpoint) {
 
         //     // console.log(endpoint)
@@ -182,7 +183,12 @@ jsPlumb.ready(function () {
 
         // })
 
-        currentNodeId = e.srcElement.id
+
+
+        setCurrentNode(nodeId)
+
+
+
         console.log("current node is " + currentNodeId)
 
         jsPlumbUtil.consume(e);
@@ -201,7 +207,10 @@ jsPlumb.ready(function () {
 
         // clear current node id and clear node info from console
         if (currentNodeId == toId) {
-            currentNodeId = null
+            // currentNodeId = null
+
+            setCurrentNode(null)
+
             clearNodeInfo()
         }
 
@@ -485,7 +494,7 @@ jsPlumb.ready(function () {
             var d = document.createElement("div");
             d.className = "window smallWindow nodeForEvent";
             d.id = node.id;
-            d.innerHTML = node.name + "<img class=\"closeNode\" src=\"../static/img/close.png\">";
+            d.innerHTML = node.name + "<img class='closeNode' src='../static/img/close.png'>";
             d.style.left = x + "px";
             d.style.top = y + "px";
             instance.getContainer().appendChild(d);
