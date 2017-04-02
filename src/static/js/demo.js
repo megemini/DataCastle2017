@@ -90,14 +90,14 @@ jsPlumb.ready(function () {
         hoverPaintStyle: endpointHoverStyle,
         connectorHoverStyle: connectorHoverStyle,
         dragOptions: {},
-        overlays: [
-        [ "Label", {
-            location: [0.5, 2],
-            label: "Drag",
-            cssClass: "endpointSourceLabel",
-            visible:true
-        } ]
-        ],
+        // overlays: [
+        // [ "Label", {
+        //     location: [0.5, 2],
+        //     label: "Drag",
+        //     cssClass: "endpointSourceLabel",
+        //     visible:true
+        // } ]
+        // ],
     };
     // the definition of target endpoints (will appear when the user drags a connection)
     // target --> input
@@ -111,13 +111,13 @@ jsPlumb.ready(function () {
         maxConnections: 1,
         dropOptions: { hoverClass: "hover", activeClass: "active" },
         isTarget: true,
-        overlays: [
-        [ "Label", { 
-            location: [0.5, -1], 
-            label: "Drop", 
-            cssClass: "endpointTargetLabel", 
-            visible:true } ]
-        ]
+        // overlays: [
+        // [ "Label", { 
+        //     location: [0.5, -1], 
+        //     label: "Drop", 
+        //     cssClass: "endpointTargetLabel", 
+        //     visible:true } ]
+        // ]
     };
 
     // TODO: click event -> 1.click "x" close node 2.click node show info
@@ -183,6 +183,7 @@ jsPlumb.ready(function () {
         // })
 
         currentNodeId = e.srcElement.id
+        console.log("current node is " + currentNodeId)
 
         jsPlumbUtil.consume(e);
 
@@ -402,7 +403,17 @@ jsPlumb.ready(function () {
                 instance.addEndpoint(toId, sourceEndpoint, {
                     // anchor: sourceAnchors[i], 
                     anchor: "Bottom",
-                    uuid: sourceUUID
+                    uuid: sourceUUID, 
+                    overlays: [
+                    [ "Label", {
+                        location: [0.5, 2],
+                        label: node.outputType[i],
+                        cssClass: "endpointSourceLabel",
+                        visible:true
+                    } ]
+                    ],
+
+                    outputType: node.outputType[i],
                 });
 
                 // if (typeof sourceList[node.id] === "undefined" && sourceList[node.id] === null) {
@@ -421,14 +432,14 @@ jsPlumb.ready(function () {
                     // anchor: targetAnchors[j], 
                     anchor: [1/(targetAnchors.length+1) * (j + 1), 0, 0, -1],
                     uuid: targetUUID,
-                    // overlays: [
-                    //     [ "Label", {
-                    //         location: [0.5, 1.5],
-                    //         label: "Drag",
-                    //         cssClass: "endpointSourceLabel",
-                    //         visible:true
-                    //     } ]
-                    // ]
+                    overlays: [
+                    [ "Label", { 
+                        location: [0.5, -1], 
+                        label: node.inputsType[i], 
+                        cssClass: "endpointTargetLabel", 
+                        visible:true } ]
+                    ], 
+                    inputType: node.inputsType[i],
                 });
 
                 // if (typeof targetList[node.id] === "undefined" && targetList[node.id] === null) {
@@ -472,19 +483,15 @@ jsPlumb.ready(function () {
         // node: a node with default paras, inputs/output, main/sub type,
         newNode: function(x, y, node) {
             var d = document.createElement("div");
-            // var id = jsPlumbUtil.uuid();
-            // d.className = "window smallWindow";
-            // d.id = id;
-            // d.innerHTML = id.substring(0, 7) + "<div class=\"ep\" id=\"" + node.id +"\"></div>";
             d.className = "window smallWindow nodeForEvent";
             d.id = node.id;
-            // d.innerHTML = node.id + "<img class=\"enableDisableTarget\" src=\"../static/img/close.png\">";
             d.innerHTML = node.name + "<img class=\"closeNode\" src=\"../static/img/close.png\">";
             d.style.left = x + "px";
             d.style.top = y + "px";
             instance.getContainer().appendChild(d);
             this.initNode(d, node);
             return d;
+
         },
 
     };

@@ -43,8 +43,8 @@
 }
 
 .closeNode {
-    right:2px;
-    top:2px;
+    right:4px;
+    top:4px;
     position:absolute;
 }
 
@@ -69,43 +69,32 @@
 	padding-top: 5px
 }
 
-
-/*.ep {
-    position: absolute;
-    bottom: 37%;
-    right: 5px;
-    width: 100px;
-    height: 40px;
-    background-color: orange;
-    cursor: pointer;
-    box-shadow: 0 0 2px black;
-    -webkit-transition: -webkit-box-shadow 0.25s ease-in;
-    -moz-transition: -moz-box-shadow 0.25s ease-in;
-    transition: box-shadow 0.25s ease-in;
-}
-
-.ep:hover {
-    box-shadow: 0 0 6px black;
-}*/
-
-/*.row-fluid {
-	width: 100%;
+.tree-head {
+    float:right; 
+    display:inline;
+    border-radius: 0.3em;
+    width: 1em;
+    height: 1em;
 
 }
 
-.sidebar-nav {
-	position: fixed;
-	width: 200px;
-	left: 0px;
-	bottom: 0;
-	top: 44px;
-	background: #eee;
-	padding: 9px 0;
-	z-index: 10;
-	transition: all 500ms ease;
-
+.tree-data {
+    filter: alpha(opacity=50);background-color:rgba(124,238,124,0.8);
 }
 
-.console-bar {
-	position: relative;
-}*/
+.tree-model {
+    filter: alpha(opacity=50);background-color:rgba(52,103,137,0.8);
+}
+
+.tree-evaluate {
+    filter: alpha(opacity=50);background-color:rgba(0,191,255,0.8);
+}
+
+.tree-visualize {
+    filter: alpha(opacity=50);background-color:rgba(255,215,0,0.8);
+}
+
+.tree-customize {
+    filter: alpha(opacity=50);background-color:rgba(139,69,19,0.8);
+}
+

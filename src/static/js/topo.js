@@ -195,7 +195,7 @@ function runFlow() {
     }
 
     // 2. this node is idle, need run 
-    // 2.0 check circle!!!
+    // 2.0 TODO: check circle!!!
 
 
 
@@ -247,11 +247,19 @@ function runFlow() {
     console.log("run nodes list is ")
     console.log(runNodesList)
 
+
+    // 2.2 get enqueue list then change icon to stop, and change nodes color
+
+    $("#run_button_img").attr("src", "../static/img/stop.png"); 
+
+    var n = runNodesList[0].name
+    var nId = "#"+n
+    $(nId).css("background-color", COLORSTATUS.WAIT)
+    // $(nId).css("border", "4px dotted #346789")
+
     currentStatus = STATUS.IDLE
 
     return
-    // 2.2 get enqueue list then change icon to stop
-
     // 2.3 run nodes upside-down, one-by-one
     var test = function () {
         alert("test")
@@ -322,12 +330,29 @@ var nodeListByName = {}
 var currentNodeId = null
 
 var STATUS = {
-    IDLE : 0,
-    BUSY : 1,
-    DONE : 2,
+    IDLE : 0, // rgba(255, 255, 255, 0.2)
+    BUSY : 1, // rgba(255, 0, 0, 0.2)
+    DONE : 2, // rgba(0, 255, 0, 0.2)
+    WAIT : 3, // rgba(255, 255, 111, 0.2)
+}
+
+var COLORSTATUS = {
+    IDLE : "rgba(255, 255, 255, 0.2)",
+    BUSY : "rgba(255, 0, 0, 0.4)",
+    DONE : "rgba(0, 255, 0, 0.2)",
+    WAIT : "rgba(255, 255, 111, 0.3)",
+}
+
+var COLORNODE = {
+    DATA        : "rgba(124,238,124,1)",
+    MODEL       : "rgba(52,103,137, 1)",
+    EVALUATE    : "rgba(0,191,255,1)",
+    VISUALIZE   : "rgba(255,215,0,1)",
+    CUSTOMIZE   : "rgba(139,69,19,1)",
 }
 
 var currentStatus = STATUS.IDLE
+
 
 // Get node type list from server when init
 var nodeTypeList = {
@@ -342,11 +367,13 @@ var nodeTypeList = {
                 func: {
                     funcName: "get_csv",
                     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputsType: ["File", "String"],
                     funcInputsCount: 0,
                     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
                 },
                 output:{
                     name: null,
+                    outputType: ["Data"],
                     content: null,
                 },
             },
@@ -361,12 +388,14 @@ var nodeTypeList = {
                 // 2. func information, from funcutil.get_func_info(func)
                 func: {
                     funcName: "merge_df",
-                    funcInputs: ["file1", "file2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                    funcInputsType: ["Data", "Data", "String"],
                     funcInputsCount: 2,
                     funcInputsDefaults: ["id"], // used for edit paras
                 },
                 output:{
                     name: null,
+                    outputType: ["Data"],
                     content: null,
                 },                
             },
@@ -406,14 +435,17 @@ function initNode(mainType, subType) {
     node.inputs = [] // save up node's output
     node.outputName = "output" + nodeName
     node.output = null
+    node.outputType = nodeTypeList[mainType][subType].content.output.outputType.slice(0)
 
     var funcInputs = nodeTypeList[mainType][subType].content.func.funcInputs
+    var funcInputsType = nodeTypeList[mainType][subType].content.func.funcInputsType
     var funcInputsCount = nodeTypeList[mainType][subType].content.func.funcInputsCount
     var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
     var description = nodeTypeList[mainType][subType].description
     var display = nodeTypeList[mainType][subType].display
 
     node.funcInputs = funcInputs.slice(0)
+    node.funcInputsType = funcInputsType.slice(0)
     node.funcInputsCount = funcInputsCount
     node.funcInputsDefaults = funcInputsDefaults.slice(0)
 
@@ -485,7 +517,9 @@ function addNode(mainType, subType, e) {
         id: newNode.name,
         name: subType,
         inputs: newNode.inputsJs,
-        output: [{id:newNode.outputName, name: newNode.outputName}]
+        inputsType: newNode.funcInputsType,
+        output: [{id:newNode.outputName, name: newNode.outputName}],
+        outputType: newNode.outputType,
     }
 
     jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, node);
@@ -600,6 +634,9 @@ function getDownNodes(nodeName) {
 }
 
 function setDownNodesIdle(nodeName) {
+    // 0. TODO: check circle
+
+    // 1. set down nodes
     var downList = getDownNodes(nodeName)
     console.log("Show down list from setDownNodesIdle")
     console.log(downList)

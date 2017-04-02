@@ -16,18 +16,54 @@
 }
 
 .source-target-demo .window {
-    border: 2px dotted #346789;
+/* border: 4px dashed #346789;
     width: 14em;
     height: 4em;
     display:flex;
     align-items: center;
     justify-content: center;
     padding: 0.5em;
+    border-radius: 4px;
+    opacity: 0.1;
+    transition: box-shadow 0.15s ease-in;
+
+*/
+
+    /*border: 2px solid #346789;
+
+
+*/    /*box-shadow: 2px 2px 19px #aaa;*/
+/*    -o-box-shadow: 2px 2px 19px #aaa;
+    -webkit-box-shadow: 2px 2px 19px #aaa;
+    -moz-box-shadow: 2px 2px 19px #aaa;*/
+
+    border: 3px solid rgba(124,238,124,1);
+    -moz-border-radius: 0.5em;
+    border-radius: 0.6em;
+    opacity: 0.9;
+    width: 160px;
+    height: 70px;
+    line-height: 80px;
+    cursor: pointer;
+    text-align: center;
+    z-index: 20;
+    position: absolute;
+    /*background-color: #eeeeef;*/
+    color: black;
+    font-family: helvetica, sans-serif;
+    /*padding: 0.5em;*/
+    font-size: 0.9em;
+    -webkit-transition: -webkit-box-shadow 0.15s ease-in;
+    -moz-transition: -moz-box-shadow 0.15s ease-in;
+    -o-transition: -o-box-shadow 0.15s ease-in;
+    transition: box-shadow 0.05s ease-in;
+    filter: alpha(opacity=50);background-color:rgba(255, 255, 255, 0.2);
 }
 
 .smallWindow {
     background-color: #558822;
     cursor: move;
+
 }
 
 /** ENABLE/DISABLE LINK **/
