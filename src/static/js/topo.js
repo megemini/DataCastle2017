@@ -236,7 +236,7 @@ function runFlow() {
             //     console.log(endpointsList[i].inputJsName)
             //     console.log(endpointsList[i])
             // }
-            var inputAssembleList = []
+            var inputAssembleList = {}
 
             // 1.1 get pair from endpoint
             var outInPair = jsplumbUtils.getOutInPairsFromEps(node.name)
@@ -254,7 +254,8 @@ function runFlow() {
 
             // 1.2 assemble input output
             for (var i = lenIn - 1; i >= 0; i--) {
-                inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
+                // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
+                inputAssembleList[upInputList[i]] = upOutputList[i]
             }
 
             console.log("inputAssembleList node")
@@ -262,8 +263,8 @@ function runFlow() {
 
             // 2. get pair from default
             for (var i = node.input.default.length - 1; i >= 0; i--) {
-                inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
-
+                // inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
+                inputAssembleList[node.input.name[node.input.count + i]] = node.input.default[i]
             }
 
             // 3. set node input value
@@ -319,7 +320,7 @@ function stopFlow() {
 }
 
 function runDelVar() {
-    // body...
+    // TODO: run del var as script
 }
 
 function runOneStep(node) {
@@ -356,9 +357,10 @@ function runOneStep(node) {
 
     var content = {
         node: node.id,
+        module: node.module,
         func: node.func,
         input: node.input.value,
-        output: node.output.default,
+        output: node.output.default[0],
     }
 
     var uid = node.id + new Date().getTime()
@@ -383,13 +385,14 @@ function runOneStep(node) {
     return
 }
 
-function runOneStepDone(result) {
+function runOneStepDone(message) {
     var node = runNodesList.shift()
 
-    var status = result.status
-    node.output.value = result.content
+    var status = message.status
+    node.output.value = message.content
 
-    showNodeInfo(node)
+    console.log("node run one step result")
+    console.log(node)
 
     if (status == "ok") {
         setNodeRunStatus(node, STATUS.DONE)
@@ -399,7 +402,8 @@ function runOneStepDone(result) {
         runFlowDone()
     }
 
-    
+    showNodeInfo(node)
+
 
     if (runNodesList.length == 0) {
         runFlowDone()
@@ -555,12 +559,13 @@ var nodeTypeList = {
                 //     funcInputsCount: 0,
                 //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
                 // },
+                module: "data",
                 func: "get_csv",
                 input: {
                     name: ["file", "names"],
                     type: ["File", "String"],
                     count: 0,
-                    default: ["user_info_train.txt", "None"],
+                    default: ["'/workspace/Projects/DataCastle2017/src/data/user_info_train.txt'", "None"],
                     value: null,
                 },
                 output:{
@@ -587,6 +592,7 @@ var nodeTypeList = {
                 //     funcInputsCount: 2,
                 //     funcInputsDefaults: ["id"], // used for edit paras
                 // },
+                module: "data",    
                 func: "merge_df",
                 input: {                    
                     name: ["data1", "data2", "by"],
@@ -644,6 +650,7 @@ function initNode(mainType, subType) {
     node.display = nodeType.display
     node.description = nodeType.description
     // 1. inputs
+    node.module = nodeType.content.module
     node.func = nodeType.content.func
 
     node.input = {} 
@@ -868,6 +875,8 @@ function showOutput(node) {
     d.append(t)
 
     $("#func-output").append(d)
+    $("#func-output").append(node.output.value)
+
 }
 
 function getUpNodes(nodeName) {
@@ -992,11 +1001,17 @@ function parseMessage(message) {
     var mStatus = message.status
     var mContent = message.content
 
-    alert(mContent);
-    var node = $(mContent);
-    $("#console").remove()
-    $("#console-output").append(node);
-    node.slideDown();
-
     // TODO: dispatch message
+    if (mChannel == "script") {
+        alert(mContent);
+        clearNodeInfo()
+        // var node = $(mContent);
+        // $("#console").remove()
+        $("#func-output").append(mContent);
+        // node.slideDown();
+    }
+    else if (mChannel == "flow") {
+        runOneStepDone(message)
+    }
+   
 }

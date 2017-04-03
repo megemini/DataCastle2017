@@ -13,7 +13,8 @@ from tornado import gen
 from tornado.options import define, options
 
 from util import fileutil, scriptutil
-from func import *
+# from func import *
+# import func
 
 define("jport", default=8009, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
@@ -84,14 +85,16 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
+        # TODO: compare id, then return
         run_temp = None
-        if channel == "run":
+        if channel == "flow":
             run_temp = yield self.run_flow(parsed["content"])
 
         elif channel == "script":
             run_temp = yield self.run_script(parsed["content"])
 
         logging.info("type(run_results content) is ")
+        logging.info(run_temp)
         logging.info(type(run_temp))
 
         run_results["status"] = run_temp[2]
@@ -162,7 +165,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         yield self.run_script(scriptutil.init_script())
 
-        raise gen.Return()
+        raise gen.Return(["Init OK", "text", "ok"])
 
     @gen.coroutine
     def run_flow(self, flow):
@@ -202,24 +205,36 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         # Get inputs from flow
         # ALL inputs are STRING!!!
 
-        file_path = fileutil.get_path("user_info_train.txt")
+        # file_path = fileutil.get_path("user_info_train.txt")
 
-        head_user_info = "['id', 'gender', 'job', 'education', 'marital', 'household']"
+        # head_user_info = "['id', 'gender', 'job', 'education', 'marital', 'household']"
 
-        # 
-        logging.info(file_path)
-        logging.info(data.get_csv(file_path))
+        # # 
+        # logging.info(file_path)
+        # logging.info(data.get_csv(file_path))
 
-        inputs = {
-            'file': {'value': file_path, 'type': 's'}, 
-            # 'names': {'value': head_user_info, 'type': 'o'}
-            }
+        # inputs = {
+        #     'file': {'value': file_path, 'type': 's'}, 
+        #     # 'names': {'value': head_user_info, 'type': 'o'}
+        #     }
 
-        output = "output_csv_1"
+        # logging.info("data get csv")
+        # logging.info(func.data.get_csv)
 
-        f1 = scriptutil.get_script(data.get_csv, inputs, output)
+        # output = "output_csv_1"
+        s_module = flow["module"]
+        s_func = flow["func"]
+        s_input = flow["input"]
+        s_output = flow["output"]
 
-        run_results = yield self.run_script(f1)
+        # f1 = scriptutil.get_script(data.get_csv, inputs, output)
+        script = scriptutil.get_script(s_module, s_func, s_input, s_output)
+        logging.info(script)
+
+
+        run_results = yield self.run_script(script)
+        logging.info("run result!!!!!!!!!")
+        logging.info(run_results)
 
         raise gen.Return(run_results)
 

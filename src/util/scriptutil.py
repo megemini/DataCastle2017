@@ -5,10 +5,16 @@ Script util
 -------------------
 
 """
+import sys
+sys.path.append('../')
+
 import logging
+import func
+
 from util import funcutil
 
-def get_script(func, inputs, output):
+
+def get_script(module_name, func_name, inputs, output):
 	"""
 	Assemble script 
 	-------------------
@@ -22,7 +28,13 @@ def get_script(func, inputs, output):
 	"""
 
 	# TODO: init source before call
-	func_name, func_inputs, func_defaults, func_source  = funcutil.get_func_info(func)
+	# logging.info("module name")
+	# logging.info(module_name)
+	# module = __import__(module_name)
+	# logging.info(dir(func))
+	func_ref = getattr(getattr(func, module_name), func_name)
+
+	func_name, func_inputs, func_defaults, func_source  = funcutil.get_func_info(func_ref)
 
 	logging.info(func_source)
 	logging.info(inputs)
@@ -30,17 +42,20 @@ def get_script(func, inputs, output):
 	paras = []
 
 	for k, v in inputs.items():
-		if v.get('type') == 'o':
-			paras.append(("%s=" % k) +  v.get('value'))
+		paras.append(("%s=" % k) +  v)
+		# if v.get('type') == 'o':
+		# 	paras.append(("%s=" % k) +  v.get('value'))
 
-		if v.get('type') == 's':
-			paras.append(("%s=" % k) +  get_para_string(v.get('value')))
+		# if v.get('type') == 's':
+		# 	paras.append(("%s=" % k) +  get_para_string(v.get('value')))
 
 
 	paras_input = ','.join(paras)
 
+	logging.info(paras_input)
+
 	script = (
-		func_source + "\n" + # need remove
+		func_source + "\n" + # need move to init_script
 		output + " = " + func_name + "(" + paras_input + ")" + "\n" +
 		output
 		)
