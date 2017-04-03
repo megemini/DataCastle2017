@@ -243,8 +243,20 @@ jsPlumb.ready(function () {
 
     // TODO: Debug: bind to a connection event, just for the purposes of pointing out that it can be done.
     var initConnection = function (connection) {
-        connection.getOverlay("label").setLabel(
-            "Connection");
+
+
+        var sourceNodeId = connection.sourceId
+        // var targetNodeId = connection.targetId
+
+        var sourceNode = getNodeById(sourceNodeId)
+        // var targetNode = getNodeById(targetNodeId)
+
+        // TODO: 1. set label source output name
+        jsplumbUtils.setConnectionLabels(sourceNode)
+
+        // TODO: 2. set target node input of source output name
+        // NO NEED: get inputs when run node
+
     };
 
     // connection func
@@ -267,6 +279,16 @@ jsPlumb.ready(function () {
     // detach func
     instance.bind("connectionDetached", function (connInfo, originalEvent) {
         alert("detach")    
+
+
+        // TODO: 1. remove input from target
+        // NO NEED: get inputs when run node!!!
+
+        // TODO: 2. set nodes idle
+        console.log("connectionDetached")
+        console.log(connInfo)
+        var nodeName = connInfo.connection.targetId
+        setDownNodesIdle(nodeName)
     })
 
     // toggle connection type
@@ -344,9 +366,101 @@ jsPlumb.ready(function () {
 
     var getEndpointId = function (toId, anchorId) {
         return toId + anchorId;
+
     }
 
     window.jsplumbUtils = {
+
+        setConnectionLabels: function (sourceNode) {
+            var downConnectionList = this.getDownConnections(sourceNode.name)
+            var outputNameFromSource = sourceNode.output.default[0]
+
+            for (var i = downConnectionList.length - 1; i >= 0; i--) {
+                var connection = downConnectionList[i]
+                connection.getOverlay("label").setLabel(
+                    outputNameFromSource);
+            }
+        },
+
+
+        getNodeEndpoints: function (nodeName) {
+            var endpointList = []
+
+            instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+                endpointList.push(endpoint)
+            })
+
+            return endpointList
+        },
+
+        getOutInPairsFromEps: function (nodeName) {
+            var upInputList = []
+            var upOutputList = []
+            
+            instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                upInputList.push(endpoint.inputJsName)
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                // CAUTION: only ONE up node connected to this input, or something wrong 
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show up node")
+                    console.log(endpoint.connections[i].sourceId)
+                    upOutputList.push(getNodeById(endpoint.connections[i].sourceId).output.default[0])
+                }
+                // 
+                
+
+            })
+
+            return {upInputList: upInputList, upOutputList: upOutputList}
+
+        },
+
+        getUpConnections: function (nodeName) {
+            var upConnectionList = []
+
+            instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show up connections")
+                    console.log(endpoint.connections[i])
+                    upConnectionList.push(endpoint.connections[i])
+                }
+                // 
+                
+
+            })
+
+            return upConnectionList
+        },
+
+        getDownConnections: function (nodeName) {
+            var downConnectionList = []
+
+            instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show down node")
+                    console.log(endpoint.connections[i])
+                    downConnectionList.push(endpoint.connections[i])
+                }
+                // 
+                
+
+            })
+
+            return downConnectionList
+        },
 
         getUpNodes: function (nodeName) {
             var upList = []
@@ -399,31 +513,37 @@ jsPlumb.ready(function () {
 
             // TODO: user _addEndpoints instead of makeSource/makeTarget
             toId = node.id
-            sourceList.toId = targetAnchors = node.inputs
-            targetList.toId = sourceAnchors = node.output
+            targetAnchors = node.input
+            sourceAnchors = node.output
+            // sourceList.toId = targetAnchors = node.inputs
+            // targetList.toId = sourceAnchors = node.output
 
             // sourceList.toId = []
             // targetList.toId = []
 
-            for (var i = 0; i < sourceAnchors.length; i++) {
+
+            // output length is 0, change to sourceAnchors.length if needed
+            for (var i = 0; i < node.output.count; i++) {
                 // var sourceUUID = toId + sourceAnchors[i].id;
-                var sourceUUID = getEndpointId(toId, sourceAnchors[i].id);
+                // var sourceUUID = getEndpointId(toId, sourceAnchors[i].id);
+                var sourceUUID = sourceAnchors.id[i]
                 console.log("source uuid " + sourceUUID)
-                instance.addEndpoint(toId, sourceEndpoint, {
+                var ep = instance.addEndpoint(toId, sourceEndpoint, {
                     // anchor: sourceAnchors[i], 
                     anchor: "Bottom",
                     uuid: sourceUUID, 
                     overlays: [
                     [ "Label", {
                         location: [0.5, 2],
-                        label: node.outputType[i],
+                        label: sourceAnchors.type[i],
                         cssClass: "endpointSourceLabel",
                         visible:true
                     } ]
                     ],
 
-                    outputType: node.outputType[i],
                 });
+
+                ep.outputJsName = sourceAnchors.name[i]
 
                 // if (typeof sourceList[node.id] === "undefined" && sourceList[node.id] === null) {
                 //     sourceList[node.id] = []
@@ -433,24 +553,25 @@ jsPlumb.ready(function () {
                     // sourceList.toId[i] = sourceUUID
                 // }
             }
-            for (var j = 0; j < targetAnchors.length; j++) {
+            for (var j = 0; j < node.input.count; j++) {
                 // var targetUUID = toId + targetAnchors[j].id;
-                var targetUUID = getEndpointId(toId, targetAnchors[j].id);
+                // var targetUUID = getEndpointId(toId, targetAnchors[j].id);
+                var targetUUID = targetAnchors.id[j]
                 console.log("targe uuid " + targetUUID)
-                instance.addEndpoint(toId, targetEndpoint, { 
+                var ep = instance.addEndpoint(toId, targetEndpoint, { 
                     // anchor: targetAnchors[j], 
-                    anchor: [1/(targetAnchors.length+1) * (j + 1), 0, 0, -1],
+                    anchor: [1/(node.input.count+1) * (j + 1), 0, 0, -1],
                     uuid: targetUUID,
                     overlays: [
                     [ "Label", { 
                         location: [0.5, -1], 
-                        label: node.inputsType[i], 
+                        label: targetAnchors.type[j], 
                         cssClass: "endpointTargetLabel", 
                         visible:true } ]
                     ], 
-                    inputType: node.inputsType[i],
                 });
 
+                ep.inputJsName = targetAnchors.name[j]
                 // if (typeof targetList[node.id] === "undefined" && targetList[node.id] === null) {
                 //     targetList[node.id] = []
                 //     targetList[node.id][0] = targetUUID
@@ -494,7 +615,7 @@ jsPlumb.ready(function () {
             var d = document.createElement("div");
             d.className = "window smallWindow nodeForEvent";
             d.id = node.id;
-            d.innerHTML = node.name + "<img class='closeNode' src='../static/img/close.png'>";
+            d.innerHTML = node.display + "<img class='closeNode' src='../static/img/close.png'>";
             d.style.left = x + "px";
             d.style.top = y + "px";
             instance.getContainer().appendChild(d);

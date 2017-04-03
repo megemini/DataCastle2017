@@ -73,6 +73,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         channel = parsed["channel"]
 
         run_results = {}
+        run_results["id"] = parsed["id"]
+        run_results["channel"] = channel
+        run_results["status"] = ""
         run_results["content"] = ""
 
         # 1. get websocket from jupyter if not        
@@ -81,21 +84,24 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
+        run_temp = None
         if channel == "run":
-            run_results["content"] = yield self.run_flow(parsed["run"])
+            run_temp = yield self.run_flow(parsed["content"])
 
         elif channel == "script":
-            run_results["content"] = yield self.run_script(parsed["code"])
+            run_temp = yield self.run_script(parsed["content"])
 
         logging.info("type(run_results content) is ")
-        logging.info(type(run_results["content"]))
+        logging.info(type(run_temp))
 
-        if len(run_results["content"]) > 1:
-            run_results["html"] = tornado.escape.to_basestring(
-                self.render_string("image.html", results=(run_results["content"][0])))
+        run_results["status"] = run_temp[2]
+
+        if run_temp[1] == "image":
+            run_results["content"] = tornado.escape.to_basestring(
+                self.render_string("image.html", results=(run_temp[0])))
         else:
-            run_results["html"] = tornado.escape.to_basestring(
-                self.render_string("console.html", results=(run_results["content"][0])))
+            run_results["content"] = tornado.escape.to_basestring(
+                self.render_string("console.html", results=(run_temp[0])))
 
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
@@ -120,6 +126,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         client = AsyncHTTPClient()
 
+        # TODO: multi user
         if user_id != None:
             raise gen.Return()
         
@@ -159,6 +166,28 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
     @gen.coroutine
     def run_flow(self, flow):
+        """
+        Input message structure:
+        var flow = {
+            "id": uid,
+            "channel": "flow",
+            "content": {        
+                node: node.id,
+                func: node.func,
+                input: node.input.value,
+                output: node.output.default,
+            },
+        }
+
+        Output message structure:
+        var output = {
+            "id": uid,
+            "channel": "flow",
+            "status": "ok"/"error"
+            "content": xxxxx
+        }
+        """
+
         logging.info("Running flow")
         logging.info(flow)
         logging.info('Sending message ')
@@ -236,7 +265,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 'buffers': {}
             }))
         except Exception as e:
-            raise gen.Return(["Write jupyter message error!"])
+            raise gen.Return(["Write jupyter message error!", "text", "error"])
 
 
 
@@ -271,12 +300,12 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 if msg_type == 'error':
                     logging.info("ERROR!!!!!!!!!!!!!!!!!msg['content']['evalue']")
                     logging.info(msg['content']['evalue'])
-                    raise gen.Return([msg['content']['evalue']])
+                    raise gen.Return([msg['content']['evalue'], "evalue", "error"])
 
                 if msg_type == 'stream' and parent_msg_id == msg_id:
                     logging.info("!!!!!!!!!!!!!!!msg['content']['text']:")
                     logging.info(msg['content']['text'])
-                    raise gen.Return([msg['content']['text']])
+                    raise gen.Return([msg['content']['text'], "text", "ok"])
 
                 if msg_type == 'execute_result' and parent_msg_id == msg_id:
                     logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
@@ -284,13 +313,13 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
                     # if there is text/html returned, then return this first, instead of text/plain
                     if msg['content']['data'].get('text/html'):
-                        raise gen.Return([msg['content']['data']['text/html']])
+                        raise gen.Return([msg['content']['data']['text/html'], "html", "ok"])
 
-                    raise gen.Return([msg['content']['data']['text/plain']])
+                    raise gen.Return([msg['content']['data']['text/plain'], "text", "ok"])
 
                 if msg_type == 'display_data' and parent_msg_id == msg_id:
                     logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                    raise gen.Return([msg['content']['data']['image/png'], "image"])
+                    raise gen.Return([msg['content']['data']['image/png'], "image", "ok"])
 
             elif msg_channel == "shell":
                 """
@@ -299,10 +328,10 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 if msg_type == 'execute_reply' and parent_msg_id == msg_id:
                     if len(msg['content']['payload']) > 0:
                         logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
-                        raise gen.Return([msg['content']['payload'][0]['data']['text/plain']])   
+                        raise gen.Return([msg['content']['payload'][0]['data']['text/plain'], "text", "ok"])   
 
                     logging.info("msg['content']['payload']:")
-                    raise gen.Return(["OK"])
+                    raise gen.Return(["OK", "text", "ok"])
 
 
                     # TODO: msg_type of assign a var!!!!!!!!!!!!!!

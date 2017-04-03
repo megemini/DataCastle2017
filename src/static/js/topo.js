@@ -178,8 +178,11 @@ function run() {
 
 // set runNodesList as global var
 var runNodesList = []
+var runNodeMessage = []
+var runDelVarList = []
 function runFlow() {
     runNodesList = []
+    runDelVarList = []
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -209,24 +212,68 @@ function runFlow() {
     runNodesList.unshift(node)
     var enqueueFlag = true
     while (!(runQueue.length == 0)) {
-        var n = runQueue.shift()
+        var node = runQueue.shift()
         
 
-        var upList = getUpNodes(n.name)
+        var upNodeList = getUpNodes(node.name)
+
 
         // console.log("shift node is ")
         // console.log(n)
         // console.log("uplist ")
         // console.log(upList)
 
-        if (upList.length != n.inputsJs.length) {
+        // check whether all inputs feeded
+        if (upNodeList.length != node.input.count) {
             enqueueFlag = false
             runQueue = []
             break
         }
+        else { // if inputs OK, then assemble inputs
+            // var endpointsList = jsplumbUtils.getNodeEndpoints(n.name)
+            // for (var i = endpointsList.length - 1; i >= 0; i--) {
+            //     console.log("endpoint is ")
+            //     console.log(endpointsList[i].inputJsName)
+            //     console.log(endpointsList[i])
+            // }
+            var inputAssembleList = []
 
-        for (var i = upList.length - 1; i >= 0; i--) {
-            var upNode = getNodeById(upList[i])
+            // 1.1 get pair from endpoint
+            var outInPair = jsplumbUtils.getOutInPairsFromEps(node.name)
+            var upInputList = outInPair.upInputList
+            var upOutputList = outInPair.upOutputList
+
+            var lenIn = upInputList.length
+            var lenOut = upOutputList.length
+
+            if (lenIn != lenOut) {
+                enqueueFlag = false
+                runQueue = []
+                break
+            }
+
+            // 1.2 assemble input output
+            for (var i = lenIn - 1; i >= 0; i--) {
+                inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
+            }
+
+            console.log("inputAssembleList node")
+            // console.log(inputAssembleList)
+
+            // 2. get pair from default
+            for (var i = node.input.default.length - 1; i >= 0; i--) {
+                inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
+
+            }
+
+            // 3. set node input value
+            node.input.value = inputAssembleList
+            
+            console.log(node)
+        }
+
+        for (var i = upNodeList.length - 1; i >= 0; i--) {
+            var upNode = getNodeById(upNodeList[i])
 
             // TODO: need not use found... enqueue all the input, and uplift the input
             // when run node, if already done, then ignore
@@ -256,13 +303,13 @@ function runFlow() {
 
     // 2.3 change nodes color for wait
     for (var i = runNodesList.length - 1; i >= 0; i--) {
-        setNodeRunStatus(runNodesList[i].name, STATUS.WAIT)
+        setNodeRunStatus(runNodesList[i], STATUS.WAIT)
     }
 
-    runFlowDone()
 
-    return
-    // 2.4 run nodes upside-down, one-by-one
+    // 2.4 first run del var/import
+    runDelVar()
+    // 2.5 run nodes upside-down, one-by-one
     runOneStep(runNodesList[0])
     
 }
@@ -271,24 +318,111 @@ function stopFlow() {
 
 }
 
+function runDelVar() {
+    // body...
+}
+
 function runOneStep(node) {
 
+    // 1. if already done, then return
     if (node.status == STATUS.DONE) {
         
         return true
     }
 
+    // 2. assemble flow message
 
-    // updater.socket.send(JSON.stringify(flow));
+// {
+//     "name": "DataFile0",
+//     "id": "DataFile0",
+//     "mainType": "Data",
+//     "subType": "File",
+//     "func": "get_csv",
+//     "input": {
+//         "value": [
+//             "names=None",
+//             "file=user_info_train.txt"
+//         ]
+//     },
+//     "output": {
+
+//         "default": [
+//             "outputDataFile0"
+//         ],
+
+//     },
+
+// }
+
+    var content = {
+        node: node.id,
+        func: node.func,
+        input: node.input.value,
+        output: node.output.default,
+    }
+
+    var uid = node.id + new Date().getTime()
+    // alert(uid)
+
+    var flow = {
+        "id": uid,
+        "channel": "flow",
+        "content": content,
+    }
+
+    runNodeMessage[uid] = flow
+
+    // 3. set current node busy
+    setNodeRunStatus(node, STATUS.BUSY)
+
+    // 4. send this message
+    var message = JSON.stringify(flow)
+    console.log()
+    updater.socket.send(message);
+
+    return
+}
+
+function runOneStepDone(result) {
+    var node = runNodesList.shift()
+
+    var status = result.status
+    node.output.value = result.content
+
+    showNodeInfo(node)
+
+    if (status == "ok") {
+        setNodeRunStatus(node, STATUS.DONE)
+    }
+    else if (status == "error") {
+        setDownNodesIdle(node.name)
+        runFlowDone()
+    }
+
+    
+
+    if (runNodesList.length == 0) {
+        runFlowDone()
+    }
+    else {
+        runOneStep(runNodesList[0])
+    }
+
 }
 
 function runFlowDone() {
+    // 0. set status
     currentStatus = STATUS.IDLE
-    
+
+    // 1. set image
+    $("#run_button_img").attr("src", "../static/img/run.png"); 
 }
 
-function setNodeRunStatus(nodeName, status) {
-    var nId = "#" + nodeName
+function setNodeRunStatus(node, status) {
+
+    node.status = status
+
+    var nId = "#" + node.name
     if (status == STATUS.WAIT) {
         $(nId).css("background-color", COLORSTATUS.WAIT)
 
@@ -309,19 +443,19 @@ function setNodeRunStatus(nodeName, status) {
     
 }
 
-function isStartNode(node) {
-    if (node.inputsJs.length == 0) {
-        return true
-    }
-    else {
-        return false
-    }
-}
+// function isStartNode(node) {
+//     if (node.inputsJs.length == 0) {
+//         return true
+//     }
+//     else {
+//         return false
+//     }
+// }
 
-function isEndNode(node) {
-    // TODO: 
-    return false
-}
+// function isEndNode(node) {
+//     // TODO: 
+//     return false
+// }
 
 function setCurrentNode(nodeId) {
     $("#"+currentNodeId).css("box-shadow", "")
@@ -336,11 +470,24 @@ function setCurrentNode(nodeId) {
     }
     else {
 
-        $("#"+currentNodeId).css("box-shadow", "2px 2px 12px #444")
-        $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 12px #444")
-        $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 12px #444")
-        $("#"+currentNodeId).css("-moz-box-shadow", "2px 2px 12px #fff")
+        // var nodeColor = getNodeColorById(currentNodeId)
+        // // alert(nodeColor)
+
+        // $("#"+currentNodeId).css("box-shadow", "2px 2px 12px " + nodeColor)
+        // $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 12px " + nodeColor)
+        // $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 12px " + nodeColor)
+        // $("#"+currentNodeId).css("-moz-box-shadow", "2px 2px 12px " + nodeColor)
+
+        $("#"+currentNodeId).css("box-shadow", "2px 2px 16px #444")
+        $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 16px #444")
+        $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 16px #444")
+        $("#"+currentNodeId).css("-moz-box-shadow", "2px 2px 16 px #fff")
     }
+}
+
+function getNodeColorById(nodeId) {
+    var nodeType = getNodeById(nodeId).mainType
+    return COLORNODE[nodeType]
 }
 
 ///////////////////////////////////////////////////
@@ -380,11 +527,11 @@ var COLORSTATUS = {
 }
 
 var COLORNODE = {
-    DATA        : "rgba(124,238,124,1)",
-    MODEL       : "rgba(52,103,137, 1)",
-    EVALUATE    : "rgba(0,191,255,1)",
-    VISUALIZE   : "rgba(255,215,0,1)",
-    CUSTOMIZE   : "rgba(139,69,19,1)",
+    "Data"        : "rgba(124,238,124,1)",
+    "Model"       : "rgba(52,103,137, 1)",
+    "Evaluate"    : "rgba(0,191,255,1)",
+    "Visualize"   : "rgba(255,215,0,1)",
+    "Customize"   : "rgba(139,69,19,1)",
 }
 
 var currentStatus = STATUS.IDLE
@@ -394,45 +541,65 @@ var currentStatus = STATUS.IDLE
 var nodeTypeList = {
     "Data": {
         "File": {
-            display: "File", 
+            display: "Add File", 
             description: "Read a data file as pandas dataframe. \n Inputs: \n - file: csv file \n - names: header names \n Output: pandas dataframe",
+            type: "node",
             content: {
                 // 1. basic infomation, from user edit
                 name: null, // name for save this node
                 // 2. func information, from funcutil.get_func_info(func), just for display
-                func: {
-                    funcName: "get_csv",
-                    funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                    funcInputsType: ["File", "String"],
-                    funcInputsCount: 0,
-                    funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                func: "get_csv",
+                input: {
+                    name: ["file", "names"],
+                    type: ["File", "String"],
+                    count: 0,
+                    default: ["user_info_train.txt", "None"],
+                    value: null,
                 },
                 output:{
                     name: null,
-                    outputType: ["Data"],
-                    content: null,
+                    type: "Data",
+                    count: 1,
+                    value: null,
                 },
             },
         },
 
         "Merge": {
-            display: "Merge", 
+            display: "Merge Data", 
             description: "Merge two data files by columns. \n Inputs: \n - file1: dataframe \n - file2: dataframe - by: columns \n Output: pandas dataframe",
+            type: "node",
             content: {
                 // 1. basic infomation, from user edit
                 name: null,
                 // 2. func information, from funcutil.get_func_info(func)
-                func: {
-                    funcName: "merge_df",
-                    funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                    funcInputsType: ["Data", "Data", "String"],
-                    funcInputsCount: 2,
-                    funcInputsDefaults: ["id"], // used for edit paras
+                // func: {
+                //     funcName: "merge_df",
+                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["Data", "Data", "String"],
+                //     funcInputsCount: 2,
+                //     funcInputsDefaults: ["id"], // used for edit paras
+                // },
+                func: "merge_df",
+                input: {                    
+                    name: ["data1", "data2", "by"],
+                    type: ["Data", "Data", "String"],
+                    count: 2,
+                    default: ["id"],
+                    value: null,
                 },
                 output:{
                     name: null,
-                    outputType: ["Data"],
-                    content: null,
+                    type: "Data",
+                    count: 1,
+                    value: null,
                 },                
             },
         },
@@ -459,42 +626,73 @@ var nodeTypeList = {
 // }
 
 function initNode(mainType, subType) {
+    var nodeType = nodeTypeList[mainType][subType]
+
     var nodeId = nodeList[mainType][subType].count
     nodeList[mainType][subType].count = nodeId + 1
 
+    // 0. init a node
     var node = {}
+
+    // name == id, maybe not?!
     node.name = mainType + subType + nodeId
+    node.id = node.name
     var nodeName = node.name
 
     node.mainType = mainType
     node.subType = subType
-    node.inputs = [] // save up node's output
-    node.outputName = "output" + nodeName
-    node.output = null
-    node.outputType = nodeTypeList[mainType][subType].content.output.outputType.slice(0)
+    node.display = nodeType.display
+    node.description = nodeType.description
+    // 1. inputs
+    node.func = nodeType.content.func
 
-    var funcInputs = nodeTypeList[mainType][subType].content.func.funcInputs
-    var funcInputsType = nodeTypeList[mainType][subType].content.func.funcInputsType
-    var funcInputsCount = nodeTypeList[mainType][subType].content.func.funcInputsCount
-    var funcInputsDefaults = nodeTypeList[mainType][subType].content.func.funcInputsDefaults
-    var description = nodeTypeList[mainType][subType].description
-    var display = nodeTypeList[mainType][subType].display
+    node.input = {} 
+    node.input.name = nodeType.content.input.name.slice(0)
+    node.input.type = nodeType.content.input.type.slice(0)
+    node.input.count = nodeType.content.input.count
+    node.input.default = nodeType.content.input.default.slice(0)
+    node.input.id = node.input.name.map(function(value){
+        return "input" + nodeName + value;
+    });
+    node.input.value = null // input value should be up nodes output default
 
-    node.funcInputs = funcInputs.slice(0)
-    node.funcInputsType = funcInputsType.slice(0)
-    node.funcInputsCount = funcInputsCount
-    node.funcInputsDefaults = funcInputsDefaults.slice(0)
+    // 2. output
+    node.output = {} 
+    node.output.name = ["output"] // should be output name like: return a, b, c; not id!
+    node.output.type = [nodeType.content.output.type]
+    node.output.count = nodeType.content.output.count
+    node.output.default = ["output" + nodeName]
+    node.output.id = ["output" + nodeName]
+    node.output.value = null // output value should be result from server
+    
 
-    node.display = display
-    node.description = description
+    // var funcInputs = nodeType.content.func.funcInputs
+    // var funcInputsType = nodeType.content.func.funcInputsType
+    // var funcInputsCount = nodeType.content.func.funcInputsCount
+    // var funcInputsDefaults = nodeType.content.func.funcInputsDefaults
+
+
+    // node.funcInputs = funcInputs.slice(0)
+    // node.funcInputsType = funcInputsType.slice(0)
+    // node.funcInputsCount = funcInputsCount
+    // node.funcInputsDefaults = funcInputsDefaults.slice(0)
+
+
 
     // inputs.length === inputsjs.length then could recursive run flow
-    node.inputsJs = []
-    for (var i = funcInputsCount - 1; i >= 0; i--) {
-        node.inputsJs[i] = {}
-        node.inputsJs[i].name = funcInputs[i]
-        node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
-    }
+    // node.inputsJs = []
+    // for (var i = funcInputsCount - 1; i >= 0; i--) {
+    //     node.inputsJs[i] = {}
+    //     node.inputsJs[i].type = funcInputsType[i]
+    //     node.inputsJs[i].name = funcInputs[i]
+    //     node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
+    // }
+
+    // node.outputJs = []
+    // node.outputJs[0] = {}
+    // node.outputJs[0].type = node.outputType
+    // node.outputJs[0].name = node.outputName
+    // node.outputJs[0].id = node.outputName
 
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
@@ -507,33 +705,31 @@ function initNode(mainType, subType) {
     return node
 } 
 
-function editNodeInputs(node, inputs) {
-    var mainType = node.mainType
-    var subType = node.subType
-    var nodeName = node.name
-    nodeList[mainType][subType][nodeName].inputs = inputs
-}
+// function editNodeInputs(node, inputs) {
+//     var mainType = node.mainType
+//     var subType = node.subType
+//     var nodeName = node.name
 
-function editNodeOutputName(node, outputName) {
-    var mainType = node.mainType
-    var subType = node.subType
-    var nodeName = node.name
-    nodeList[mainType][subType][nodeName].outputName = outputName
-}
+//     nodeList[mainType][subType][nodeName].inputs = inputs
+// }
 
-function editNodeOutput(node, output) {
-    var mainType = node.mainType
-    var subType = node.subType
-    var nodeName = node.name
-    nodeList[mainType][subType][nodeName].output = output
-}
+// function editNodeOutputDefault(node, outputName) {
+//     node.output.default[0] = outputName
+// }
 
-function deleteNode(node) {
-    var mainType = node.mainType
-    var subType = node.subType
-    var nodeName = node.name
-    nodeList[mainType][subType][nodeName] = null
-}
+// function editNodeOutput(node, output) {
+//     var mainType = node.mainType
+//     var subType = node.subType
+//     var nodeName = node.name
+//     nodeList[mainType][subType][nodeName].output = output
+// }
+
+// function deleteNode(node) {
+//     var mainType = node.mainType
+//     var subType = node.subType
+//     var nodeName = node.name
+//     nodeList[mainType][subType][nodeName] = null
+// }
 
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
@@ -548,17 +744,21 @@ function addNode(mainType, subType, e) {
     // 0. add node info to node list
     var newNode = initNode(mainType, subType)
 
-    // 1. add node for jsplumb at canvas
-    var node = {
-        id: newNode.name,
-        name: subType,
-        inputs: newNode.inputsJs,
-        inputsType: newNode.funcInputsType,
-        output: [{id:newNode.outputName, name: newNode.outputName}],
-        outputType: newNode.outputType,
-    }
+    // var disName = newNode.display
 
-    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, node);
+    // // 1. add node for jsplumb at canvas
+    // var nodeJs = {
+    //     id: newNode.name,
+    //     name: disName,
+    //     disName: disName,
+    //     inputsJs: newNode.input,
+    //     outputJs: newNode.output,
+    //     // inputsType: newNode.funcInputsType,
+    //     // output: [{id:newNode.outputName, name: newNode.outputName}],
+    //     // outputType: [newNode.outputType],
+    // }
+
+    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, newNode);
 
     // 2. add description/inputs/output at console
     showNodeInfo(newNode)
@@ -602,24 +802,26 @@ function showDescription(node) {
 function showInputs(node) {
     $("#func-inputs").empty()
 
-    for (var i = node.funcInputsDefaults.length - 1; i >= 0; i--) {
+    for (var i = node.input.default.length - 1; i >= 0; i--) {
         var d = document.createElement("div")
         d.className = "input-group"
 
         var s = document.createElement("span")
         s.className = "input-group-addon"
-        s.innerHTML = node.funcInputs[node.funcInputsCount + i]
+        s.innerHTML = node.input.name[node.input.count + i]
 
         var t = document.createElement("input")
         t.type = "text"
         t.className = "form-control"
-        t.value = node.funcInputsDefaults[i]
-        t.id = node.name + "input" + i
+        t.value = node.input.default[i]
+        t.id = "text" + node.name + "input" + i
 
         $(t).on('change', function(e) {
             // console.log(e)
-            var notIdLength = (node.name + "input").length
-            node.funcInputsDefaults[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+            var node = getNodeById(currentNodeId)
+
+            var notIdLength = ("text" + node.name + "input").length
+            node.input.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
 
             // change all nodes downside of status idle
             setDownNodesIdle(node.name)
@@ -639,21 +841,27 @@ function showOutput(node) {
 
     var s = document.createElement("span")
     s.className = "input-group-addon"
-    s.innerHTML = "Output Name"
+    s.innerHTML = "Output"
 
     var t = document.createElement("input")
     t.type = "text"
     t.className = "form-control"
-    t.value = node.outputName
-    t.id = node.name + "output"
+    t.value = node.output.default[0]
+    t.id = "text" + node.name + "output"
 
     $(t).on('change', function(e) {
         // console.log(e)
-        node.outputName = $(this).val()
+        var node = getNodeById(currentNodeId)
+
+        node.output.default[0] = $(this).val()
+
         // console.log(node)
 
         // change all nodes downside of status idle
         setDownNodesIdle(node.name)
+
+        // if connect to a target, then change label name
+        jsplumbUtils.setConnectionLabels(node)
     });
 
     d.append(s)
@@ -685,9 +893,17 @@ function setDownNodesIdle(nodeName) {
         }
     }
 
-    getNodeByName(nodeName).status = STATUS.IDLE
+    var node = getNodeByName(nodeName)
+
+    setNodeRunStatus(node, STATUS.IDLE)
+
+    pushDelVar(node)
 
     return true
+}
+
+function pushDelVar(node) {
+    runDelVarList.push(node.output.default[0])
 }
 
 function showHelp(mainType, subType) {
@@ -712,13 +928,13 @@ $(document).ready(function() {
     if (!window.console.log) window.console.log = function() {};
 
     $("#scriptform").bind("submit", function() {
-        newMessage($(this));
+        newScript($(this));
         return false;
     });
 
     $("#scriptform").bind("keypress", function(e) {
         if (e.keyCode == 13) {
-            newMessage($(this));
+            newScript($(this));
             return false;
         }
     });
@@ -735,8 +951,9 @@ $(document).ready(function() {
 
 
 
-function newMessage(form) {
+function newScript(form) {
     var message = form.formToDict();
+    message.id = "script" + new Date().getTime()
     updater.socket.send(JSON.stringify(message));
     // form.find("input[type=text]").val("").select();
 }
@@ -764,10 +981,22 @@ var updater = {
     },
 
     showMessage: function(message) {
-        alert(message.html);
-        var node = $(message.html);
-        $("#console").remove()
-        $("#console-output").append(node);
-        node.slideDown();
+        parseMessage(message)
     }
 };
+
+function parseMessage(message) {
+
+    var mId = message.id
+    var mChannel = message.channel
+    var mStatus = message.status
+    var mContent = message.content
+
+    alert(mContent);
+    var node = $(mContent);
+    $("#console").remove()
+    $("#console-output").append(node);
+    node.slideDown();
+
+    // TODO: dispatch message
+}
