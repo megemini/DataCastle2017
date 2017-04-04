@@ -31,12 +31,13 @@
 
 ## 2017/4/3
 - [x] Run 
-- [ ] Stop
+- [x] Stop
 - [x] Color style of idle/wait/busy/done
 - [x] Message structure
 - [x] Dynamic get script from module to jupyter
 
 ## 2017/4/6
+- [ ] Multi Session!!!
 
 ## 2017/4/9
 
