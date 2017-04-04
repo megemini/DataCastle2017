@@ -9,10 +9,11 @@ import pandas as pd
 
 def get_csv(file="", names=None):
 	"""
-	get csv use pandas
+    display: "Add File", 
+    description: "Read a data file as pandas dataframe. \n Inputs: \n - file: csv file \n - names: header names \n Output: pandas dataframe",
+
 	"""
 	# 1. get absolute path
-
 	with open(file, "rb") as f:
 		df = pd.read_csv(f, header=None, names=names)
 

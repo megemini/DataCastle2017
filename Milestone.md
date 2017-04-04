@@ -39,6 +39,7 @@
 ## 2017/4/6
 - [x] Two "Add File" + One "Merge Data" works!!!
 - [ ] Multi Session!!!
+- [ ] Could we parse __doc__ to get js nodeTypeList?!
 
 ## 2017/4/9
 
