@@ -594,8 +594,8 @@ var currentStatus = STATUS.IDLE
 
 // Get node type list from server when init
 var nodeTypeList = {
-    "Data": {
-        "File": {
+    Data: {
+        File: {
             display: "Add File", 
             description: "Read a data file as pandas dataframe. \n Inputs: \n - file: csv file \n - names: header names \n Output: pandas dataframe",
             type: "node",
@@ -628,9 +628,9 @@ var nodeTypeList = {
             },
         },
 
-        "Merge": {
+        Merge: {
             display: "Merge Data", 
-            description: "Merge two data files by columns. \n Inputs: \n - file1: dataframe \n - file2: dataframe - by: columns \n Output: pandas dataframe",
+            description: "Merge two data files on columns. \n Inputs: \n - file1: dataframe \n - file2: dataframe - on: columns \n Output: pandas dataframe",
             type: "node",
             content: {
                 // 1. basic infomation, from user edit
@@ -646,10 +646,10 @@ var nodeTypeList = {
                 module: "data",    
                 func: "merge_df",
                 input: {                    
-                    name: ["data1", "data2", "by"],
+                    name: ["data1", "data2", "on"],
                     type: ["Data", "Data", "String"],
                     count: 2,
-                    default: ["id"],
+                    default: ["'id'"],
                     value: null,
                 },
                 output:{

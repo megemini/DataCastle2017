@@ -258,8 +258,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
 
         # TEST:
-        logging.info("run command script&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        script = "import time\ntime.sleep(10)"
+        # logging.info("run command script&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        # script = "import time\ntime.sleep(10)"
 
         run_results = yield self.run_script(script)
         logging.info("run result!!!!!!!!!")

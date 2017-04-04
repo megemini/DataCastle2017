@@ -71,7 +71,7 @@ def init_script():
 	Init jupyter import
 	"""
 
-	return u'import numpy as np\nimport pandas as pd\n'
+	return u'import numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nsns.set_style("whitegrid")'
 
 def init_script_import():
 	pass

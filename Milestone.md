@@ -37,6 +37,7 @@
 - [x] Dynamic get script from module to jupyter
 
 ## 2017/4/6
+- [x] Two "Add File" + One "Merge Data" works!!!
 - [ ] Multi Session!!!
 
 ## 2017/4/9
