@@ -180,6 +180,9 @@ function run() {
 var runNodesList = []
 var runNodeMessage = []
 var runDelVarList = []
+var kernelId = ""
+
+
 function runFlow() {
     runNodesList = []
     runDelVarList = []
@@ -315,7 +318,47 @@ function runFlow() {
     
 }
 
+function getCookie(name) {
+    var r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+    return r ? r[1] : undefined;
+}
+
+
 function stopFlow() {
+    // TODO: stop current flow
+
+    var getResponse = function (result) {
+        console.log("get stop command")
+        console.log(result)
+
+        // 2. reset run node list, left last node
+        // clearNodeInfo()
+        // $("#func-output").append(result.statusText);
+        alert(result.statusText)
+
+        // . all done
+        runFlowDone()
+
+    }
+
+    // 1. send stop message
+    _xsrf = getCookie("_xsrf");
+
+    console.log(_xsrf)
+    console.log("send stop command")
+
+    $.ajax({
+        url: "http://localhost:8008/run_command",
+        data: { "_xsrf": _xsrf, "command": "stop", "kernelId": kernelId },
+        type: 'post',
+        dataType: 'json',
+        success: function(ret){
+           getResponse(ret)
+        },
+        error: function(ret){
+           getResponse(ret)
+        }
+    })
 
 }
 
@@ -325,11 +368,14 @@ function runDelVar() {
 
 function runOneStep(node) {
 
+    // 0. if stop run, then return
+    if (currentStatus == STATUS.IDLE) return
+
     // 1. if already done, then return
     if (node.status == STATUS.DONE) {
         
         // TODO: already done, then run next!!!
-
+        runOneStepDone(null)
         return true
     }
 
@@ -370,6 +416,7 @@ function runOneStep(node) {
 
     var flow = {
         "id": uid,
+        "kernelId": kernelId,
         "channel": "flow",
         "content": content,
     }
@@ -384,28 +431,30 @@ function runOneStep(node) {
     console.log()
     updater.socket.send(message);
 
-    return
+    return true
 }
 
 function runOneStepDone(message) {
+
     var node = runNodesList.shift()
 
-    var status = message.status
-    node.output.value = message.content
+    if (message != null) {
+        var status = message.status
+        node.output.value = message.content
 
-    console.log("node run one step result")
-    console.log(node)
+        console.log("node run one step result")
+        console.log(node)
 
-    if (status == "ok") {
-        setNodeRunStatus(node, STATUS.DONE)
-    }
-    else if (status == "error") {
-        setDownNodesIdle(node.name)
-        runFlowDone()
+        if (status == "ok") {
+            setNodeRunStatus(node, STATUS.DONE)
+        }
+        else if (status == "error") {
+            setDownNodesIdle(node.name)
+            runFlowDone()
+        }
     }
 
     showNodeInfo(node)
-
 
     if (runNodesList.length == 0) {
         runFlowDone()
@@ -961,11 +1010,12 @@ $(document).ready(function() {
 });
 
 
-
+// TODO: unified message assemble!!!
 function newScript(form) {
-    var message = form.formToDict();
+    var message = form.formToDict()
     message.id = "script" + new Date().getTime()
-    updater.socket.send(JSON.stringify(message));
+    message.kernelId = kernelId
+    updater.socket.send(JSON.stringify(message))
     // form.find("input[type=text]").val("").select();
 }
 
@@ -997,6 +1047,8 @@ var updater = {
 };
 
 function parseMessage(message) {
+
+    kernelId = message.kernelId
 
     var mId = message.id
     var mChannel = message.channel

@@ -30,6 +30,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
     cache = []
     cache_size = 200
 
+    jport = str(options.jport)
     kernel_id = None
     ws = None
 
@@ -73,25 +74,45 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         parsed = tornado.escape.json_decode(message)
         channel = parsed["channel"]
 
+
         run_results = {}
         run_results["id"] = parsed["id"]
         run_results["channel"] = channel
         run_results["status"] = ""
         run_results["content"] = ""
 
-        # 1. get websocket from jupyter if not        
-        if self.ws == None:
-            yield self.get_jupyter_ws()
+
+        # 1. get websocket from jupyter if not   
+        if parsed.get("kernelId") == "":
+            ws_result = yield self.get_jupyter_ws()
+
+            if ws_result[2] == "ok":
+                run_results["kernelId"] = ws_result[0]
+
+        else:
+            run_results["kernelId"] = parsed["kernelId"]
+
+        
+
+        # ws_temp = None     
+        # if self.ws == None:
+        #     ws_temp = yield self.get_jupyter_ws()
+
+        # if ws_temp[2] == "ok":
+        #     run_results["kernelId"] = ws_temp[0]
 
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
         # TODO: compare id, then return
         run_temp = None
+
+        # channel: "flow"/"script"
         if channel == "flow":
             run_temp = yield self.run_flow(parsed["content"])
 
         elif channel == "script":
             run_temp = yield self.run_script(parsed["content"])
+
 
         logging.info("type(run_results content) is ")
         logging.info(run_temp)
@@ -118,8 +139,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         TODO: with user id assign websocket
         """
 
-        base_url = os.getenv('BASE_GATEWAY_HTTP_URL', 'http://localhost:'+str(options.jport))
-        base_ws_url = os.getenv('BASE_GATEWAY_WS_URL', 'ws://localhost:'+str(options.jport))
+        base_url = os.getenv('BASE_GATEWAY_HTTP_URL', 'http://localhost:' + str(options.jport))
+        base_ws_url = os.getenv('BASE_GATEWAY_WS_URL', 'ws://localhost:' + str(options.jport))
 
         auth_username = "demouser"
         auth_password = "demopass"
@@ -165,7 +186,11 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         yield self.run_script(scriptutil.init_script())
 
-        raise gen.Return(["Init OK", "text", "ok"])
+
+        # TEST!!!
+        RunSocketHandler.kernel_id = self.kernel_id
+
+        raise gen.Return([self.kernel_id, "text", "ok"])
 
     @gen.coroutine
     def run_flow(self, flow):
@@ -231,6 +256,10 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         script = scriptutil.get_script(s_module, s_func, s_input, s_output)
         logging.info(script)
 
+
+        # TEST:
+        logging.info("run command script&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+        script = "import time\ntime.sleep(10)"
 
         run_results = yield self.run_script(script)
         logging.info("run result!!!!!!!!!")
