@@ -328,6 +328,8 @@ function runOneStep(node) {
     // 1. if already done, then return
     if (node.status == STATUS.DONE) {
         
+        // TODO: already done, then run next!!!
+
         return true
     }
 
