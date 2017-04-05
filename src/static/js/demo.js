@@ -153,7 +153,7 @@ jsPlumb.ready(function () {
         // console.log(node)
 
         // TODO: get all nodes connected TO this node show connected nodes
-        jsplumbUtils.getUpNodes(nodeId)
+        // jsplumbUtils.getUpNodes(nodeId)
 
         // instance.selectEndpoints({target:e.srcElement.id}).each(function(endpoint) {
 
@@ -169,7 +169,9 @@ jsPlumb.ready(function () {
         // })
 
         // TODO: get all nodes connected FROM this node show connected nodes
-        jsplumbUtils.getDownNodes(nodeId)
+        // jsplumbUtils.getDownNodes(nodeId)
+
+
         // instance.selectEndpoints({source:e.srcElement.id}).each(function(endpoint) {
 
         //     // console.log(endpoint)
@@ -186,7 +188,6 @@ jsPlumb.ready(function () {
 
 
         setCurrentNode(nodeId)
-
 
 
         console.log("current node is " + currentNodeId)
@@ -372,14 +373,26 @@ jsPlumb.ready(function () {
     window.jsplumbUtils = {
 
         setConnectionLabels: function (sourceNode) {
-            var downConnectionList = this.getDownConnections(sourceNode.name)
-            var outputNameFromSource = sourceNode.output.default[0]
+            var downConnection = this.getDownConnections(sourceNode.name)
 
-            for (var i = downConnectionList.length - 1; i >= 0; i--) {
-                var connection = downConnectionList[i]
-                connection.getOverlay("label").setLabel(
-                    outputNameFromSource);
+            var outputNames = sourceNode.output.name
+            var outputDefaults = sourceNode.output.default
+
+            console.log("setConnectionLabels!!!!!!!!!!")
+            console.log(outputNames)
+            console.log(outputDefaults)
+            console.log(downConnection)
+
+            for (var i = outputNames.length - 1; i >= 0; i--) {
+                var connections = downConnection[outputNames[i]]
+
+                for (var j = connections.length - 1; j >= 0; j--) {
+                    connections[j].getOverlay("label").setLabel(
+                        outputDefaults[i]);
+                }
+               
             }
+
         },
 
 
@@ -399,20 +412,39 @@ jsPlumb.ready(function () {
             
             instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
 
-                // console.log(endpoint)
-                upInputList.push(endpoint.inputJsName)
+                console.log("Show up node!!!!!!!!!!!!! And output pair")
+                console.log(endpoint)
+
+                // upInputList.push(endpoint.inputJsName)
+
+                // CAUTION: only ONE up node connected to this input, or something wrong 
+                var conn = endpoint.connections[0]
+                for (var i = conn.endpoints.length - 1; i >= 0; i--) {
+                    var ep = conn.endpoints[i]
+                    if (!(typeof ep.inputJsName === "undefined" || ep.inputJsName === null)) {
+                        upInputList.push(ep.inputJsName)
+                    }
+                    if (!(typeof ep.outputJsName === "undefined" || ep.outputJsName === null)) {
+                        upOutputList.push(ep.outputJsName)
+                    }
+                }
+
 
                 // endpoint.connections[i].sourceId is node name of source/output
-                // CAUTION: only ONE up node connected to this input, or something wrong 
-                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
-                    console.log("Show up node")
-                    console.log(endpoint.connections[i].sourceId)
-                    upOutputList.push(getNodeById(endpoint.connections[i].sourceId).output.default[0])
-                }
+                
+                // for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    
+                //     console.log(endpoint.connections[i])
+                //     console.log(endpoint.connections[i].sourceId)
+                //     upOutputList.push(getNodeById(endpoint.connections[i].sourceId).output.default[0])
+                // }
                 // 
                 
 
             })
+
+            console.log(upInputList)
+            console.log(upOutputList)
 
             return {upInputList: upInputList, upOutputList: upOutputList}
 
@@ -441,23 +473,28 @@ jsPlumb.ready(function () {
         },
 
         getDownConnections: function (nodeName) {
-            var downConnectionList = []
+            // each endpoint from output, connect n nodes!
+            // so it is a 2-d array!
+
+            var downConnectionList = {}
 
             instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
 
                 // console.log(endpoint)
                 
+                var epConnectList = []
 
                 // endpoint.connections[i].sourceId is node name of source/output
                 for (var i = endpoint.connections.length - 1; i >= 0; i--) {
                     console.log("Show down node")
                     console.log(endpoint.connections[i])
-                    downConnectionList.push(endpoint.connections[i])
+                    epConnectList.push(endpoint.connections[i])
                 }
-                // 
-                
 
+                downConnectionList[endpoint.outputJsName] = epConnectList
             })
+
+
 
             return downConnectionList
         },
@@ -485,21 +522,24 @@ jsPlumb.ready(function () {
         },
 
         getDownNodes: function (nodeName) {
+            // each endpoint from output, connect n nodes!
+            // so it is a 2-d array!
             var downList = []
 
             instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
 
                 // console.log(endpoint)
-                
+                var epNodeList = []
 
                 // endpoint.connections[i].sourceId is node name of source/output
                 for (var i = endpoint.connections.length - 1; i >= 0; i--) {
                     console.log("Show down node")
                     console.log(endpoint.connections[i].targetId)
-                    downList.push(endpoint.connections[i].targetId)
+                    epNodeList.push(endpoint.connections[i].targetId)
                 }
                 // 
                 
+                downList[i] = epNodeList
 
             })
 
@@ -530,12 +570,14 @@ jsPlumb.ready(function () {
                 console.log("source uuid " + sourceUUID)
                 var ep = instance.addEndpoint(toId, sourceEndpoint, {
                     // anchor: sourceAnchors[i], 
-                    anchor: "Bottom",
+                    anchor: [1/(node.output.count+1) * (i + 1), 1, 0, 1],
                     uuid: sourceUUID, 
                     overlays: [
                     [ "Label", {
                         location: [0.5, 2],
-                        label: sourceAnchors.type[i],
+                        // label: sourceAnchors.type[i],
+                        // TODO: use name to label endpoint, and check type backgournd
+                        label: sourceAnchors.name[i],
                         cssClass: "endpointSourceLabel",
                         visible:true
                     } ]
@@ -565,7 +607,8 @@ jsPlumb.ready(function () {
                     overlays: [
                     [ "Label", { 
                         location: [0.5, -1], 
-                        label: targetAnchors.type[j], 
+                        // label: targetAnchors.type[j], 
+                        label: targetAnchors.name[j], 
                         cssClass: "endpointTargetLabel", 
                         visible:true } ]
                     ], 

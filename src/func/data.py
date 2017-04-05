@@ -6,14 +6,16 @@
 
 """
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 
 def get_csv(file="", names=None):
 	"""
 	Read a data file as pandas dataframe.
 	--------
 	Inputs:
-	- file: csv file, string
-	- names: header names
+	- file: csv file, String
+	- names: header names, List
 	Output: 
 	- output: Data
 	"""
@@ -42,7 +44,7 @@ def fillna_df(data, method="mean"):
 	--------
 	Inputs:
 	- data: Data
-	- method: "mean"/"median"
+	- method: "mean"/"median", String
 	Ouput:
 	- output: Data
 	"""
@@ -61,9 +63,30 @@ def split_df(data, columns=None):
 	--------
 	Inputs:
 	- data: Data
-	- columns: columns list
+	- columns: columns, List
 	Output:
-	- data: Data, default get all columns
+	- data: Data, (default get all columns)
 	"""
 	return data[columns]
 
+def get_train_test(X, y, train_size=0.5):
+	"""
+	Standardize data, and then split X, y to X1, X2, y1, y2
+	--------
+	Inputs: 
+	- X: features, Data
+	- y: labels, Data
+	- train_size: The proportion of the train, Number
+	Outputs:
+	- X1: For train, Data
+	- X2: For test, Data
+	- y1: For train, Data
+	- y2: For test, Data
+	"""
+	scaler = StandardScaler()
+
+	X = scaler.fit_transform(X)
+
+	X1, X2, y1, y2 = train_test_split(X, y, train_size=train_size)
+
+	return X1, X2, y1, y2

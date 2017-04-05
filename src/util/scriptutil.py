@@ -52,12 +52,14 @@ def get_script(module_name, func_name, inputs, output):
 
 	paras_input = ','.join(paras)
 
+	paras_output = ','.join(output)
+
 	logging.info(paras_input)
 
 	script = (
 		func_source + "\n" + # need move to init_script
-		output + " = " + func_name + "(" + paras_input + ")" + "\n" +
-		output
+		paras_output + " = " + func_name + "(" + paras_input + ")" # not return output
+		# + "\n" + output
 		)
 
 	return script
@@ -70,8 +72,18 @@ def init_script():
 	"""
 	Init jupyter import
 	"""
+	init_list = [
+		"import numpy as np",
+		"import pandas as pd",
+		"import matplotlib.pyplot as plt",
+		"import seaborn as sns",
+		"sns.set_style('whitegrid')",
+		"from sklearn.preprocessing import StandardScaler",
+		"scaler = StandardScaler()",
+	]
 
-	return u'import numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nsns.set_style("whitegrid")'
+
+	return "\n".join(init_list)
 
 def init_script_import():
 	pass

@@ -408,7 +408,7 @@ function runOneStep(node) {
         module: node.module,
         func: node.func,
         input: node.input.value,
-        output: node.output.default[0],
+        output: node.output.default,
     }
 
     var uid = node.id + new Date().getTime()
@@ -435,12 +435,22 @@ function runOneStep(node) {
 }
 
 function runOneStepDone(message) {
+    console.log("run result message!!!!!!!!")
+    console.log(message)
 
     var node = runNodesList.shift()
 
     if (message != null) {
         var status = message.status
-        node.output.value = message.content
+
+        // TODO:GET AND SET FIRST OUTPUT VALUE
+        node.output.value = []
+        for (var i = node.output.default.length - 1; i >= 0; i--) {
+            var outputName = node.output.default[i]
+            node.output.value.push(message.content[outputName])
+        }
+
+
 
         console.log("node run one step result")
         console.log(node)
@@ -616,13 +626,14 @@ var nodeTypeList = {
                     name: ["file", "names"],
                     type: ["File", "String"],
                     count: 0,
-                    default: ["'/workspace/Projects/DataCastle2017/src/data/user_info_train.txt'", "None"],
+                    default: ["'/home/shun/Projects/Pkbigdata/gitProject/DataCastle2017/src/data/user_info_train.txt'", "None"],
                     value: null,
                 },
                 output:{
-                    name: null,
-                    type: "Data",
+                    name: ["data"],
+                    type: ["Data"],
                     count: 1,
+                    default: null,
                     value: null,
                 },
             },
@@ -653,9 +664,10 @@ var nodeTypeList = {
                     value: null,
                 },
                 output:{
-                    name: null,
-                    type: "Data",
+                    name: ["data"],
+                    type: ["Data"],
                     count: 1,
+                    default: null,
                     value: null,
                 },                
             },
@@ -716,11 +728,15 @@ function initNode(mainType, subType) {
 
     // 2. output
     node.output = {} 
-    node.output.name = ["output"] // should be output name like: return a, b, c; not id!
-    node.output.type = [nodeType.content.output.type]
+    node.output.name = nodeType.content.output.name.slice(0)
+    node.output.type = nodeType.content.output.type.slice(0)
     node.output.count = nodeType.content.output.count
-    node.output.default = ["output" + nodeName]
-    node.output.id = ["output" + nodeName]
+    node.output.default = node.output.name.map(function(value){
+        return "output" + nodeName + value;
+    });
+    node.output.id = node.output.default.slice(0)
+
+
     node.output.value = null // output value should be result from server
     
 
@@ -894,39 +910,119 @@ function showInputs(node) {
 
 function showOutput(node) {
     $("#func-output").empty()
-    var d = document.createElement("div")
-    d.className = "input-group"
 
-    var s = document.createElement("span")
-    s.className = "input-group-addon"
-    s.innerHTML = "Output"
+    // TODO!!!!!!!!!!!!!!
+    var ul = document.createElement("ul")
+    ul.id = "outputTab"
+    ul.className = "nav nav-tabs"
 
-    var t = document.createElement("input")
-    t.type = "text"
-    t.className = "form-control"
-    t.value = node.output.default[0]
-    t.id = "text" + node.name + "output"
+    var uc = document.createElement("div")
+    uc.id = "outputContent"
+    uc.className = "tab-content"
 
-    $(t).on('change', function(e) {
-        // console.log(e)
-        var node = getNodeById(currentNodeId)
+    for (var i = 0; i < node.output.name.length; i++) {
+        var li = document.createElement("li")
 
-        node.output.default[0] = $(this).val()
+        var a = document.createElement("a")
+        $(a).attr('href', "#" + node.output.name[i])
+        $(a).attr('data-toggle', "tab")
+        a.innerHTML = node.output.name[i]
 
-        // console.log(node)
+        li.append(a)
+        ul.append(li)
 
-        // change all nodes downside of status idle
-        setDownNodesIdle(node.name)
+        var dc = document.createElement("div")
+        dc.className = "tab-pane fade"
+        dc.id = node.output.name[i]
 
-        // if connect to a target, then change label name
-        jsplumbUtils.setConnectionLabels(node)
-    });
+        if (i == 0) {
+            li.className = "active"
+            dc.className = dc.className + " in active"
+        }
 
-    d.append(s)
-    d.append(t)
+        var t = document.createElement("input")
+        t.type = "text"
+        t.className = "form-control"
+        t.value = node.output.default[i]
+        t.id = "text" + node.name + "output"
 
-    $("#func-output").append(d)
-    $("#func-output").append(node.output.value)
+        $(t).on('change', function(e) {
+            // console.log(e)
+            var node = getNodeById(currentNodeId)
+
+            var notIdLength = ("text" + node.name + "output").length
+            node.output.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+
+            // node.output.default[i] = $(this).val()
+
+            // console.log(node)
+
+            // change all nodes downside of status idle
+            setDownNodesIdle(node.name)
+
+            // if connect to a target, then change label name
+            jsplumbUtils.setConnectionLabels(node)
+        });
+
+        dc.append(t)
+
+        if (node.output.value != null) {
+            var v = node.output.value[i]
+            var vDiv = document.createElement("div")
+            vDiv.innerHTML = v
+            dc.append(vDiv)    
+        }
+
+        uc.append(dc)
+
+    }
+
+    $("#func-output").append(ul)
+    $("#func-output").append(uc)
+
+
+
+    // for (var i = node.output.default.length - 1; i >= 0; i--) {
+    //     var d = document.createElement("div")
+    //     d.className = "input-group"
+
+    //     var s = document.createElement("span")
+    //     s.className = "input-group-addon"
+    //     s.innerHTML = node.output.name[i]
+
+    //     var t = document.createElement("input")
+    //     t.type = "text"
+    //     t.className = "form-control"
+    //     t.value = node.output.default[i]
+    //     t.id = "text" + node.name + "output"
+
+    //     $(t).on('change', function(e) {
+    //         // console.log(e)
+    //         var node = getNodeById(currentNodeId)
+
+    //         var notIdLength = ("text" + node.name + "output").length
+    //         node.output.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+
+    //         // node.output.default[i] = $(this).val()
+
+    //         // console.log(node)
+
+    //         // change all nodes downside of status idle
+    //         setDownNodesIdle(node.name)
+
+    //         // if connect to a target, then change label name
+    //         jsplumbUtils.setConnectionLabels(node)
+    //     });
+
+    //     d.append(s)
+    //     d.append(t)
+
+    //     $("#func-output").append(d)
+    // }
+
+
+
+    // $("#func-output").append(node.output.value[0])
 
 }
 
@@ -935,7 +1031,8 @@ function getUpNodes(nodeName) {
 }
 
 function getDownNodes(nodeName) {
-    return jsplumbUtils.getDownNodes(nodeName)
+    // from 2d to 1d
+    return [].concat.apply([],jsplumbUtils.getDownNodes(nodeName))
 }
 
 function setDownNodesIdle(nodeName) {
@@ -963,7 +1060,10 @@ function setDownNodesIdle(nodeName) {
 }
 
 function pushDelVar(node) {
-    runDelVarList.push(node.output.default[0])
+    runDelVarList.push(node.output.default)
+
+    node.output.value = null
+
 }
 
 function showHelp(mainType, subType) {
@@ -1061,7 +1161,11 @@ function parseMessage(message) {
         clearNodeInfo()
         // var node = $(mContent);
         // $("#console").remove()
-        $("#func-output").append(mContent);
+        for (var name in mContent) {
+            $("#func-output").append(name);
+            $("#func-output").append(mContent[name]);
+        }
+
         // node.slideDown();
     }
     else if (mChannel == "flow") {
