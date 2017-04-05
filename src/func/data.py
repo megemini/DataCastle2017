@@ -67,7 +67,10 @@ def split_df(data, columns=None):
 	Output:
 	- data: Data, (default get all columns)
 	"""
-	return data[columns]
+	if columns == None:
+		return data
+	else:
+		return data[columns]
 
 def get_train_test(X, y, train_size=0.5):
 	"""

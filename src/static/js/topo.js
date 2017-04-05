@@ -559,17 +559,18 @@ function getNodeColorById(nodeId) {
 // add node
 
 // var nodeCount = 0
-var nodeList = {
-    "Data": {
-        "File": {
-            count: 0,
-            },
+var nodeList = {}
+// var nodeList = {
+//     "Data": {
+//         "File": {
+//             count: 0,
+//             },
 
-        "Merge": {
-            count: 0,
-            },
-        },
-    }
+//         "Merge": {
+//             count: 0,
+//             },
+//         },
+//     }
 
 var nodeListByName = {}
 // var connectList = {}
@@ -672,9 +673,137 @@ var nodeTypeList = {
                 },                
             },
         },
+
+        Fillna: {
+            display: "Fill Missing", 
+            description: "Fill missing value. \n Inputs: \n - data: Data \n - method: 'mean'/'median', String \n Output: Data",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "fillna_df",
+                input: {
+                    name: ["data", "method"],
+                    type: ["Data", "String"],
+                    count: 1,
+                    default: ["'mean'"],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        Split: {
+            display: "Split Data", 
+            description: "Get part columns of data. \n Inputs: \n - data: Data \n - columns: columns, List, String \n Output: Data, (default get all columns)",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "split_df",
+                input: {
+                    name: ["data", "columns"],
+                    type: ["Data", "List"],
+                    count: 1,
+                    default: ["None"],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        TrainTest: {
+            display: "Get Train Test", 
+            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "get_train_test",
+                input: {
+                    name: ["X", "y", "train_size"],
+                    type: ["Data", "Data", "Number"],
+                    count: 2,
+                    default: ["0.5"],
+                    value: null,
+                },
+                output:{
+                    name: ["X1", "X2", "y1", "y2"],
+                    type: ["Data", "Data", "Data", "Data"],
+                    count: 4,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
     },
 }
 
+
+function initNodeList() {
+    for (var mainType in nodeTypeList) {
+        nodeList[mainType] = {}
+
+        for (var subType in nodeTypeList[mainType]) {
+            nodeList[mainType][subType] = {}
+            nodeList[mainType][subType].count = 0
+        }
+
+    }
+
+// nodeTypeList
+
+//     var nodeList = {
+//         "Data": {
+//             "File": {
+//                 count: 0,
+//                 },
+
+//             "Merge": {
+//                 count: 0,
+//                 },
+//             },
+//         }
+}
 
 // function initNodeList() {
 //     for (var i = nodeTypeList.length - 1; i >= 0; i--) {
@@ -1105,7 +1234,7 @@ $(document).ready(function() {
 
 
     // TODO: init node type list & node list from server
-
+    initNodeList()
     // TODO: from node type list, generate node tree
 
 });
