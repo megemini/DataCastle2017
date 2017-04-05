@@ -445,7 +445,7 @@ function runOneStepDone(message) {
 
         // TODO:GET AND SET FIRST OUTPUT VALUE
         node.output.value = []
-        for (var i = node.output.default.length - 1; i >= 0; i--) {
+        for (var i = 0; i < node.output.default.length; i++) {
             var outputName = node.output.default[i]
             node.output.value.push(message.content[outputName])
         }
@@ -627,7 +627,7 @@ var nodeTypeList = {
                     name: ["file", "names"],
                     type: ["File", "String"],
                     count: 0,
-                    default: ["'/home/shun/Projects/Pkbigdata/gitProject/DataCastle2017/src/data/user_info_train.txt'", "None"],
+                    default: ["'/workspace/Projects/DataCastle2017/src/data/user_info_train.txt'", "None"],
                     value: null,
                 },
                 output:{

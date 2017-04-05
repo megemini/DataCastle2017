@@ -79,7 +79,7 @@ def init_script():
 		"import seaborn as sns",
 		"sns.set_style('whitegrid')",
 		"from sklearn.preprocessing import StandardScaler",
-		"scaler = StandardScaler()",
+		"from sklearn.model_selection import train_test_split",
 	]
 
 

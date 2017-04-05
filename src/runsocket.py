@@ -282,7 +282,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         logging.info("run result!!!!!!!!!")
         logging.info(run_list)
 
-        run_results.extend(run_list)
+        # Not extend func
+        # run_results.extend(run_list)
         for output in s_output:
             run_list = yield self.run_script(output, output)
             run_results.extend(run_list)
@@ -406,9 +407,10 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 read shell message, the last message with a session
                 """
                 if msg_type == 'execute_reply' and parent_msg_id == msg_id:
-                    if len(msg['content']['payload']) > 0:
-                        logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
-                        raise gen.Return(self.assemble_result([msg['content']['payload'][0]['data']['text/plain'], "text", True], name))   
+                    if msg['content'].get('payload') != None:
+                        if len(msg['content']['payload']) > 0:
+                            logging.info("!!!!!!!!!!!!!!!msg['content']['payload'][0]['data']['text/plain']:")
+                            raise gen.Return(self.assemble_result([msg['content']['payload'][0]['data']['text/plain'], "text", True], name))   
 
                     logging.info("msg['content']['payload']:")
                     raise gen.Return(self.assemble_result(["OK", "text", True], name))

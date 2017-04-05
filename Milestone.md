@@ -40,6 +40,8 @@
 - [x] Two "Add File" + One "Merge Data" works!!!
 - [ ] Multi Session!!!
 - [ ] Could we parse __doc__ to get js nodeTypeList?!
+- [x] "Add File"/"Merge Data"/"Split Data"/"Get Train Test" woks!!!
+- [x] Multi outputs
 
 ## 2017/4/9
 

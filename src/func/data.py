@@ -86,10 +86,18 @@ def get_train_test(X, y, train_size=0.5):
 	- y1: For train, Data
 	- y2: For test, Data
 	"""
+	columns_X = X.columns
+	columns_y = y.columns
+
 	scaler = StandardScaler()
 
 	X = scaler.fit_transform(X)
 
 	X1, X2, y1, y2 = train_test_split(X, y, train_size=train_size)
+
+	X1 = pd.DataFrame(X1, columns=columns_X)
+	X2 = pd.DataFrame(X2, columns=columns_X)
+	y1 = pd.DataFrame(y1, columns=columns_y)
+	y2 = pd.DataFrame(y2, columns=columns_y)
 
 	return X1, X2, y1, y2
