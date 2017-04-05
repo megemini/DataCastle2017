@@ -375,16 +375,16 @@ jsPlumb.ready(function () {
         setConnectionLabels: function (sourceNode) {
             var downConnection = this.getDownConnections(sourceNode.name)
 
-            var outputNames = sourceNode.output.name
+            var outputIds = sourceNode.output.id
             var outputDefaults = sourceNode.output.default
 
             console.log("setConnectionLabels!!!!!!!!!!")
-            console.log(outputNames)
+            console.log(outputIds)
             console.log(outputDefaults)
             console.log(downConnection)
 
-            for (var i = outputNames.length - 1; i >= 0; i--) {
-                var connections = downConnection[outputNames[i]]
+            for (var i = outputIds.length - 1; i >= 0; i--) {
+                var connections = downConnection[outputIds[i]]
 
                 for (var j = connections.length - 1; j >= 0; j--) {
                     connections[j].getOverlay("label").setLabel(
@@ -407,39 +407,50 @@ jsPlumb.ready(function () {
         },
 
         getOutInPairsFromEps: function (nodeName) {
+            // CAUTION: 
+            // There are no outputJsDefault!!! Because, it could be changed!!! 
+            // So, output-input pair like: data1=inputDataFile0data
+            // comes from: 
+            // 1. inputJsName: each endpoint(input) of this TARGET node
+            // 2. upNode.output.default[index]: index from outputJsId of output id!!! 
+            // This could refactory!!!
+
             var upInputList = []
             var upOutputList = []
-            
+                       
+
             instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
 
                 console.log("Show up node!!!!!!!!!!!!! And output pair")
                 console.log(endpoint)
 
-                // upInputList.push(endpoint.inputJsName)
+                var upNodeOutputId = null
+
+                // upInputList.push(endpoint.inputJsId)
 
                 // CAUTION: only ONE up node connected to this input, or something wrong 
                 var conn = endpoint.connections[0]
                 for (var i = conn.endpoints.length - 1; i >= 0; i--) {
                     var ep = conn.endpoints[i]
-                    if (!(typeof ep.inputJsName === "undefined" || ep.inputJsName === null)) {
-                        upInputList.push(ep.inputJsName)
-                    }
-                    if (!(typeof ep.outputJsName === "undefined" || ep.outputJsName === null)) {
-                        upOutputList.push(ep.outputJsName)
+                    // if (!(typeof ep.inputJsId === "undefined" || ep.inputJsId === null)) {
+                    //     upInputList.push(ep.inputJsId)
+                    // }
+                    if (!(typeof ep.outputJsId === "undefined" || ep.outputJsId === null)) {
+                        upNodeOutputId = ep.outputJsId
                     }
                 }
 
 
+                upInputList.push(endpoint.inputJsName)
+
                 // endpoint.connections[i].sourceId is node name of source/output
                 
-                // for (var i = endpoint.connections.length - 1; i >= 0; i--) {
-                    
-                //     console.log(endpoint.connections[i])
-                //     console.log(endpoint.connections[i].sourceId)
-                //     upOutputList.push(getNodeById(endpoint.connections[i].sourceId).output.default[0])
-                // }
-                // 
-                
+                console.log(conn)
+                console.log(conn.sourceId)
+                var upNode = getNodeById(conn.sourceId)
+
+                var index = upNode.output.id.indexOf(upNodeOutputId)
+                upOutputList.push(upNode.output.default[index])
 
             })
 
@@ -491,7 +502,7 @@ jsPlumb.ready(function () {
                     epConnectList.push(endpoint.connections[i])
                 }
 
-                downConnectionList[endpoint.outputJsName] = epConnectList
+                downConnectionList[endpoint.outputJsId] = epConnectList
             })
 
 
@@ -585,7 +596,7 @@ jsPlumb.ready(function () {
 
                 });
 
-                ep.outputJsName = sourceAnchors.name[i]
+                ep.outputJsId = sourceAnchors.id[i]
 
                 // if (typeof sourceList[node.id] === "undefined" && sourceList[node.id] === null) {
                 //     sourceList[node.id] = []
@@ -614,6 +625,7 @@ jsPlumb.ready(function () {
                     ], 
                 });
 
+                ep.inputJsId = targetAnchors.id[j]
                 ep.inputJsName = targetAnchors.name[j]
                 // if (typeof targetList[node.id] === "undefined" && targetList[node.id] === null) {
                 //     targetList[node.id] = []

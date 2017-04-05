@@ -716,25 +716,26 @@ function initNode(mainType, subType) {
     node.module = nodeType.content.module
     node.func = nodeType.content.func
 
+
     node.input = {} 
-    node.input.name = nodeType.content.input.name.slice(0)
+    node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
     node.input.type = nodeType.content.input.type.slice(0)
     node.input.count = nodeType.content.input.count
-    node.input.default = nodeType.content.input.default.slice(0)
-    node.input.id = node.input.name.map(function(value){
+    node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
+    node.input.id = node.input.name.map(function(value){ // input id: not change, unique
         return "input" + nodeName + value;
     });
     node.input.value = null // input value should be up nodes output default
 
     // 2. output
     node.output = {} 
-    node.output.name = nodeType.content.output.name.slice(0)
+    node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
     node.output.type = nodeType.content.output.type.slice(0)
     node.output.count = nodeType.content.output.count
-    node.output.default = node.output.name.map(function(value){
+    node.output.default = node.output.name.map(function(value){ // output default: change, unique
         return "output" + nodeName + value;
     });
-    node.output.id = node.output.default.slice(0)
+    node.output.id = node.output.default.slice(0) // output id: not change, unique
 
 
     node.output.value = null // output value should be result from server
@@ -944,7 +945,7 @@ function showOutput(node) {
         t.type = "text"
         t.className = "form-control"
         t.value = node.output.default[i]
-        t.id = "text" + node.name + "output"
+        t.id = "text" + node.name + "output" + i
 
         $(t).on('change', function(e) {
             // console.log(e)
