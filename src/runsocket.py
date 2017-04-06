@@ -267,23 +267,28 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         s_func = flow["func"]
         s_input = flow["input"]
         s_output = flow["output"]
+        s_delete = flow["delete"]
+
+        # 1. delete vars
+        if len(s_delete) > 0: 
+            yield self.run_script(scriptutil.get_delete_script(s_delete), "func")
 
         # f1 = scriptutil.get_script(data.get_csv, inputs, output)
+
+        # 2. run func
         script = scriptutil.get_script(s_module, s_func, s_input, s_output)
         logging.info(script)
 
 
-        # TEST:
-        # logging.info("run command script&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-        # script = "import time\ntime.sleep(10)"
         run_results = []
         run_list = yield self.run_script(script, "func")
 
         logging.info("run result!!!!!!!!!")
         logging.info(run_list)
 
-        # Not extend func
-        # run_results.extend(run_list)
+        run_results.extend(run_list)
+
+        # 3. get var outputs
         for output in s_output:
             run_list = yield self.run_script(output, output)
             run_results.extend(run_list)

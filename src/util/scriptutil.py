@@ -64,6 +64,10 @@ def get_script(module_name, func_name, inputs, output):
 
 	return script
 
+def get_delete_script(delete):
+	script = "del " + ','.join(delete)
+	return script
+
 
 def get_para_string(para):
 	return '\"' + para + '\"'

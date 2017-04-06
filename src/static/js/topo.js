@@ -185,7 +185,6 @@ var kernelId = ""
 
 function runFlow() {
     runNodesList = []
-    runDelVarList = []
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -409,6 +408,7 @@ function runOneStep(node) {
         func: node.func,
         input: node.input.value,
         output: node.output.default,
+        delete: runDelVarList,
     }
 
     var uid = node.id + new Date().getTime()
@@ -431,6 +431,9 @@ function runOneStep(node) {
     console.log()
     updater.socket.send(message);
 
+    // 5. runDelVarList set empty
+    runDelVarList = []
+
     return true
 }
 
@@ -447,9 +450,14 @@ function runOneStepDone(message) {
         node.output.value = []
         for (var i = 0; i < node.output.default.length; i++) {
             var outputName = node.output.default[i]
+
+            // console.log("message.content[outputName]")
+            // console.log(message.content[outputName])
+
             node.output.value.push(message.content[outputName])
         }
 
+        // TODO: func error should show out
 
 
         console.log("node run one step result")
@@ -627,7 +635,7 @@ var nodeTypeList = {
                     name: ["file", "names"],
                     type: ["File", "String"],
                     count: 0,
-                    default: ["'/workspace/Projects/DataCastle2017/src/data/user_info_train.txt'", "None"],
+                    default: ["'/home/shun/Projects/Pkbigdata/gitProject/DataCastle2017/src/data/user_info_train.txt'", "None"],
                     value: null,
                 },
                 output:{
@@ -1020,7 +1028,7 @@ function showInputs(node) {
         t.value = node.input.default[i]
         t.id = "text" + node.name + "input" + i
 
-        $(t).on('change', function(e) {
+        $(t).on('change input propertychange', function(e) {
             // console.log(e)
             var node = getNodeById(currentNodeId)
 
@@ -1076,7 +1084,7 @@ function showOutput(node) {
         t.value = node.output.default[i]
         t.id = "text" + node.name + "output" + i
 
-        $(t).on('change', function(e) {
+        $(t).on('change input propertychange', function(e) {
             // console.log(e)
             var node = getNodeById(currentNodeId)
 
@@ -1157,12 +1165,15 @@ function showOutput(node) {
 }
 
 function getUpNodes(nodeName) {
-    return jsplumbUtils.getUpNodes(nodeName)
+    return jsplumbUtils.getUpNodesList(nodeName)
 }
 
 function getDownNodes(nodeName) {
     // from 2d to 1d
-    return [].concat.apply([],jsplumbUtils.getDownNodes(nodeName))
+    var downNodesList = jsplumbUtils.getDownNodesList(nodeName)
+    console.log("getDownNodes")
+    console.log(downNodesList)
+    return [].concat.apply([],downNodesList)
 }
 
 function setDownNodesIdle(nodeName) {
@@ -1190,9 +1201,12 @@ function setDownNodesIdle(nodeName) {
 }
 
 function pushDelVar(node) {
-    runDelVarList.push(node.output.default)
+    runDelVarList = [].concat.apply(runDelVarList,node.output.default)
 
-    node.output.value = null
+    console.log("runDelVarList")
+    console.log(runDelVarList)
+
+    // node.output.value = null
 
 }
 

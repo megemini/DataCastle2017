@@ -510,7 +510,7 @@ jsPlumb.ready(function () {
             return downConnectionList
         },
 
-        getUpNodes: function (nodeName) {
+        getUpNodesList: function (nodeName) {
             var upList = []
 
             instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
@@ -532,7 +532,30 @@ jsPlumb.ready(function () {
             return upList
         },
 
-        getDownNodes: function (nodeName) {
+        getUpNodesDict: function (nodeName) {
+            var upDict = []
+
+            instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show up node")
+                    console.log(endpoint.connections[i].sourceId)
+                    // upList.push(endpoint.connections[i].sourceId)
+                    upDict[endpoint.inputJsId] = endpoint.connections[i].sourceId
+                }
+                // 
+                
+
+            })
+
+            return upDict
+        },
+
+        getDownNodesList: function (nodeName) {
             // each endpoint from output, connect n nodes!
             // so it is a 2-d array!
             var downList = []
@@ -550,11 +573,36 @@ jsPlumb.ready(function () {
                 }
                 // 
                 
-                downList[i] = epNodeList
+                downList.push(epNodeList)
 
             })
 
             return downList
+        },
+
+        getDownNodesDict: function (nodeName) {
+            // each endpoint from output, connect n nodes!
+            // so it is a 2-d array!
+            var downDict = {}
+
+            instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+
+                // console.log(endpoint)
+                var epNodeList = []
+
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show down node")
+                    console.log(endpoint.connections[i].targetId)
+                    epNodeList.push(endpoint.connections[i].targetId)
+                }
+                // 
+                
+                downDict[endpoint.outputJsId] = epNodeList
+
+            })
+
+            return downDict
         },
 
         initNode: function(el, node) {
@@ -673,6 +721,13 @@ jsPlumb.ready(function () {
             d.innerHTML = node.display + "<img class='closeNode' src='../static/img/close.png'>";
             d.style.left = x + "px";
             d.style.top = y + "px";
+
+            var inCount = node.input.name.length
+            var outCount = node.output.name.length
+            var maxCount = (inCount > outCount ? inCount : outCount) + 1
+
+            d.style.width =  maxCount * 50 + "px"
+
             instance.getContainer().appendChild(d);
             this.initNode(d, node);
             return d;
