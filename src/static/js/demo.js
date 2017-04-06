@@ -50,13 +50,13 @@ jsPlumb.ready(function () {
         //     stroke: "#558822",
         //     strokeWidth: 2
         // },
-        Container: "canvas"
+        Container: "myCanvas"
     });
 
 
     // this is the paint style for the connecting lines..
     var connectorPaintStyle = {
-        strokeWidth: 4,
+        strokeWidth: 3,
         stroke: "#61B7CF",
         joinstyle: "round",
         // outlineStroke: "white",
@@ -78,14 +78,15 @@ jsPlumb.ready(function () {
     var sourceEndpoint = {
         endpoint: "Dot",
         paintStyle: {
-            stroke: "#7AB02C",
+            stroke: "#61B7CF",
             fill: "transparent",
             radius: 6,
             strokeWidth: 1,
         },
         maxConnections: -1,
         isSource: true,
-        connector: [ "Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true } ],
+        // TODO: use default instead of "Flowchart"
+        // connector: [ "Flowchart", { stub: [40, 60], gap: 10, cornerRadius: 5, alwaysRespectStubs: true } ],
         connectorStyle: connectorPaintStyle,
         hoverPaintStyle: endpointHoverStyle,
         connectorHoverStyle: connectorHoverStyle,
@@ -104,7 +105,7 @@ jsPlumb.ready(function () {
     var targetEndpoint = {
         endpoint: "Dot",
         paintStyle: { 
-            fill: "#7AB02C", 
+            fill: "#61B7CF", 
             radius: 6,
         },
         hoverPaintStyle: endpointHoverStyle,
@@ -131,7 +132,7 @@ jsPlumb.ready(function () {
     // });
 
     // click node event
-    jsPlumb.on($("#canvas"), "click", ".nodeForEvent", function (e) {
+    jsPlumb.on($("#myCanvas"), "click", ".nodeForEvent", function (e) {
 
         if (typeof e.srcElement.id === "undefined" || e.srcElement.id === null || e.srcElement.id == "") {
             // alert("nothing")
@@ -197,7 +198,7 @@ jsPlumb.ready(function () {
     });
 
     // // click listener for enable/disable in the small green boxes
-    jsPlumb.on($("#canvas"), "click", ".closeNode", function (e) {
+    jsPlumb.on($("#myCanvas"), "click", ".closeNode", function (e) {
         
 
         var targetDiv = (e.target || e.srcElement).parentNode;
@@ -354,7 +355,8 @@ jsPlumb.ready(function () {
 
     // TODO: show connection info
     var showConn = function (conn) {
-        alert("show connection info")
+        alert(conn.label)
+        // alert("show connection info")
         console.log("connection info: ", conn);
         console.log("Connect output: ", conn.component.source)
         console.log("Connect inputs: ", conn.component.target)
@@ -371,6 +373,20 @@ jsPlumb.ready(function () {
     }
 
     window.jsplumbUtils = {
+        repaintJsplumb: function (nodeList) {
+
+            instance.setSuspendDrawing(true);
+            // ...
+            // - load up all your data here -
+            // ...
+            instance.setSuspendDrawing(false, true);
+
+
+            // instance.batch(function () {
+
+
+            // })
+        },
 
         setConnectionLabels: function (sourceNode) {
             var downConnection = this.getDownConnections(sourceNode.name)
@@ -714,22 +730,31 @@ jsPlumb.ready(function () {
 
         // TODO: new node with drop position: x, y
         // node: a node with default paras, inputs/output, main/sub type,
-        newNode: function(x, y, node) {
+        newNode: function(x, y, node, nodeStyle) {
+
             var d = document.createElement("div");
             d.className = "window smallWindow nodeForEvent";
             d.id = node.id;
             d.innerHTML = node.display + "<img class='closeNode' src='../static/img/close.png'>";
             d.style.left = x + "px";
             d.style.top = y + "px";
+            d.style.border = nodeStyle["border"]
 
-            var inCount = node.input.name.length
-            var outCount = node.output.name.length
-            var maxCount = (inCount > outCount ? inCount : outCount) + 1
 
-            d.style.width =  maxCount * 50 + "px"
+            var disLength = node.display.length * 8 + 64
+            // alert(disLength)
+            var inLength = (node.input.count + 1) * 50
+            var outLength = (node.output.count + 1) * 50
+            var maxLength = Math.max.apply(Math,[disLength, inLength, outLength])
+
+            // alert(maxLength)
+            d.style.width =  maxLength + "px"
 
             instance.getContainer().appendChild(d);
+
+
             this.initNode(d, node);
+
             return d;
 
         },
@@ -768,7 +793,7 @@ jsPlumb.ready(function () {
     //             }
     //         }]
     //     ],
-    //     Container: "canvas"
+    //     Container: "myCanvas"
     // });
 
     // var basicType = {

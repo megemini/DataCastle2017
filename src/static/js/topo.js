@@ -156,8 +156,24 @@ Node = {
 // 	// body...
 // }
 
+function moveNodes() {
+    for (var key in nodeListByName) {
+        console.log($('#' + key))
+        // $('#' + key).style.left = "100px"
+        document.getElementById(key).style.left = "-100px"
+    }
+
+    jsplumbUtils.repaintJsplumb()
+}
+
 function run() {
     alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
+
+    // TEST!!!
+    // moveNodes()
+
+
+    // return
 
     // TODO: test for down side nodes idle
     // for (var key in nodeListByName)  {
@@ -402,6 +418,8 @@ function runOneStep(node) {
 
 // }
 
+    pushDelVar(node)
+
     var content = {
         node: node.id,
         module: node.module,
@@ -432,7 +450,8 @@ function runOneStep(node) {
     updater.socket.send(message);
 
     // 5. runDelVarList set empty
-    runDelVarList = []
+    clearDelVar()
+    
 
     return true
 }
@@ -458,6 +477,7 @@ function runOneStepDone(message) {
         }
 
         // TODO: func error should show out
+        node.output.value[0] = message.content["func"] + node.output.value[0]
 
 
         console.log("node run one step result")
@@ -601,7 +621,7 @@ var COLORSTATUS = {
 }
 
 var COLORNODE = {
-    "Data"        : "rgba(124,238,124,1)",
+    "Data"        : "rgba(100,221,23,1)",
     "Model"       : "rgba(52,103,137, 1)",
     "Evaluate"    : "rgba(0,191,255,1)",
     "Visualize"   : "rgba(255,215,0,1)",
@@ -709,6 +729,246 @@ var nodeTypeList = {
                 output:{
                     name: ["data"],
                     type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        Split: {
+            display: "Split Data", 
+            description: "Get part columns of data. \n Inputs: \n - data: Data \n - columns: columns, List, String \n Output: Data, (default get all columns)",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "split_df",
+                input: {
+                    name: ["data", "columns"],
+                    type: ["Data", "List"],
+                    count: 1,
+                    default: ["None"],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        TrainTest: {
+            display: "Get Train Test", 
+            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "get_train_test",
+                input: {
+                    name: ["X", "y", "train_size"],
+                    type: ["Data", "Data", "Number"],
+                    count: 2,
+                    default: ["0.5"],
+                    value: null,
+                },
+                output:{
+                    name: ["X1", "X2", "y1", "y2"],
+                    type: ["Data", "Data", "Data", "Data"],
+                    count: 4,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+    },
+    Model: {
+        RandomForestClassifier: {
+            display: "Random Forest Classifier", 
+            description: "Random Forest Classifier. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - n_estimators: Number  \n Output: Model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "model",
+                func: "cls_rfc",
+                input: {
+                    name: ["X", "y", "n_estimators"],
+                    type: ["Data", "Data", "Number"],
+                    count: 2,
+                    default: ["10"],
+                    value: null,
+                },
+                output:{
+                    name: ["model"],
+                    type: ["Model"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        XGBoost: {
+            display: "XGBoost", 
+            description: "XGBoost. \n Inputs: \n - Inputs: \n - X: features, Data \n - y: labels, Data \n - objective: logistic regression for binary classification  \n Output: Model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                // func: {
+                //     funcName: "merge_df",
+                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["Data", "Data", "String"],
+                //     funcInputsCount: 2,
+                //     funcInputsDefaults: ["id"], // used for edit paras
+                // },
+                module: "model",    
+                func: "cls_xgb",
+                input: {                    
+                    name: ["X", "y", "objective"],
+                    type: ["Data", "Data", "String"],
+                    count: 2,
+                    default: ["'binary:logistic'"],
+                    value: null,
+                },
+                output:{
+                    name: ["model"],
+                    type: ["Model"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+    },
+    Evaluate: {
+        Predict: {
+            display: "Predict", 
+            description: "Predict. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "evaluate",
+                func: "eva_predict",
+                input: {
+                    name: ["model", "X"],
+                    type: ["Model", "Data"],
+                    count: 2,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        PredictProb: {
+            display: "Predict Probability", 
+            description: "Predict Probability. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                // func: {
+                //     funcName: "merge_df",
+                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["Data", "Data", "String"],
+                //     funcInputsCount: 2,
+                //     funcInputsDefaults: ["id"], // used for edit paras
+                // },
+                module: "evaluate",    
+                func: "eva_predict_proba",
+                input: {
+                    name: ["model", "X"],
+                    type: ["Model", "Data"],
+                    count: 2,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },              
+            },
+        },
+
+        ROCAUCScore: {
+            display: "ROC AUC Score", 
+            description: "ROC AUC Score. \n Inputs: \n - y_true: Data \n - y_score: Data \n Output: Number",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "evaluate",
+                func: "eva_roc_auc_score",
+                input: {
+                    name: ["y_true", "y_score"],
+                    type: ["Data", "Data"],
+                    count: 2,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["score"],
+                    type: ["Number"],
                     count: 1,
                     default: null,
                     value: null,
@@ -946,12 +1206,7 @@ function initNode(mainType, subType) {
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
 
-    // offset of cursor
-    var diffX = 12.5 * 16 / 2
-    var diffY = 4 * 16 / 2
 
-    var X = $('#canvas').offset().left + diffX
-    var Y = $('#accordion').offset().top + diffY
 
     // 0. add node info to node list
     var newNode = initNode(mainType, subType)
@@ -970,7 +1225,17 @@ function addNode(mainType, subType, e) {
     //     // outputType: [newNode.outputType],
     // }
 
-    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, newNode);
+    // offset of cursor
+    // TODO: use node width/height to set diffX/diffY
+    var diffX = 9 * 16 / 2
+    var diffY = 4 * 16 / 2
+
+    var X = $('#myCanvas').offset().left + diffX
+    var Y = $('#accordion').offset().top + diffY
+
+    var nodeStyle = {"border": '3px solid ' + getNodeColorById(newNode.id)}
+
+    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, newNode, nodeStyle);
 
     // 2. add description/inputs/output at console
     showNodeInfo(newNode)
@@ -1108,6 +1373,7 @@ function showOutput(node) {
             var v = node.output.value[i]
             var vDiv = document.createElement("div")
             vDiv.innerHTML = v
+
             dc.append(vDiv)    
         }
 
@@ -1118,7 +1384,9 @@ function showOutput(node) {
     $("#func-output").append(ul)
     $("#func-output").append(uc)
 
-
+    // change table style
+    var tc = $("table").attr("class")
+    $("table").attr("class", tc + " table table-striped")
 
     // for (var i = node.output.default.length - 1; i >= 0; i--) {
     //     var d = document.createElement("div")
@@ -1195,7 +1463,7 @@ function setDownNodesIdle(nodeName) {
 
     setNodeRunStatus(node, STATUS.IDLE)
 
-    pushDelVar(node)
+    // pushDelVar(node)
 
     return true
 }
@@ -1208,6 +1476,10 @@ function pushDelVar(node) {
 
     // node.output.value = null
 
+}
+
+function clearDelVar() {
+    runDelVarList = []
 }
 
 function showHelp(mainType, subType) {
@@ -1251,8 +1523,8 @@ $(document).ready(function() {
     initNodeList()
     // TODO: from node type list, generate node tree
 
-});
 
+});
 
 // TODO: unified message assemble!!!
 function newScript(form) {

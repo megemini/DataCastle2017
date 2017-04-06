@@ -84,6 +84,10 @@ def init_script():
 		"sns.set_style('whitegrid')",
 		"from sklearn.preprocessing import StandardScaler",
 		"from sklearn.model_selection import train_test_split",
+		"from sklearn.ensemble import RandomForestClassifier",
+		"from sklearn.metrics import roc_auc_score",
+		"from xgboost.core import Booster",
+		"import xgboost as xgb",
 	]
 
 

@@ -386,7 +386,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                 if msg_type == 'error':
                     logging.info("ERROR!!!!!!!!!!!!!!!!!msg['content']['evalue']")
                     logging.info(msg['content']['evalue'])
-                    raise gen.Return(self.assemble_result([msg['content']['evalue'], "evalue", False], name))
+                    raise gen.Return(self.assemble_result(["Error: " + msg['content']['evalue'], "evalue", False], name))
 
                 if msg_type == 'stream' and parent_msg_id == msg_id:
                     logging.info("!!!!!!!!!!!!!!!msg['content']['text']:")
@@ -418,7 +418,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                             raise gen.Return(self.assemble_result([msg['content']['payload'][0]['data']['text/plain'], "text", True], name))   
 
                     logging.info("msg['content']['payload']:")
-                    raise gen.Return(self.assemble_result(["OK", "text", True], name))
+                    raise gen.Return(self.assemble_result(["Process: OK!", "text", True], name))
 
 
                     # TODO: msg_type of assign a var!!!!!!!!!!!!!!

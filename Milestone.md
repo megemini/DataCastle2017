@@ -7,11 +7,16 @@
     * jquery
     * bootstrap
 * With dependency
-    * sklearn
-    * xgboost
-    * numpy
-    * pandas
-    * tensorflow
+    * jupyter-kernel-gateway==1.2.0
+    * matplotlib==1.5.3
+    * numpy==1.11.3
+    * pandas==0.19.2
+    * scikit-learn==0.18.1
+    * scipy==0.18.1
+    * seaborn==0.7.1
+    * tensorflow-gpu==1.0.0
+    * tornado==4.4.2
+    * xgboost==0.6a2
 
 ## 2017/03/28
 - [x] Web <-> management server <-> Jupyter kernel gateway
@@ -42,6 +47,12 @@
 - [ ] Could we parse __doc__ to get js nodeTypeList?!
 - [x] "Add File"/"Merge Data"/"Split Data"/"Get Train Test" woks!!!
 - [x] Multi outputs
+- [x] Add "Model"/"Evaluate"
+- [x] Run from add data to predict/roc_auc_score
+- [x] Change node/connector style
+- [ ] To add widget support
+- [ ] To add canvas drag support
+- [ ] To add node/widget class data structure and api
 
 ## 2017/4/9
 
