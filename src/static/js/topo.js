@@ -472,8 +472,14 @@ function runOneStepDone(message) {
 
             // console.log("message.content[outputName]")
             // console.log(message.content[outputName])
+            if (typeof node.output.value[i] != "undefined" || node.output.value[i] != null) {
+                node.output.value[i] = (node.output.value[i] + message.content[outputName])
+            }
+            else {
+                node.output.value[i] = message.content[outputName]
+            }
 
-            node.output.value.push(message.content[outputName])
+            
         }
 
         // TODO: func error should show out
@@ -1517,6 +1523,8 @@ $(document).ready(function() {
     // $("#message").select();
     updater.start();
 
+    // 1. init jsplumb
+    initJsPlumb("myCanvas")
 
 
     // TODO: init node type list & node list from server
@@ -1524,7 +1532,28 @@ $(document).ready(function() {
     // TODO: from node type list, generate node tree
 
 
+    bindTab()
 });
+
+function bindTab() {
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+      // alert(e.target) // 激活的标签页
+      // alert(e.relatedTarget) // 前一个激活的标签页
+      console.log(e)
+
+      var container = e.relatedTarget.id
+      if (container == "maintab1") {
+        container = "myCanvas2"
+      }
+      else {
+        container = "myCanvas"
+      }
+
+      jsplumbUtils.changeContainer(container)
+
+    })
+
+}
 
 // TODO: unified message assemble!!!
 function newScript(form) {

@@ -106,27 +106,52 @@
 
 
 {% block body %}
-		
+		<div class="row">
+			<ul id="myTab" class="nav nav-tabs">
+				<li class="active">
+					<a href="#tab1" data-toggle="tab" id="maintab1">
+						 myCanvas
+					</a>
+				</li>
+				<li>
+					<a href="#tab2" data-toggle="tab" id="maintab2">
+						myCanvas2
+					</a>
+				</li>
 
-        <div class="jtk-demo-main">
+			</ul>
+		</div>
+
+		<div class="row">
+		<div id="myTabContent" class="tab-content">
+			<div class="tab-pane fade in active" id="tab1">
+		        <div class="jtk-demo-main">
+
+		            <!-- demo -->
+		            <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas"></div>
+					<!-- /demo -->
+
+		        </div>
+			</div>
+			<div class="tab-pane fade" id="tab2">
+		        <div class="jtk-demo-main">
+
+		            <!-- demo -->
+		            <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas2"></div>
+					<!-- /demo -->
+
+		        </div>
+			</div>
+		</div>
+		</div>
+
+        <!-- <div class="jtk-demo-main"> -->
 
             <!-- demo -->
-            <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas">
-<!--                 <div class="window" id="sourceWindow1">
-                    <strong>Window 1</strong>
-                    <a href="#" id="enableDisableSource">disable</a>
-                </div>
-                <div class="window smallWindow" id="targetWindow2"><strong>Window 2</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
-                <div class="window smallWindow" id="targetWindow3"><strong>Window 3</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
-                <div class="window smallWindow" id="targetWindow4"><strong>Window 4</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
-                <div class="window smallWindow" id="targetWindow5"><strong>Window 5</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div>
-                <div class="window smallWindow" id="targetWindow6"><strong>Window 6</strong><a href="#" class="enableDisableTarget">disable</a><br/><br/></div> -->
-
-                
-
-            </div>
+<!--             <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas"></div> -->
 			<!-- /demo -->
-        </div>
+
+        <!-- </div> -->
 		
 
         
@@ -138,7 +163,7 @@
 {% end %}
 
 {% block console-form %}
-<div class="jtk-demo-main">
+<div class="console-part">
     <form  method="post" role="form"  id="scriptform">
         <div class="row">
                 <div class="input-group">

@@ -65,7 +65,10 @@ def get_script(module_name, func_name, inputs, output):
 	return script
 
 def get_delete_script(delete):
-	script = "del " + ','.join(delete)
+	script = ""
+	for var in delete:
+		script = script + "if '" + var + "' in dir(): del " + var + "\n"
+	 
 	return script
 
 
