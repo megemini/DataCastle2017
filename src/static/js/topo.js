@@ -163,7 +163,7 @@ function moveNodes() {
         document.getElementById(key).style.left = "-100px"
     }
 
-    jsplumbUtils.repaintJsplumb()
+    jsplumbUtils.repaintJsplumb(window.instance, {})
 }
 
 function run() {
@@ -192,6 +192,8 @@ function run() {
     }
 }
 
+var canvasDict = {}
+var currentInstanceRunning = null
 // set runNodesList as global var
 var runNodesList = []
 var runNodeMessage = []
@@ -201,6 +203,9 @@ var kernelId = ""
 
 function runFlow() {
     runNodesList = []
+
+    // TEST:!!!!!!!!!! widgets should find its instance
+    currentInstanceRunning = window.instance 
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -232,8 +237,8 @@ function runFlow() {
     while (!(runQueue.length == 0)) {
         var node = runQueue.shift()
         
-
-        var upNodeList = getUpNodes(node.name)
+        // TODO: when in widget, get all up nodes/widget
+        var upNodeList = getUpNodes(currentInstanceRunning, node.name)
 
 
         // console.log("shift node is ")
@@ -257,7 +262,9 @@ function runFlow() {
             var inputAssembleList = {}
 
             // 1.1 get pair from endpoint
-            var outInPair = jsplumbUtils.getOutInPairsFromEps(node.name)
+
+
+            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.name)
             var upInputList = outInPair.upInputList
             var upOutputList = outInPair.upOutputList
 
@@ -1241,7 +1248,7 @@ function addNode(mainType, subType, e) {
 
     var nodeStyle = {"border": '3px solid ' + getNodeColorById(newNode.id)}
 
-    jsplumbUtils.newNode(e.clientX - X, e.pageY - Y, newNode, nodeStyle);
+    jsplumbUtils.newNode(window.instance, e.clientX - X, e.pageY - Y, newNode, nodeStyle);
 
     // 2. add description/inputs/output at console
     showNodeInfo(newNode)
@@ -1370,7 +1377,7 @@ function showOutput(node) {
             setDownNodesIdle(node.name)
 
             // if connect to a target, then change label name
-            jsplumbUtils.setConnectionLabels(node)
+            jsplumbUtils.setConnectionLabels(window.instance, node)
         });
 
         dc.append(t)
@@ -1438,30 +1445,38 @@ function showOutput(node) {
 
 }
 
-function getUpNodes(nodeName) {
-    return jsplumbUtils.getUpNodesList(nodeName)
+function getUpNodes(instance, nodeName) {
+    return jsplumbUtils.getUpNodesList(instance, nodeName)
 }
 
-function getDownNodes(nodeName) {
+function getDownNodes(instance, nodeName) {
     // from 2d to 1d
-    var downNodesList = jsplumbUtils.getDownNodesList(nodeName)
+    var downNodesList = jsplumbUtils.getDownNodesList(instance, nodeName)
     console.log("getDownNodes")
     console.log(downNodesList)
     return [].concat.apply([],downNodesList)
 }
 
 function setDownNodesIdle(nodeName) {
+
     // 0. TODO: check circle
 
+    // 1. TODO: get all instance down the node
+    var instance = currentInstanceRunning
+
+    setDownNodesIdleInInstance(instance, nodeName)
+}
+
+function setDownNodesIdleInInstance(instance, nodeName) {
     // 1. set down nodes
-    var downList = getDownNodes(nodeName)
+    var downList = getDownNodes(instance, nodeName)
     console.log("Show down list from setDownNodesIdle")
     console.log(downList)
 
     // recursive set node down to idle
     if (downList.length > 0) {
         for (var i = downList.length - 1; i >= 0; i--) {
-            setDownNodesIdle(downList[i])
+            setDownNodesIdleInInstance(instance, downList[i])
         }
     }
 
@@ -1524,7 +1539,8 @@ $(document).ready(function() {
     updater.start();
 
     // 1. init jsplumb
-    initJsPlumb("myCanvas")
+    var jsInstance = initJsPlumb("myCanvas")
+    canvasDict["myCanvas"] = jsInstance
 
 
     // TODO: init node type list & node list from server
@@ -1549,10 +1565,25 @@ function bindTab() {
         container = "myCanvas"
       }
 
-      jsplumbUtils.changeContainer(container)
+      // jsplumbUtils.changeContainer(container)
 
     })
 
+}
+
+function inputWidgetName() {
+    $("#widgetDivInput").val("")
+    $("#groupButton").css('display','none'); 
+    $("#groupConfirmCancel").css('display','block'); 
+}
+
+function cancelGroup() {
+    $("#groupButton").css('display','block'); 
+    $("#groupConfirmCancel").css('display','none'); 
+}
+
+function confirmGroup() {
+    alert($("#widgetDivInput").val())
 }
 
 // TODO: unified message assemble!!!

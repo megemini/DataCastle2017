@@ -42,6 +42,25 @@
 	z-index: 5000
 }
 
+
+.saveCanvas {
+    /*float: right;*/
+    right: 0px;
+    position:absolute;
+    max-width: 300px;
+}
+.inNode {
+    left:4px;
+    top:4px;
+    position:absolute;
+    /*display: inline;*/
+}
+
+.inNode:hover {
+    cursor: pointer;
+}
+
+
 .closeNode {
     right:4px;
     top:4px;

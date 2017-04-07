@@ -201,7 +201,7 @@ function initJsPlumb(container) {
 
         // listen for new connections; 
         // initialise them the same way we initialise the connections at startup.
-        initConnection(connInfo.connection);
+        initConnection(instance, connInfo.connection);
     });
 
     // detach func
@@ -232,7 +232,7 @@ function initJsPlumb(container) {
 }
 
 // TODO: Debug: bind to a connection event, just for the purposes of pointing out that it can be done.
-var initConnection = function (connection) {
+var initConnection = function (instance, connection) {
 
 
     var sourceNodeId = connection.sourceId
@@ -242,7 +242,7 @@ var initConnection = function (connection) {
     // var targetNode = getNodeById(targetNodeId)
 
     // TODO: 1. set label source output name
-    jsplumbUtils.setConnectionLabels(sourceNode)
+    jsplumbUtils.setConnectionLabels(instance, sourceNode)
 
     // TODO: 2. set target node input of source output name
     // NO NEED: get inputs when run node
@@ -262,17 +262,27 @@ var showConn = function (conn) {
 
 
 var jsplumbUtils = {
-    changeContainer: function (container) {
+    changeContainer: function (instance) {
         // alert(container)
         // instance.setContainer(container);
-        instance = jsPlumb.getInstance({
-          Container:container
-        });
-
+        // instance = jsPlumb.getInstance({
+        //   Container:container
+        // });
+        window.instance = instance
     },
 
+    initWidget: function (instance, widget) {
+        // TODO: !!!!!!!!!!
+        // suspend drawing and initialise.
+        instance.batch(function () {
 
-    repaintJsplumb: function (nodeList) {
+            // and finally connect a couple of small windows, just so its obvious what's going on when this demo loads.           
+            // instance.connect({ source: "sourceWindow1", target: "targetWindow5" });
+            // instance.connect({ source: "sourceWindow1", target: "targetWindow2" });
+        });
+    },
+
+    repaintJsplumb: function (instance, nodeList) {
 
         instance.setSuspendDrawing(true);
         // ...
@@ -287,8 +297,8 @@ var jsplumbUtils = {
         // })
     },
 
-    setConnectionLabels: function (sourceNode) {
-        var downConnection = this.getDownConnections(sourceNode.name)
+    setConnectionLabels: function (instance, sourceNode) {
+        var downConnection = this.getDownConnections(instance, sourceNode.name)
 
         var outputIds = sourceNode.output.id
         var outputDefaults = sourceNode.output.default
@@ -311,7 +321,7 @@ var jsplumbUtils = {
     },
 
 
-    getNodeEndpoints: function (nodeName) {
+    getNodeEndpoints: function (instance, nodeName) {
         var endpointList = []
 
         instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
@@ -321,7 +331,7 @@ var jsplumbUtils = {
         return endpointList
     },
 
-    getOutInPairsFromEps: function (nodeName) {
+    getOutInPairsFromEps: function (instance, nodeName) {
         // CAUTION: 
         // There are no outputJsDefault!!! Because, it could be changed!!! 
         // So, output-input pair like: data1=inputDataFile0data
@@ -376,7 +386,7 @@ var jsplumbUtils = {
 
     },
 
-    getUpConnections: function (nodeName) {
+    getUpConnections: function (instance, nodeName) {
         var upConnectionList = []
 
         instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
@@ -398,7 +408,7 @@ var jsplumbUtils = {
         return upConnectionList
     },
 
-    getDownConnections: function (nodeName) {
+    getDownConnections: function (instance, nodeName) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
 
@@ -425,7 +435,7 @@ var jsplumbUtils = {
         return downConnectionList
     },
 
-    getUpNodesList: function (nodeName) {
+    getUpNodesList: function (instance, nodeName) {
         var upList = []
 
         instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
@@ -447,7 +457,7 @@ var jsplumbUtils = {
         return upList
     },
 
-    getUpNodesDict: function (nodeName) {
+    getUpNodesDict: function (instance, nodeName) {
         var upDict = []
 
         instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
@@ -470,7 +480,7 @@ var jsplumbUtils = {
         return upDict
     },
 
-    getDownNodesList: function (nodeName) {
+    getDownNodesList: function (instance, nodeName) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
         var downList = []
@@ -495,7 +505,7 @@ var jsplumbUtils = {
         return downList
     },
 
-    getDownNodesDict: function (nodeName) {
+    getDownNodesDict: function (instance, nodeName) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
         var downDict = {}
@@ -520,7 +530,7 @@ var jsplumbUtils = {
         return downDict
     },
 
-    initNode: function(el, node) {
+    initNode: function(instance, el, node) {
 
         // initialise draggable elements.
         instance.draggable(el);
@@ -582,12 +592,12 @@ var jsplumbUtils = {
 
     // TODO: new node with drop position: x, y
     // node: a node with default paras, inputs/output, main/sub type,
-    newNode: function(x, y, node, nodeStyle) {
+    newNode: function(instance, x, y, node, nodeStyle) {
 
         var d = document.createElement("div");
         d.className = "window smallWindow nodeForEvent";
         d.id = node.id;
-        d.innerHTML = node.display + "<img class='closeNode' src='../static/img/close.png'>";
+        d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + node.display + "<img class='closeNode' src='../static/img/close.png'>";
         d.style.left = x + "px";
         d.style.top = y + "px";
         d.style.border = nodeStyle["border"]
@@ -605,7 +615,7 @@ var jsplumbUtils = {
         instance.getContainer().appendChild(d);
 
 
-        this.initNode(d, node);
+        this.initNode(instance, d, node);
 
         return d;
 

@@ -110,16 +110,33 @@
 			<ul id="myTab" class="nav nav-tabs">
 				<li class="active">
 					<a href="#tab1" data-toggle="tab" id="maintab1">
-						 myCanvas
+						 Main
 					</a>
 				</li>
-				<li>
+<!-- 				<li>
 					<a href="#tab2" data-toggle="tab" id="maintab2">
 						myCanvas2
 					</a>
-				</li>
+				</li> -->
 
 			</ul>
+
+			<div class="saveCanvas">
+				<div id="groupConfirmCancel" class="input-group" style="display:none">
+	                <input type="text" class="form-control" id="widgetDivInput">
+	                <span class="input-group-btn">
+	                    <button class="btn btn-default" onclick="confirmGroup()">Confirm</button>
+	                    <button class="btn btn-default" onclick="cancelGroup()">Cancel</button>
+	                </span>
+
+
+				</div>
+
+				<button class="btn btn-default" onclick="inputWidgetName()" id="groupButton">Group</button>
+
+			</div>
+
+
 		</div>
 
 		<div class="row">
@@ -133,15 +150,13 @@
 
 		        </div>
 			</div>
-			<div class="tab-pane fade" id="tab2">
+<!-- 			<div class="tab-pane fade" id="tab2">
 		        <div class="jtk-demo-main">
 
-		            <!-- demo -->
 		            <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas2"></div>
-					<!-- /demo -->
 
 		        </div>
-			</div>
+			</div> -->
 		</div>
 		</div>
 
