@@ -522,6 +522,13 @@ function runFlowDone() {
 
     // 1. set image
     $("#run_button_img").attr("src", "../static/img/run.png"); 
+
+    // 2. for all nodes in run list, set idle
+    for (var i = runNodesList.length - 1; i >= 0; i--) {
+        setNodeRunStatus(runNodesList[i], STATUS.IDLE)
+    }
+
+    runNodesList = []
 }
 
 function setNodeRunStatus(node, status) {
@@ -618,6 +625,9 @@ var nodeListByName = {}
 // var inputsList = {}
 // var outputList = {}
 var currentNodeId = null
+
+var widgetList = {}
+var currentWidget = null
 
 var STATUS = {
     IDLE : 0, // rgba(255, 255, 255, 0.2)
@@ -1070,20 +1080,6 @@ function initNodeList() {
         }
 
     }
-
-// nodeTypeList
-
-//     var nodeList = {
-//         "Data": {
-//             "File": {
-//                 count: 0,
-//                 },
-
-//             "Merge": {
-//                 count: 0,
-//                 },
-//             },
-//         }
 }
 
 // function initNodeList() {
@@ -1103,6 +1099,17 @@ function initNodeList() {
         
 //     }
 // }
+
+var widgetStucture = [{ node: null,position: [null, null]}]
+
+function initWidget(widgetId) {
+    
+    var widget = []
+
+    widgetList[widgetId] = widget
+
+    return widget
+}
 
 function initNode(mainType, subType) {
     var nodeType = nodeTypeList[mainType][subType]
@@ -1182,6 +1189,7 @@ function initNode(mainType, subType) {
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
     node.found = false
+    node.widget = currentWidget
 
     nodeList[mainType][subType][nodeName] = node
     nodeListByName[nodeName] = node
@@ -1541,13 +1549,13 @@ $(document).ready(function() {
     // 1. init jsplumb
     var jsInstance = initJsPlumb("myCanvas")
     canvasDict["myCanvas"] = jsInstance
-
+    currentWidget = initWidget("MainWidget")
 
     // TODO: init node type list & node list from server
     initNodeList()
     // TODO: from node type list, generate node tree
 
-
+    // bind tab
     bindTab()
 });
 
@@ -1573,17 +1581,36 @@ function bindTab() {
 
 function inputWidgetName() {
     $("#widgetDivInput").val("")
-    $("#groupButton").css('display','none'); 
-    $("#groupConfirmCancel").css('display','block'); 
+    $("#canvasButton").css('display','none'); 
+    // $("#widgetButton").css('display','none'); 
+    $("#widgetConfirmCancel").css('display','inline-block'); 
 }
 
-function cancelGroup() {
-    $("#groupButton").css('display','block'); 
-    $("#groupConfirmCancel").css('display','none'); 
+function cancelWidget() {
+    $("#canvasButton").css('display','inline-block');
+    // $("#widgetButton").css('display','block'); 
+    $("#widgetConfirmCancel").css('display','none'); 
 }
 
-function confirmGroup() {
+function confirmWidget() {
     alert($("#widgetDivInput").val())
+
+    // TODO: 
+    // 1. get all nodes info & positions
+
+    // 2. with widgetId from widgetInput, push in all nodes
+
+    // 3.  clear current nodes
+
+    // 4. add one node with type "widget", position center
+}
+
+function saveCanvas() {
+    alert("save canvas")
+
+    // 1. if current widget == default widget, then save workspace
+
+    // 2. if current widget != default widget, then it is a widget, update widget
 }
 
 // TODO: unified message assemble!!!

@@ -121,18 +121,25 @@
 
 			</ul>
 
-			<div class="saveCanvas">
-				<div id="groupConfirmCancel" class="input-group" style="display:none">
+			<div class="saveWidget">
+				<div id="widgetConfirmCancel" class="input-group" style="display:none">
 	                <input type="text" class="form-control" id="widgetDivInput">
 	                <span class="input-group-btn">
-	                    <button class="btn btn-default" onclick="confirmGroup()">Confirm</button>
-	                    <button class="btn btn-default" onclick="cancelGroup()">Cancel</button>
+	                    <button class="btn btn-default" onclick="confirmWidget()">Confirm</button>
+	                    <button class="btn btn-default" onclick="cancelWidget()">Cancel</button>
 	                </span>
 
 
 				</div>
 
-				<button class="btn btn-default" onclick="inputWidgetName()" id="groupButton">Group</button>
+				<div class="input-group" id="canvasButton">
+					<button class="btn btn-default" onclick="saveCanvas()" id="saveCanvasButton">Save</button>	
+					<button class="btn btn-default" onclick="inputWidgetName()" id="widgetButton">Widget</button>	
+			
+				</div>
+
+
+
 
 			</div>
 
