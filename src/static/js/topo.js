@@ -1098,6 +1098,53 @@ function initNodeList() {
 //     }
 // }
 
+// IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// About Widget
+// 1. each widget contains: 
+// id: user input, unique
+// display: for display, default id
+// description: xxxxx
+// canvas: current canvas
+// nodes: {node1/nodeId:[mainType, subType, type, inputs, outputs, position], xxxxx}
+// conns: [[nodes[x1]:x2, nodes[y1]:y2], xxxxxx]
+// [[getNodeById(node1.id).output.name[x], getNodeById(node2.id).output.name[y]], xxxxxxxxxxxxxx]
+
+// 2. Widget init
+// var widgetList = {
+//     widgetId: widget,
+//     xxxxxx
+// }
+// var widget = {
+//     id: widgetId,
+//     display: "Workspace"/input,
+//     description: "",
+//     canvas: currentCanvas,
+//     nodes: [],
+//     conns: [],
+// }
+
+// 3. init node(nodeId = uuid!!!, not use nodeList!!!)
+// paras input: [mainType, subType, type, widgetId, inputs=null, outputs=null, position=null]
+// paras output: return node!
+// push node in nodeList for search by widgetId/nodeId
+
+// 4. if node type is widget, should init widget with class widget
+// When, click enter, then batch draw canvas of jsPlumb, with canvasId from widget inited
+
+// TODO: output var not editable!!!
+
+// For node: 
+// "module" -> module
+// "func" -> func
+// For widget: 
+// "module" -> default "customize"
+// "func" -> widget defination
+
+// TODO: 
+function getUUID() {
+    return 
+}
+
 var widgetList = {}
 var currentWidgetId = null
 
@@ -1107,7 +1154,6 @@ function initWidgetList() {
 
 function addWidgetToList(widgetId) {
     
-
     // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
     widgetList[widgetId] = {}
     widgetList[widgetId].nodes = {}
@@ -1163,6 +1209,9 @@ function initNode(mainType, subType, inputs, outputs) {
 
     node.mainType = mainType
     node.subType = subType
+
+    // TODO: node.type = node?widget?
+
     node.display = nodeType.display
     node.description = nodeType.description
     // 1. inputs
