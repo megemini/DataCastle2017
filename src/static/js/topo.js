@@ -626,8 +626,6 @@ var nodeListByName = {}
 // var outputList = {}
 var currentNodeId = null
 
-var widgetList = {}
-var currentWidget = null
 
 var STATUS = {
     IDLE : 0, // rgba(255, 255, 255, 0.2)
@@ -1100,15 +1098,45 @@ function initNodeList() {
 //     }
 // }
 
-var widgetStucture = [{ node: null,position: [null, null]}]
+var widgetList = {}
+var currentWidgetId = null
 
-function initWidget(widgetId) {
+function addWidgetToList(widgetId) {
     
-    var widget = []
+    currentWidgetId = widgetId
 
-    widgetList[widgetId] = widget
+    // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
+    var widget = {}
 
-    return widget
+    widgetList[currentWidgetId] = widget
+
+}
+
+function delWidgetFromList(widgetId) {
+    widgetList[widgetId] = null
+    delete widgetList[widgetId]
+}
+
+function addToWidget(nodeId) {
+    widgetList[currentWidgetId][nodeId] = {}
+    widgetList[currentWidgetId][nodeId].node = getNodeById(nodeId)
+    widgetList[currentWidgetId][nodeId].position = {}
+    widgetList[currentWidgetId][nodeId].position.x = null
+    widgetList[currentWidgetId][nodeId].position.y = null
+}
+
+function delFromWidget(nodeId) {
+    widgetList[currentWidgetId][nodeId] = null
+    delete widgetList[currentWidgetId][nodeId]
+}
+
+function hasWidget(widgetId) {
+    if (typeof widgetList[widgetId] === "undefined" || widgetList[widgetId] === null) {
+        return false
+    }
+    else {
+        return true
+    }
 }
 
 function initNode(mainType, subType) {
@@ -1189,7 +1217,7 @@ function initNode(mainType, subType) {
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
     node.found = false
-    node.widget = currentWidget
+    node.widgetId = currentWidgetId
 
     nodeList[mainType][subType][nodeName] = node
     nodeListByName[nodeName] = node
@@ -1197,6 +1225,7 @@ function initNode(mainType, subType) {
 
     return node
 } 
+
 
 // function editNodeInputs(node, inputs) {
 //     var mainType = node.mainType
@@ -1264,6 +1293,10 @@ function addNode(mainType, subType, e) {
     // 3. set current node is this
     setCurrentNode(newNode.name)
     
+    // 4. add this node to current widget
+    addToWidget(newNode.id)
+    console.log("current widget is !!!!")
+    console.log(widgetList)
 }
 
 function clearNodeInfo() {
@@ -1549,7 +1582,9 @@ $(document).ready(function() {
     // 1. init jsplumb
     var jsInstance = initJsPlumb("myCanvas")
     canvasDict["myCanvas"] = jsInstance
-    currentWidget = initWidget("MainWidget")
+    
+    // 2. init widget of workspace
+    addWidgetToList("WidgetWorkspace")
 
     // TODO: init node type list & node list from server
     initNodeList()

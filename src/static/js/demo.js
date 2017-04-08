@@ -180,6 +180,11 @@ function initJsPlumb(container) {
         // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
         alert("close and current node id is " + currentNodeId)
 
+        // remove node from this widget list
+        delFromWidget(toId)
+        console.log("current widget is !!!!")
+        console.log(widgetList)
+
         // delete var
         pushDelVar(getNodeById(toId))
 
