@@ -1101,14 +1101,17 @@ function initNodeList() {
 var widgetList = {}
 var currentWidgetId = null
 
+function initWidgetList() {
+    widgetList[currentWidgetId] = {}
+}
+
 function addWidgetToList(widgetId) {
     
-    currentWidgetId = widgetId
 
     // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
-    var widget = {}
-
-    widgetList[currentWidgetId] = widget
+    widgetList[widgetId] = {}
+    widgetList[widgetId].nodes = {}
+    widgetList[widgetId].conns = []
 
 }
 
@@ -1118,16 +1121,16 @@ function delWidgetFromList(widgetId) {
 }
 
 function addToWidget(nodeId) {
-    widgetList[currentWidgetId][nodeId] = {}
-    widgetList[currentWidgetId][nodeId].node = getNodeById(nodeId)
-    widgetList[currentWidgetId][nodeId].position = {}
-    widgetList[currentWidgetId][nodeId].position.x = null
-    widgetList[currentWidgetId][nodeId].position.y = null
+    widgetList[currentWidgetId].nodes[nodeId] = {}
+    widgetList[currentWidgetId].nodes[nodeId].node = getNodeById(nodeId)
+    widgetList[currentWidgetId].nodes[nodeId].position = {}
+    widgetList[currentWidgetId].nodes[nodeId].position.left = null
+    widgetList[currentWidgetId].nodes[nodeId].position.top = null
 }
 
 function delFromWidget(nodeId) {
-    widgetList[currentWidgetId][nodeId] = null
-    delete widgetList[currentWidgetId][nodeId]
+    widgetList[currentWidgetId].nodes[nodeId] = null
+    delete widgetList[currentWidgetId].nodes[nodeId]
 }
 
 function hasWidget(widgetId) {
@@ -1278,14 +1281,12 @@ function addNode(mainType, subType, e) {
     // offset of cursor
     // TODO: use node width/height to set diffX/diffY
     var diffX = 9 * 16 / 2
-    var diffY = 4 * 16 / 2
+    var diffY = 4 * 16 / 2 + 36
 
     var X = $('#myCanvas').offset().left + diffX
     var Y = $('#accordion').offset().top + diffY
 
-    var nodeStyle = {"border": '3px solid ' + getNodeColorById(newNode.id)}
-
-    jsplumbUtils.newNode(window.instance, e.clientX - X, e.pageY - Y, newNode, nodeStyle);
+    jsplumbUtils.newNode(window.instance, e.clientX - X, e.pageY - Y, newNode);
 
     // 2. add description/inputs/output at console
     showNodeInfo(newNode)
@@ -1503,7 +1504,8 @@ function setDownNodesIdle(nodeName) {
     // 0. TODO: check circle
 
     // 1. TODO: get all instance down the node
-    var instance = currentInstanceRunning
+    // TEST: should be current running instance!!!
+    var instance = window.instance
 
     setDownNodesIdleInInstance(instance, nodeName)
 }
@@ -1584,7 +1586,9 @@ $(document).ready(function() {
     canvasDict["myCanvas"] = jsInstance
     
     // 2. init widget of workspace
-    addWidgetToList("WidgetWorkspace")
+    currentWidgetId = "WidgetWorkspace"
+    addWidgetToList(currentWidgetId)
+
 
     // TODO: init node type list & node list from server
     initNodeList()
@@ -1596,8 +1600,8 @@ $(document).ready(function() {
 
 function bindTab() {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-      // alert(e.target) // 激活的标签页
-      // alert(e.relatedTarget) // 前一个激活的标签页
+      // alert(e.target) // clicked tab
+      // alert(e.relatedTarget) // prev tab
       console.log(e)
 
       var container = e.relatedTarget.id
@@ -1625,7 +1629,8 @@ function inputWidgetName() {
                         <button class=\"btn btn-default\" onclick=\"cancelWidget()\">Cancel</button> \
                     </span> \
                 </div>")
-
+    console.log("widget list ")
+    console.log(widgetList)
 }
 
 function cancelWidget() {
@@ -1640,18 +1645,88 @@ function cancelWidget() {
 function confirmWidget() {
     alert($("#widgetDivInput").val())
 
+    // var widgetId = $("#widgetDivInput").val()
+    var widgetId = "testId"
+    addWidgetToList(widgetId)
+
+    widgetList[widgetId].nodes = widgetList[currentWidgetId].nodes 
+
     // TODO: 
-    // 1. get all nodes info & positions
+    // 1.1 get all nodes info & positions
+    for (var key in widgetList[widgetId].nodes) {
+        // console.log("key")
+        // console.log(key)
+        // console.log($("#"+key).position())
+
+        widgetList[widgetId].nodes[key].position = $("#"+key).position()
+
+        console.log(widgetList[widgetId].nodes[key])
+    }
+
+    // 1.2 jsPlumb.getConnections();jsPlumb.getAllConnections();  
+    var connections = jsplumbUtils.getCurrentConnections(window.instance)
+    for (var i = connections.length - 1; i >= 0; i--) {
+        var conn = connections[i]
+        console.log("conn")
+        console.log(conn)
+        var endpointList = []
+        for (var j = conn.endpoints.length - 1; j >= 0; j--) {
+            var e = conn.endpoints[j]
+            console.log(e)
+            endpointList.unshift(e._jsPlumb.uuid)
+        }
+        widgetList[widgetId].conns.push(endpointList)
+    }
+
+
+    console.log("added connections")
+    console.log(widgetList[widgetId])
 
     // 2. with widgetId from widgetInput, push in all nodes
 
+
+
     // 3.  clear current nodes
+    // re-add current widget, means init it with empty
+    console.log("confirmWidget!!!!!!!!!!")
+    console.log(widgetId)
+    // console.log(widgetList[currentWidgetId])
+    jsplumbUtils.emptyCanvas(window.instance)
+
+    // addWidgetToList(currentWidgetId)
+    
+    initWidgetList()
+
+    // console.log(widgetList[currentWidgetId])
 
     // 4. add one node with type "widget", position center
+
+
+    // 5. change buttons
+    $("#saveWidget").empty()
+
+    $("#saveWidget").append("<div class=\"input-group\" id=\"canvasButton\"> \
+                    <button class=\"btn btn-default\" onclick=\"saveCanvas()\" id=\"saveCanvasButton\">Save</button> \
+                    <button class=\"btn btn-default\" onclick=\"inputWidgetName()\" id=\"widgetButton\">Widget</button> \
+                </div>")
 }
 
 function saveCanvas() {
     alert("save canvas")
+
+    var testId = "testId"
+    console.log(widgetList)
+    // TEST FOR RE DRAW NODES CONNECTIONS
+    for (var nodeId in widgetList[testId].nodes) {
+        var nodeDict = widgetList[testId].nodes[nodeId]
+        var node = nodeDict.node
+        var x = nodeDict.position.left
+        var y = nodeDict.position.top
+        jsplumbUtils.newNode(window.instance, x, y, node);
+    }
+
+
+    jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
 
     // 1. if current widget == default widget, then save workspace
 

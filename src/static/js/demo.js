@@ -267,23 +267,33 @@ var showConn = function (conn) {
 
 
 var jsplumbUtils = {
+    getCurrentConnections: function (instance) {
+        return instance.getConnections()
+    },
+
+    emptyCanvas: function (instance) {
+        instance.empty(instance.getContainer())
+    },
+
     changeContainer: function (instance) {
         // alert(container)
         // instance.setContainer(container);
         // instance = jsPlumb.getInstance({
         //   Container:container
-        // });
+        // });  
         window.instance = instance
     },
 
-    initWidget: function (instance, widget) {
+    initWidget: function (instance, endpointList) {
         // TODO: !!!!!!!!!!
+        console.log("endpointList")
+        console.log(endpointList)
         // suspend drawing and initialise.
         instance.batch(function () {
+            for (var i = endpointList.length - 1; i >= 0; i--) {
+                instance.connect({uuids: endpointList[i], editable: true});
+            }
 
-            // and finally connect a couple of small windows, just so its obvious what's going on when this demo loads.           
-            // instance.connect({ source: "sourceWindow1", target: "targetWindow5" });
-            // instance.connect({ source: "sourceWindow1", target: "targetWindow2" });
         });
     },
 
@@ -597,7 +607,7 @@ var jsplumbUtils = {
 
     // TODO: new node with drop position: x, y
     // node: a node with default paras, inputs/output, main/sub type,
-    newNode: function(instance, x, y, node, nodeStyle) {
+    newNode: function(instance, x, y, node) {
 
         var d = document.createElement("div");
         d.className = "window smallWindow nodeForEvent";
@@ -605,7 +615,7 @@ var jsplumbUtils = {
         d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + node.display + "<img class='closeNode' src='../static/img/close.png'>";
         d.style.left = x + "px";
         d.style.top = y + "px";
-        d.style.border = nodeStyle["border"]
+        d.style.border = '3px solid ' + getNodeColorById(node.id)
 
 
         var disLength = node.display.length * 8 + 64
