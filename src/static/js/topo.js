@@ -1121,8 +1121,13 @@ function delWidgetFromList(widgetId) {
 }
 
 function addToWidget(nodeId) {
+    var node = getNodeById(nodeId)
+
     widgetList[currentWidgetId].nodes[nodeId] = {}
-    widgetList[currentWidgetId].nodes[nodeId].node = getNodeById(nodeId)
+    widgetList[currentWidgetId].nodes[nodeId].node = {}
+    widgetList[currentWidgetId].nodes[nodeId].node.inputs = node.input
+    widgetList[currentWidgetId].nodes[nodeId].node.outputs = node.output
+    
     widgetList[currentWidgetId].nodes[nodeId].position = {}
     widgetList[currentWidgetId].nodes[nodeId].position.left = null
     widgetList[currentWidgetId].nodes[nodeId].position.top = null
@@ -1142,7 +1147,7 @@ function hasWidget(widgetId) {
     }
 }
 
-function initNode(mainType, subType) {
+function initNode(mainType, subType, inputs, outputs) {
     var nodeType = nodeTypeList[mainType][subType]
 
     var nodeId = nodeList[mainType][subType].count
@@ -1165,57 +1170,48 @@ function initNode(mainType, subType) {
     node.func = nodeType.content.func
 
 
-    node.input = {} 
-    node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
-    node.input.type = nodeType.content.input.type.slice(0)
-    node.input.count = nodeType.content.input.count
-    node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
-    node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-        return "input" + nodeName + value;
-    });
-    node.input.value = null // input value should be up nodes output default
+    node.input = {}
+    if (inputs != null) {
+        node.input.name = inputs.name.slice(0) // input name: not change, not unique
+        node.input.type = inputs.type.slice(0)
+        node.input.count = inputs.count
+        node.input.default = inputs.default.slice(0) // intput default: not change, not unique
+        node.input.id = inputs.id.slice(0) // input id: not change, unique
+        node.input.value = inputs.value.slice(0) // input value should be up nodes output default
+    }
+    else {
+        node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
+        node.input.type = nodeType.content.input.type.slice(0)
+        node.input.count = nodeType.content.input.count
+        node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
+        node.input.id = node.input.name.map(function(value){ // input id: not change, unique
+            return "input" + nodeName + value;
+        });
+        node.input.value = null // input value should be up nodes output default
+
+    }
 
     // 2. output
     node.output = {} 
-    node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
-    node.output.type = nodeType.content.output.type.slice(0)
-    node.output.count = nodeType.content.output.count
-    node.output.default = node.output.name.map(function(value){ // output default: change, unique
-        return "output" + nodeName + value;
-    });
-    node.output.id = node.output.default.slice(0) // output id: not change, unique
+    if (outputs != null) {
+        node.output.name = outputs.name.slice(0) // name: not change, not unique
+        node.output.type = outputs.type.slice(0)
+        node.output.count = outputs.count
+        node.output.default = outputs.default.slice(0)
+        node.output.id = outputs.id.slice(0) // output id: not change, unique
+        node.output.value = outputs.value.slice(0) // output value should be result from server
+    }
+    else {
+        node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
+        node.output.type = nodeType.content.output.type.slice(0)
+        node.output.count = nodeType.content.output.count
+        node.output.default = node.output.name.map(function(value){ // output default: change, unique
+            return "output" + nodeName + value;
+        });
+        node.output.id = node.output.default.slice(0) // output id: not change, unique
+        node.output.value = null // output value should be result from server
+    }
 
-
-    node.output.value = null // output value should be result from server
-    
-
-    // var funcInputs = nodeType.content.func.funcInputs
-    // var funcInputsType = nodeType.content.func.funcInputsType
-    // var funcInputsCount = nodeType.content.func.funcInputsCount
-    // var funcInputsDefaults = nodeType.content.func.funcInputsDefaults
-
-
-    // node.funcInputs = funcInputs.slice(0)
-    // node.funcInputsType = funcInputsType.slice(0)
-    // node.funcInputsCount = funcInputsCount
-    // node.funcInputsDefaults = funcInputsDefaults.slice(0)
-
-
-
-    // inputs.length === inputsjs.length then could recursive run flow
-    // node.inputsJs = []
-    // for (var i = funcInputsCount - 1; i >= 0; i--) {
-    //     node.inputsJs[i] = {}
-    //     node.inputsJs[i].type = funcInputsType[i]
-    //     node.inputsJs[i].name = funcInputs[i]
-    //     node.inputsJs[i].id = "input" + nodeName + funcInputs[i]
-    // }
-
-    // node.outputJs = []
-    // node.outputJs[0] = {}
-    // node.outputJs[0].type = node.outputType
-    // node.outputJs[0].name = node.outputName
-    // node.outputJs[0].id = node.outputName
 
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
@@ -1262,7 +1258,7 @@ function addNode(mainType, subType, e) {
 
 
     // 0. add node info to node list
-    var newNode = initNode(mainType, subType)
+    var newNode = initNode(mainType, subType, null, null)
 
     // var disName = newNode.display
 
@@ -1678,7 +1674,6 @@ function confirmWidget() {
         widgetList[widgetId].conns.push(endpointList)
     }
 
-
     console.log("added connections")
     console.log(widgetList[widgetId])
 
@@ -1701,8 +1696,14 @@ function confirmWidget() {
 
     // 4. add one node with type "widget", position center
 
+    // 5. set current node is this widget, and show its info
 
-    // 5. change buttons
+
+    // 6. add widget to customize
+
+
+
+    // . change buttons
     $("#saveWidget").empty()
 
     $("#saveWidget").append("<div class=\"input-group\" id=\"canvasButton\"> \
