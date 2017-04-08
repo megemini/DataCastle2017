@@ -1580,16 +1580,26 @@ function bindTab() {
 }
 
 function inputWidgetName() {
-    $("#widgetDivInput").val("")
-    $("#canvasButton").css('display','none'); 
-    // $("#widgetButton").css('display','none'); 
-    $("#widgetConfirmCancel").css('display','inline-block'); 
+
+    $("#saveWidget").empty()
+
+    $("#saveWidget").append("<div id=\"widgetConfirmCancel\" class=\"input-group\"> \
+                    <input type=\"text\" class=\"form-control\" id=\"widgetDivInput\"> \
+                    <span class=\"input-group-btn\"> \
+                        <button class=\"btn btn-default\" onclick=\"confirmWidget()\">Confirm</button> \
+                        <button class=\"btn btn-default\" onclick=\"cancelWidget()\">Cancel</button> \
+                    </span> \
+                </div>")
+
 }
 
 function cancelWidget() {
-    $("#canvasButton").css('display','inline-block');
-    // $("#widgetButton").css('display','block'); 
-    $("#widgetConfirmCancel").css('display','none'); 
+    $("#saveWidget").empty()
+
+    $("#saveWidget").append("<div class=\"input-group\" id=\"canvasButton\"> \
+                    <button class=\"btn btn-default\" onclick=\"saveCanvas()\" id=\"saveCanvasButton\">Save</button> \
+                    <button class=\"btn btn-default\" onclick=\"inputWidgetName()\" id=\"widgetButton\">Widget</button> \
+                </div>")
 }
 
 function confirmWidget() {
