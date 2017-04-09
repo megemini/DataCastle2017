@@ -55,6 +55,16 @@
 - [ ] To add node/widget class data structure and api
 
 ## 2017/4/9
+- [x] New Logo!!! ;-)
+- [x] Add widget structure suppport!
+- [ ] To enter widget
+- [ ] Add new widget to widgetList
+- [ ] Show tab name with widget-node name
+- [ ] Add canvas to widget
+- [ ] Switch to this canvas
+- [ ] Batch add nodes with widget structure
+- [ ] Batch draw nodes with widget structure
+- [ ] Widget button function!
 
 ## 2017/4/12
 
