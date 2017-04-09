@@ -154,7 +154,49 @@ function initJsPlumb(container) {
 
     });
 
-    // // click listener for enable/disable in the small green boxes
+    // change node name
+    instance.on($("#" + container), "dblclick", ".nodeForEvent", function (e) {
+        // alert("double")
+
+        console.log(e.target.id)
+        var nodeId = e.target.id
+        var node = getNodeById(currentWidgetId, nodeId)
+        console.log(node)
+        // console.log($(this))
+
+        var d = document.getElementById(e.target.id)
+        var inputId = "changeNameInput"
+
+        d.innerHTML = "<input type='text' class='form-control' id=" + inputId + ">"
+
+        $("#changeNameInput").click(function() { return false; }); 
+        $("#changeNameInput").trigger("focus"); 
+        $("#changeNameInput").blur(function () {
+            console.log("change node name")
+            console.log(node)
+            var newName = $("#changeNameInput").val()
+            if (newName !== "") {
+                node.name = newName
+            }
+
+            if (node.type == "node") {
+                d.innerHTML = node.name +
+                    "<img class='closeNode' src='../static/img/close.png'>";
+            }
+            else if (node.type == "widget") {
+                d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + 
+                    node.name +
+                    "<img class='closeNode' src='../static/img/close.png'>";
+            }
+        })
+
+        jsPlumbUtil.consume(e);
+
+    });
+
+
+
+    // // click listener for close node
     instance.on($("#" + container), "click", ".closeNode", function (e) {
         
         var targetDiv = (e.target || e.srcElement).parentNode;
@@ -180,13 +222,31 @@ function initJsPlumb(container) {
         // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
         alert("close and current node id is " + currentNodeId)
 
+        
+        // delete var
+        pushDelVar(getNodeById(currentWidgetId, toId)) // use currentWidgetId, because it is user's action, so, it must be fore-end
+
         // remove node from this widget list
-        delFromWidget(toId)
+        delFromWidget(currentWidgetId, toId)
         console.log("current widget is !!!!")
         console.log(widgetList)
 
-        // delete var
-        pushDelVar(getNodeById(currentWidgetId, toId)) // use currentWidgetId, because it is user's action, so, it must be fore-end
+
+        jsPlumbUtil.consume(e);
+    });
+
+
+    // // click listener for enter widget
+    instance.on($("#" + container), "click", ".inNode", function (e) {
+        
+        var targetDiv = (e.target || e.srcElement).parentNode;
+        // console.log(e)
+        // console.log("targetDiv " + targetDiv.id)
+
+        toId = targetDiv.id
+        alert(toId)
+        console.log("enter widget!!!!!!!!")
+        console.log(getNodeById(currentWidgetId, toId))
 
         jsPlumbUtil.consume(e);
     });
@@ -321,7 +381,7 @@ var jsplumbUtils = {
     // BUG: TODO: default, instance is current widget's instance, not running widget
     // because, we first switch to current widget and its instance, then connect something...
     setConnectionLabels: function (instance, sourceNode) {
-        var downConnection = this.getDownConnections(instance, sourceNode.name)
+        var downConnection = this.getDownConnections(instance, sourceNode.id)
 
         console.log(sourceNode)
 
@@ -619,16 +679,26 @@ var jsplumbUtils = {
     // node: a node with default paras, inputs/output, main/sub type,
     newNode: function(instance, x, y, node) {
 
+
         var d = document.createElement("div");
         d.className = "window smallWindow nodeForEvent";
         d.id = node.id;
-        d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + node.display + "<img class='closeNode' src='../static/img/close.png'>";
+        if (node.type == "node") {
+            d.innerHTML = node.name +
+                "<img class='closeNode' src='../static/img/close.png'>";
+        }
+        else if (node.type == "widget") {
+            d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + 
+                node.name +
+                "<img class='closeNode' src='../static/img/close.png'>";
+        }
+
         d.style.left = x + "px";
         d.style.top = y + "px";
         d.style.border = '3px solid ' + getNodeColorById(currentWidgetId, node.id)
 
 
-        var disLength = node.display.length * 8 + 64
+        var disLength = node.name.length * 8 + 64
         // alert(disLength)
         var inLength = (node.input.count + 1) * 50
         var outLength = (node.output.count + 1) * 50

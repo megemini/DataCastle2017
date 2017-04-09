@@ -34,14 +34,34 @@
 }
 
 
-.endpointSourceLabel {
-	z-index: 5000
+/*.endpointSourceLabel {
+    background-color: white;
+    padding: 0.4em;
+    font: 48px sans-serif;
+    color: #444;
+    z-index: 21;
+    border: 1px dotted gray;
+    opacity: 0.8;
+    cursor: pointer;
+}
+*/
+.endpointSourceLabel.jtk-hover {
+    background-color: #434343;
+    color: white;
+    /*border: 1px solid white;*/
+    font: 24px sans-serif;
+    z-index: 5000;
+    border-radius: 0.3em;
 }
 
-.endpointTargetLabel {
-	z-index: 5000
+.endpointTargetLabel.jtk-hover {
+    background-color: #434343;
+    color: white;
+    /*border: 1px solid white;*/
+    font: 24px sans-serif;
+    z-index: 5000;
+    border-radius: 0.3em;
 }
-
 
 .save-widget {
     /*float: right;*/

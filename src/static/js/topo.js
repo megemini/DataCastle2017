@@ -239,7 +239,7 @@ function runFlow() {
         var node = runQueue.shift()
         
         // TODO: when in widget, get all up nodes/widget
-        var upNodeList = getUpNodes(currentRunningInstance, node.name)
+        var upNodeList = getUpNodes(currentRunningInstance, node.id)
 
 
         // console.log("shift node is ")
@@ -265,7 +265,7 @@ function runFlow() {
             // 1.1 get pair from endpoint
 
 
-            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentRunningInstance, node.name)
+            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentRunningInstance, node.id)
             var upInputList = outInPair.upInputList
             var upOutputList = outInPair.upOutputList
 
@@ -501,7 +501,7 @@ function runOneStepDone(message) {
             setNodeRunStatus(node, STATUS.DONE)
         }
         else if (status == "error") {
-            setDownNodesIdle(currentRunningWidgetId, node.name)
+            setDownNodesIdle(currentRunningWidgetId, node.id)
             runFlowDone()
         }
     }
@@ -536,7 +536,7 @@ function setNodeRunStatus(node, status) {
 
     node.status = status
 
-    var nId = "#" + node.name
+    var nId = "#" + node.id
     if (status == STATUS.WAIT) {
         $(nId).css("background-color", COLORSTATUS.WAIT)
 
@@ -692,7 +692,7 @@ var nodeTypeList = {
 
         Merge: {
             display: "Merge Data", 
-            description: "Merge two data files on columns. \n Inputs: \n - file1: dataframe \n - file2: dataframe - on: columns \n Output: pandas dataframe",
+            description: "Merge two data files on columns. \n Inputs: \n - data1: dataframe \n - data2: dataframe - on: columns \n Output: pandas dataframe",
             type: "node",
             content: {
                 // 1. basic infomation, from user edit
@@ -794,7 +794,7 @@ var nodeTypeList = {
 
         TrainTest: {
             display: "Get Train Test", 
-            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
+            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: \n - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
             type: "node",
             content: {
                 // 1. basic infomation, from user edit
@@ -1066,8 +1066,76 @@ var nodeTypeList = {
             },
         },
     },
+
+    Visualize: {},
+
+    Customize: {
+        Merge3: {
+            display: "Merge 3 Data", 
+            description: "Merge 3 data files on columns. \n Inputs: \n - data1: dataframe \n - data2: dataframe \n - data3: dataframe \n - on: columns \n Output: pandas dataframe",
+            type: "widget",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                // func: {
+                //     funcName: "merge_df",
+                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["Data", "Data", "String"],
+                //     funcInputsCount: 2,
+                //     funcInputsDefaults: ["id"], // used for edit paras
+                // },
+                module: "widget",    
+                func: "widgetMerge3",
+                input: {                    
+                    name: ["File1data1", "File1data2", "File2data2", "File1on", "File2on"],
+                    type: ["Data", "Data", "Data", "String", "String"],
+                    count: 3,
+                    default: ["'id'", "'id'"],
+                    value: null,
+                },
+                output:{
+                    name: ["File2data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+    },
 }
 
+var widgetTypeList = {
+    widgetMerge3: {
+        nodes: {
+            node1: {
+                name: "File1",
+                mainType: "Data",
+                subType: "Merge",
+                inputs: ["'id'"],
+                position: {
+                    left: 100,
+                    top: 100,
+                },
+            },
+            node2: {
+                name: "File2",
+                mainType: "Data",
+                subType: "Merge",
+                inputs: ["'id'"],
+                position: {
+                    left: 200,
+                    top: 200,
+                },
+            },
+        },
+        conns: [
+            [{output: {node1:0}}, {input: {node2:0}}], 
+        ],
+    },
+
+}
 
 // function initNodeList() {
 //     for (var mainType in nodeTypeList) {
@@ -1143,6 +1211,10 @@ var nodeTypeList = {
 // "func" -> widget defination
 
 // TODO: 
+function getWidgetUUID(widgetName) {
+    return widgetName + new Date().getTime()
+}
+
 function getNodeUUID(mainType, subType) {
     return mainType + subType + new Date().getTime()
 }
@@ -1160,10 +1232,13 @@ function resetCurrentWidget() {
     widgetList[currentWidgetId] = {}
 }
 
+// when enter a new widget, then add to list!
+// create widget need not do this!
 function addWidgetToList(widgetId) {
     
     // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
     widgetList[widgetId] = {}
+    widgetList[widgetId].id = widgetId
     widgetList[widgetId].nodes = {}
     widgetList[widgetId].conns = []
 
@@ -1204,6 +1279,10 @@ function getWidgetById(widgetId) {
     return widgetList[widgetId]
 }
 
+function initWidget(widgetId) {
+    // body...
+}
+
 function initNode(mainType, subType, widgetId, inputs, outputs) {
     var nodeType = nodeTypeList[mainType][subType]
 
@@ -1216,8 +1295,8 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
     var node = {}
 
     // name == id, maybe not?!
-    node.name = nodeId
-    node.id = node.name
+    node.id = nodeId
+    node.name = nodeType.display
 
     node.mainType = mainType
     node.subType = subType
@@ -1246,7 +1325,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
         node.input.count = nodeType.content.input.count
         node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
         node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-            return "input" + node.name + value;
+            return "input" + node.id + value;
         });
         node.input.value = null // input value should be up nodes output default
 
@@ -1267,7 +1346,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
         node.output.type = nodeType.content.output.type.slice(0)
         node.output.count = nodeType.content.output.count
         node.output.default = node.output.name.map(function(value){ // output default: change, unique
-            return "output" + node.name + value;
+            return "output" + node.id + value;
         });
         node.output.id = node.output.default.slice(0) // output id: not change, unique
         node.output.value = null // output value should be result from server
@@ -1354,7 +1433,7 @@ function addNode(mainType, subType, e) {
     showNodeInfo(newNode)
 
     // 3. set current node is this
-    setCurrentNode(newNode.name)
+    setCurrentNode(newNode.id)
     
     // 4. add this node to current widget
     addToWidget(currentWidgetId, newNode)
@@ -1390,7 +1469,7 @@ function showDescription(node) {
     $("#func-description").empty()
     var d = document.createElement("pre")
 
-    d.innerHTML = node.description
+    d.innerHTML = node.display + "\n" + node.description
 
     $("#func-description").append(d)
 
@@ -1411,17 +1490,17 @@ function showInputs(node) {
         t.type = "text"
         t.className = "form-control"
         t.value = node.input.default[i]
-        t.id = "text" + node.name + "input" + i
+        t.id = "text" + node.id + "input" + i
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
             var node = getNodeById(currentWidgetId, currentNodeId)
 
-            var notIdLength = ("text" + node.name + "input").length
+            var notIdLength = ("text" + node.id + "input").length
             node.input.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
 
             // change all nodes downside of status idle
-            setDownNodesIdle(currentWidgetId, node.name)
+            setDownNodesIdle(currentWidgetId, node.id)
         });
 
         d.append(s)
@@ -1463,6 +1542,7 @@ function showOutput(node) {
             dc.className = dc.className + " in active"
         }
 
+/*
         var t = document.createElement("input")
         t.type = "text"
         t.className = "form-control"
@@ -1488,7 +1568,7 @@ function showOutput(node) {
         });
 
         dc.append(t)
-
+*/
         if (node.output.value != null) {
             var v = node.output.value[i]
             var vDiv = document.createElement("div")
@@ -1600,7 +1680,7 @@ function setDownNodesIdleInInstance(widget, nodeId) {
 }
 
 function pushDelVar(node) {
-    runDelVarList = [].concat.apply(runDelVarList,node.output.default)
+    runDelVarList = [].concat.apply(runDelVarList, node.output.default)
 
     console.log("runDelVarList")
     console.log(runDelVarList)
@@ -1655,9 +1735,15 @@ $(document).ready(function() {
     // 2. init widget of workspace
     // initWidgetList()
 
-    currentWidgetId = "WidgetWorkspace"
+    currentWidgetId = getWidgetUUID("WidgetWorkspace")
     currentRunningWidgetId = currentWidgetId
     addWidgetToList(currentWidgetId)
+
+
+
+    // 3. bind events
+    // bindEventsOnReady()
+
 
 
     // TODO: init node type list & node list from server
@@ -1667,6 +1753,31 @@ $(document).ready(function() {
     // bind tab
     bindTab()
 });
+
+// function bindEventsOnReady() {
+
+//     $(".unm,.email").dblclick(function(){   
+//         id=$(this).attr("uid");   
+//         value=$(this).text();   
+//         f=$(this).attr("field");   
+//         text_id=$(this).attr("id");   
+//         if(value)   
+//         {   
+//             $(this).html("<input type='text' id="+id+"   name="+f+" value="+value+">");   
+//             $(".unm > input,.email>input").focus().blur(function(){   
+             
+//                     $.ajax({   
+//                      type: "POST",   
+//                      url: "save.php",   
+//                      data:   "id="+id+"&type="+f+"&value="+$("#"+id).val(),   
+//                      success: function(msg){ $("#"+text_id).text(msg); }   
+//                     });   
+//                 })   
+      
+//         }   
+           
+//     })   
+// }
 
 function bindTab() {
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -1715,11 +1826,18 @@ function cancelWidget() {
 function confirmWidget() {
     alert($("#widgetDivInput").val())
 
-    // var widgetId = $("#widgetDivInput").val()
-    var widgetId = "testId"
-    addWidgetToList(widgetId)
+    // 0. get widget name
+    var widgetName = $("#widgetDivInput").val()
+    // var widgetId = "testId"
+    var widgetId = getWidgetUUID(widgetName)
 
+    // NOT ADD TO LIST
+    // addWidgetToList(widgetId)
+
+    // 1. create one widget type, from current nodes!
     widgetList[widgetId].nodes = widgetList[currentWidgetId].nodes 
+
+    // 2. add widget type to customize.
 
     // TODO: 
     // 1.1 get all nodes info & positions
