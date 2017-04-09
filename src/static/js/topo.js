@@ -192,7 +192,7 @@ function run() {
     }
 }
 
-var canvasDict = {}
+// var canvasDict = {}
 
 // set runNodesList as global var
 var runNodesList = []
@@ -1088,16 +1088,16 @@ var nodeTypeList = {
                 module: "widget",    
                 func: "widgetMerge3",
                 input: {                    
-                    name: ["File1data1", "File1data2", "File2data2", "File1on", "File2on"],
+                    name: ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
                     type: ["Data", "Data", "Data", "String", "String"],
                     count: 3,
                     default: ["'id'", "'id'"],
                     value: null,
                 },
                 output:{
-                    name: ["File2data"],
-                    type: ["Data"],
-                    count: 1,
+                    name: ["File1_data", "File2_data"],
+                    type: ["Data", "Data"],
+                    count: 2,
                     default: null,
                     value: null,
                 },                
@@ -1131,8 +1131,19 @@ var widgetTypeList = {
             },
         },
         conns: [
-            [{output: {node1:0}}, {input: {node2:0}}], 
+            {
+                output: {node1:0}, 
+                input: {node2:0}
+            }, 
         ],
+        // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
+        inputs: { 
+            "File1_data1": {node1:0},  
+            "File1_data2": {node1:1},  
+            "File2_data2": {node2:1},  
+            "File1_on": {node1:2},  
+            "File2_on": {node2:2}
+        },
     },
 
 }
@@ -1242,6 +1253,7 @@ function addWidgetToList(widgetId) {
     widgetList[widgetId].nodes = {}
     widgetList[widgetId].conns = []
 
+    return widgetList[widgetId]
 }
 
 function delWidgetFromList(widgetId) {
@@ -1279,8 +1291,163 @@ function getWidgetById(widgetId) {
     return widgetList[widgetId]
 }
 
-function initWidget(widgetId) {
-    // body...
+// TODO: save and construct widget in and like widget type list
+function saveWidget(widgetName) {
+
+    // 0. get widget name
+    // var widgetName = $("#widgetDivInput").val()
+    // var widgetId = "testId"
+    var widgetId = getWidgetUUID(widgetName)
+
+    // NOT ADD TO LIST
+    // addWidgetToList(widgetId)
+
+    // 1. create one widget type, from current nodes!
+    widgetList[widgetId].nodes = widgetList[currentWidgetId].nodes 
+
+    // 2. add widget type to customize.
+
+    // TODO: 
+    // 1.1 get all nodes info & positions
+    for (var key in widgetList[widgetId].nodes) {
+        // console.log("key")
+        // console.log(key)
+        // console.log($("#"+key).position())
+
+        widgetList[widgetId].nodes[key].position = $("#"+key).position()
+
+        console.log(widgetList[widgetId].nodes[key])
+    }
+
+    // 1.2 jsPlumb.getConnections();jsPlumb.getAllConnections();  
+    var connections = jsplumbUtils.getCurrentConnections(window.instance)
+    for (var i = connections.length - 1; i >= 0; i--) {
+        var conn = connections[i]
+        console.log("conn")
+        console.log(conn)
+        var endpointList = []
+        for (var j = conn.endpoints.length - 1; j >= 0; j--) {
+            var e = conn.endpoints[j]
+            console.log(e)
+            endpointList.unshift(e._jsPlumb.uuid)
+        }
+        widgetList[widgetId].conns.push(endpointList)
+    }
+
+    console.log("added connections")
+    console.log(widgetList[widgetId])
+
+    // 2. with widgetId from widgetInput, push in all nodes
+
+    // 3.  clear current nodes
+    // re-add current widget, means init it with empty
+    console.log("confirmWidget!!!!!!!!!!")
+    console.log(widgetId)
+    // console.log(widgetList[currentWidgetId])
+    jsplumbUtils.emptyCanvas(window.instance)
+
+    // addWidgetToList(currentWidgetId)
+    
+    // initWidgetList()
+    resetCurrentWidget()
+
+    // console.log(widgetList[currentWidgetId])
+
+    // 4. add one node with type "widget", position center
+
+    // 5. set current node is this widget, and show its info
+
+
+    // 6. add widget to customize
+
+
+}
+
+// TODO: re-construct widget from widget type list
+function initWidget(widgetId, widgetType) {
+
+
+    initNode(mainType, subType, widgetId, inputs, outputs)
+
+    var testId = "testId"
+    console.log(widgetList)
+    // TEST FOR RE DRAW NODES CONNECTIONS
+    for (var nodeId in widgetList[testId].nodes) {
+        var nodeDict = widgetList[testId].nodes[nodeId]
+        var node = nodeDict.node
+        var x = nodeDict.position.left
+        var y = nodeDict.position.top
+        jsplumbUtils.newNode(window.instance, x, y, node);
+    }
+
+
+    jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
+
+}
+
+// common method for enter widget, 
+// like switch current widget/running widget
+// switch current canvas container
+function enterWidget(widgetId, canvasId, newWidget) {
+    if (!newWidget) {
+        currentWidgetId = widgetId
+        currentRunningWidgetId = widgetId
+    }
+    else {
+        currentWidgetId = getWidgetUUID(widgetId)
+        currentRunningWidgetId = currentWidgetId
+        var currentWidget = addWidgetToList(currentWidgetId)
+
+        var jsInstance = initJsPlumb(canvasId)
+        currentWidget.canvas = jsInstance
+        currentWidget.container = canvasId   
+    }
+}
+
+function enterWidgetFromNode(node) {
+
+    // 1. create tab/canvas
+    // 1.1 create tab
+    var h = "widget" + node.id
+    var l = document.createElement("li")
+    l.innerHTML =  "<a href='#" + h + "' data-toggle='tab'>"  + node.name + "</a> "
+
+    $("#widgetTabs").append(l)
+    
+    // 1.2 create content
+    var c = h + "Canvas"
+    var d = document.createElement("div")
+    d.className = "tab-pane fade in active"
+    d.id = h
+    d.innerHTML = "<div class='jtk-demo-main'>" +
+        "<div class='jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas' id='" +
+        c + "'></div></div>" 
+    $("#widgetTabContent").append(d)
+
+    // 2. active tab
+    $('#widgetTabs a[href=#' + h + ']').tab('show')
+    
+    // 3. init widget of workspace
+    enterWidget(h, c, true)
+
+    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!. init one widget
+    // var widgetId = node.widgetId
+    // var widgetType = node.func
+    // var widget = initWidget(widgetId, widgetType)
+    
+    // 4. draw nodes
+
+    // 5. draw conns
+
+
+
+
+}
+
+function enterWidgetFromTab(tabId) {
+
+    // 1. enter widget
+    enterWidget(widget)
 }
 
 function initNode(mainType, subType, widgetId, inputs, outputs) {
@@ -1424,7 +1591,8 @@ function addNode(mainType, subType, e) {
     var diffX = 9 * 16 / 2
     var diffY = 4 * 16 / 2 + 36
 
-    var X = $('#myCanvas').offset().left + diffX
+    var canvasId = getWidgetById(currentWidgetId).container
+    var X = $('#' + canvasId).offset().left + diffX
     var Y = $('#accordion').offset().top + diffY
 
     jsplumbUtils.newNode(window.instance, e.clientX - X, e.pageY - Y, newNode);
@@ -1729,22 +1897,21 @@ $(document).ready(function() {
     updater.start();
 
     // 1. init jsplumb
-    var jsInstance = initJsPlumb("myCanvas")
-    canvasDict["myCanvas"] = jsInstance
-    
+    var defaultWidget = "WidgetWorkspace"
+    var canvasId = defaultWidget + "Canvas"
+
     // 2. init widget of workspace
-    // initWidgetList()
+    enterWidget(defaultWidget, canvasId, true)
+    // currentWidgetId = getWidgetUUID(defaultWidget)
+    // currentRunningWidgetId = currentWidgetId
+    // var currentWidget = addWidgetToList(currentWidgetId)
 
-    currentWidgetId = getWidgetUUID("WidgetWorkspace")
-    currentRunningWidgetId = currentWidgetId
-    addWidgetToList(currentWidgetId)
-
-
+    // var jsInstance = initJsPlumb(canvasId)
+    // currentWidget.canvas = jsInstance
+    // currentWidget.container = canvasId
 
     // 3. bind events
     // bindEventsOnReady()
-
-
 
     // TODO: init node type list & node list from server
     // initNodeList()
@@ -1826,75 +1993,7 @@ function cancelWidget() {
 function confirmWidget() {
     alert($("#widgetDivInput").val())
 
-    // 0. get widget name
-    var widgetName = $("#widgetDivInput").val()
-    // var widgetId = "testId"
-    var widgetId = getWidgetUUID(widgetName)
-
-    // NOT ADD TO LIST
-    // addWidgetToList(widgetId)
-
-    // 1. create one widget type, from current nodes!
-    widgetList[widgetId].nodes = widgetList[currentWidgetId].nodes 
-
-    // 2. add widget type to customize.
-
-    // TODO: 
-    // 1.1 get all nodes info & positions
-    for (var key in widgetList[widgetId].nodes) {
-        // console.log("key")
-        // console.log(key)
-        // console.log($("#"+key).position())
-
-        widgetList[widgetId].nodes[key].position = $("#"+key).position()
-
-        console.log(widgetList[widgetId].nodes[key])
-    }
-
-    // 1.2 jsPlumb.getConnections();jsPlumb.getAllConnections();  
-    var connections = jsplumbUtils.getCurrentConnections(window.instance)
-    for (var i = connections.length - 1; i >= 0; i--) {
-        var conn = connections[i]
-        console.log("conn")
-        console.log(conn)
-        var endpointList = []
-        for (var j = conn.endpoints.length - 1; j >= 0; j--) {
-            var e = conn.endpoints[j]
-            console.log(e)
-            endpointList.unshift(e._jsPlumb.uuid)
-        }
-        widgetList[widgetId].conns.push(endpointList)
-    }
-
-    console.log("added connections")
-    console.log(widgetList[widgetId])
-
-    // 2. with widgetId from widgetInput, push in all nodes
-
-
-
-    // 3.  clear current nodes
-    // re-add current widget, means init it with empty
-    console.log("confirmWidget!!!!!!!!!!")
-    console.log(widgetId)
-    // console.log(widgetList[currentWidgetId])
-    jsplumbUtils.emptyCanvas(window.instance)
-
-    // addWidgetToList(currentWidgetId)
-    
-    // initWidgetList()
-    resetCurrentWidget()
-
-    // console.log(widgetList[currentWidgetId])
-
-    // 4. add one node with type "widget", position center
-
-    // 5. set current node is this widget, and show its info
-
-
-    // 6. add widget to customize
-
-
+    saveWidget($("#widgetDivInput").val())
 
     // . change buttons
     $("#saveWidget").empty()

@@ -248,6 +248,8 @@ function initJsPlumb(container) {
         console.log("enter widget!!!!!!!!")
         console.log(getNodeById(currentWidgetId, toId))
 
+        enterWidgetFromNode(getNodeById(currentWidgetId, toId))
+
         jsPlumbUtil.consume(e);
     });
 

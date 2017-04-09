@@ -57,11 +57,11 @@
 ## 2017/4/9
 - [x] New Logo!!! ;-)
 - [x] Add widget structure suppport!
-- [ ] To enter widget
-- [ ] Add new widget to widgetList
-- [ ] Show tab name with widget-node name
-- [ ] Add canvas to widget
-- [ ] Switch to this canvas
+- [x] To enter widget
+- [x] Add new widget to widgetList
+- [x] Show tab name with widget-node name
+- [x] Add canvas to widget
+- [x] Switch to this canvas
 - [ ] Batch add nodes with widget structure
 - [ ] Batch draw nodes with widget structure
 - [ ] Widget button function!
