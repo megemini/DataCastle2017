@@ -127,7 +127,7 @@ function initJsPlumb(container) {
 
         // alert("e.srcElement.id" + e.srcElement.id)
         var nodeId = e.srcElement.id
-        var node = getNodeById(nodeId)
+        var node = getNodeById(currentWidgetId, nodeId) // use currentWidgetId, because it is user's action, so, it must be fore-end
 
         if (typeof node === "undefined" || node === null) {
             clearNodeInfo()
@@ -186,13 +186,15 @@ function initJsPlumb(container) {
         console.log(widgetList)
 
         // delete var
-        pushDelVar(getNodeById(toId))
+        pushDelVar(getNodeById(currentWidgetId, toId)) // use currentWidgetId, because it is user's action, so, it must be fore-end
 
         jsPlumbUtil.consume(e);
     });
 
 
     // connection func
+    // BUG: TODO: default, instance is current widget's instance, not running widget
+    // because, we first switch to current widget and its instance, then connect something...
     instance.bind("connection", function (connInfo, originalEvent) {
 
         // TODO: if source and target not same, then detach
@@ -236,17 +238,19 @@ function initJsPlumb(container) {
     return instance
 }
 
+// BUG: TODO: default, instance is current widget's instance, not running widget
+// because, we first switch to current widget and its instance, then connect something...
 // TODO: Debug: bind to a connection event, just for the purposes of pointing out that it can be done.
 var initConnection = function (instance, connection) {
-
 
     var sourceNodeId = connection.sourceId
     // var targetNodeId = connection.targetId
 
-    var sourceNode = getNodeById(sourceNodeId)
+    var sourceNode = getNodeById(currentRunningWidgetId, sourceNodeId) // // use currentRunningWidgetId, because it can be back-end
     // var targetNode = getNodeById(targetNodeId)
 
     // TODO: 1. set label source output name
+    console.log(sourceNode)
     jsplumbUtils.setConnectionLabels(instance, sourceNode)
 
     // TODO: 2. set target node input of source output name
@@ -275,6 +279,7 @@ var jsplumbUtils = {
         instance.empty(instance.getContainer())
     },
 
+    // TODO:
     changeContainer: function (instance) {
         // alert(container)
         // instance.setContainer(container);
@@ -312,8 +317,13 @@ var jsplumbUtils = {
         // })
     },
 
+
+    // BUG: TODO: default, instance is current widget's instance, not running widget
+    // because, we first switch to current widget and its instance, then connect something...
     setConnectionLabels: function (instance, sourceNode) {
         var downConnection = this.getDownConnections(instance, sourceNode.name)
+
+        console.log(sourceNode)
 
         var outputIds = sourceNode.output.id
         var outputDefaults = sourceNode.output.default
@@ -387,7 +397,7 @@ var jsplumbUtils = {
             
             console.log(conn)
             console.log(conn.sourceId)
-            var upNode = getNodeById(conn.sourceId)
+            var upNode = getNodeById(currentRunningWidgetId, conn.sourceId)
 
             var index = upNode.output.id.indexOf(upNodeOutputId)
             upOutputList.push(upNode.output.default[index])
@@ -615,7 +625,7 @@ var jsplumbUtils = {
         d.innerHTML = "<img class='inNode' src='../static/img/in.png'>" + node.display + "<img class='closeNode' src='../static/img/close.png'>";
         d.style.left = x + "px";
         d.style.top = y + "px";
-        d.style.border = '3px solid ' + getNodeColorById(node.id)
+        d.style.border = '3px solid ' + getNodeColorById(currentWidgetId, node.id)
 
 
         var disLength = node.display.length * 8 + 64

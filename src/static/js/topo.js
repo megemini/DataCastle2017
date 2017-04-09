@@ -193,7 +193,7 @@ function run() {
 }
 
 var canvasDict = {}
-var currentInstanceRunning = null
+
 // set runNodesList as global var
 var runNodesList = []
 var runNodeMessage = []
@@ -205,7 +205,8 @@ function runFlow() {
     runNodesList = []
 
     // TEST:!!!!!!!!!! widgets should find its instance
-    currentInstanceRunning = window.instance 
+    var widget = getWidgetById(currentRunningWidgetId)
+    currentRunningInstance = widget.instance
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -215,7 +216,7 @@ function runFlow() {
     }
 
     // TODO: unshift up nodes until all is start node!!!
-    var node = getNodeById(currentNodeId)
+    var node = getNodeById(currentWidgetId, currentNodeId)
 
     // 1. this node is done, then just show the info
     if (node.status == STATUS.DONE) {
@@ -238,7 +239,7 @@ function runFlow() {
         var node = runQueue.shift()
         
         // TODO: when in widget, get all up nodes/widget
-        var upNodeList = getUpNodes(currentInstanceRunning, node.name)
+        var upNodeList = getUpNodes(currentRunningInstance, node.name)
 
 
         // console.log("shift node is ")
@@ -264,7 +265,7 @@ function runFlow() {
             // 1.1 get pair from endpoint
 
 
-            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.name)
+            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentRunningInstance, node.name)
             var upInputList = outInPair.upInputList
             var upOutputList = outInPair.upOutputList
 
@@ -299,7 +300,7 @@ function runFlow() {
         }
 
         for (var i = upNodeList.length - 1; i >= 0; i--) {
-            var upNode = getNodeById(upNodeList[i])
+            var upNode = getNodeById(currentRunningWidgetId, upNodeList[i])
 
             // TODO: need not use found... enqueue all the input, and uplift the input
             // when run node, if already done, then ignore
@@ -500,7 +501,7 @@ function runOneStepDone(message) {
             setNodeRunStatus(node, STATUS.DONE)
         }
         else if (status == "error") {
-            setDownNodesIdle(node.name)
+            setDownNodesIdle(currentRunningWidgetId, node.name)
             runFlowDone()
         }
     }
@@ -598,8 +599,8 @@ function setCurrentNode(nodeId) {
     }
 }
 
-function getNodeColorById(nodeId) {
-    var nodeType = getNodeById(nodeId).mainType
+function getNodeColorById(widgetId, nodeId) {
+    var nodeType = getNodeById(widgetId, nodeId).mainType
     return COLORNODE[nodeType]
 }
 
@@ -607,7 +608,7 @@ function getNodeColorById(nodeId) {
 // add node
 
 // var nodeCount = 0
-var nodeList = {}
+// var nodeList = {}
 // var nodeList = {
 //     "Data": {
 //         "File": {
@@ -1068,17 +1069,17 @@ var nodeTypeList = {
 }
 
 
-function initNodeList() {
-    for (var mainType in nodeTypeList) {
-        nodeList[mainType] = {}
+// function initNodeList() {
+//     for (var mainType in nodeTypeList) {
+//         nodeList[mainType] = {}
 
-        for (var subType in nodeTypeList[mainType]) {
-            nodeList[mainType][subType] = {}
-            nodeList[mainType][subType].count = 0
-        }
+//         for (var subType in nodeTypeList[mainType]) {
+//             nodeList[mainType][subType] = {}
+//             nodeList[mainType][subType].count = 0
+//         }
 
-    }
-}
+//     }
+// }
 
 // function initNodeList() {
 //     for (var i = nodeTypeList.length - 1; i >= 0; i--) {
@@ -1118,7 +1119,8 @@ function initNodeList() {
 //     id: widgetId,
 //     display: "Workspace"/input,
 //     description: "",
-//     canvas: currentCanvas,
+//     container: currentCanvas
+//     instance: instance,
 //     nodes: [],
 //     conns: [],
 // }
@@ -1141,14 +1143,20 @@ function initNodeList() {
 // "func" -> widget defination
 
 // TODO: 
-function getUUID() {
-    return 
+function getNodeUUID(mainType, subType) {
+    return mainType + subType + new Date().getTime()
 }
 
 var widgetList = {}
-var currentWidgetId = null
+var currentWidgetId = null // fore-end user widget 
+var currentRunningWidgetId = null // back-end running widget
+var currentRunningInstance = null
 
-function initWidgetList() {
+// function initWidgetList() {
+//     widgetList[currentWidgetId] = {}
+// }
+
+function resetCurrentWidget() {
     widgetList[currentWidgetId] = {}
 }
 
@@ -1166,22 +1174,21 @@ function delWidgetFromList(widgetId) {
     delete widgetList[widgetId]
 }
 
-function addToWidget(nodeId) {
-    var node = getNodeById(nodeId)
+function addToWidget(widgetId, node) {
 
-    widgetList[currentWidgetId].nodes[nodeId] = {}
-    widgetList[currentWidgetId].nodes[nodeId].node = {}
-    widgetList[currentWidgetId].nodes[nodeId].node.inputs = node.input
-    widgetList[currentWidgetId].nodes[nodeId].node.outputs = node.output
+    widgetList[widgetId].nodes[node.id] = node
+    // widgetList[widgetId].nodes[nodeId].node = node
+    // widgetList[widgetId].nodes[nodeId].node.inputs = node.input
+    // widgetList[widgetId].nodes[nodeId].node.outputs = node.output
     
-    widgetList[currentWidgetId].nodes[nodeId].position = {}
-    widgetList[currentWidgetId].nodes[nodeId].position.left = null
-    widgetList[currentWidgetId].nodes[nodeId].position.top = null
+    // widgetList[widgetId].nodes[nodeId].position = {}
+    // widgetList[widgetId].nodes[nodeId].position.left = null
+    // widgetList[widgetId].nodes[nodeId].position.top = null
 }
 
-function delFromWidget(nodeId) {
-    widgetList[currentWidgetId].nodes[nodeId] = null
-    delete widgetList[currentWidgetId].nodes[nodeId]
+function delFromWidget(widgetId, nodeId) {
+    widgetList[widgetId].nodes[nodeId] = null
+    delete widgetList[widgetId].nodes[nodeId]
 }
 
 function hasWidget(widgetId) {
@@ -1193,25 +1200,30 @@ function hasWidget(widgetId) {
     }
 }
 
-function initNode(mainType, subType, inputs, outputs) {
+function getWidgetById(widgetId) {
+    return widgetList[widgetId]
+}
+
+function initNode(mainType, subType, widgetId, inputs, outputs) {
     var nodeType = nodeTypeList[mainType][subType]
 
-    var nodeId = nodeList[mainType][subType].count
-    nodeList[mainType][subType].count = nodeId + 1
+    // var nodeId = nodeList[mainType][subType].count
+    // nodeList[mainType][subType].count = nodeId + 1
+
+    var nodeId = getNodeUUID(mainType, subType)
 
     // 0. init a node
     var node = {}
 
     // name == id, maybe not?!
-    node.name = mainType + subType + nodeId
+    node.name = nodeId
     node.id = node.name
-    var nodeName = node.name
 
     node.mainType = mainType
     node.subType = subType
+    node.widgetId = widgetId
 
-    // TODO: node.type = node?widget?
-
+    node.type = nodeType.type
     node.display = nodeType.display
     node.description = nodeType.description
     // 1. inputs
@@ -1234,7 +1246,7 @@ function initNode(mainType, subType, inputs, outputs) {
         node.input.count = nodeType.content.input.count
         node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
         node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-            return "input" + nodeName + value;
+            return "input" + node.name + value;
         });
         node.input.value = null // input value should be up nodes output default
 
@@ -1255,7 +1267,7 @@ function initNode(mainType, subType, inputs, outputs) {
         node.output.type = nodeType.content.output.type.slice(0)
         node.output.count = nodeType.content.output.count
         node.output.default = node.output.name.map(function(value){ // output default: change, unique
-            return "output" + nodeName + value;
+            return "output" + node.name + value;
         });
         node.output.id = node.output.default.slice(0) // output id: not change, unique
         node.output.value = null // output value should be result from server
@@ -1265,11 +1277,15 @@ function initNode(mainType, subType, inputs, outputs) {
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
     node.found = false
-    node.widgetId = currentWidgetId
+    
+    node.position = {}
+    node.position.top = null
+    node.position.left = null
 
-    nodeList[mainType][subType][nodeName] = node
-    nodeListByName[nodeName] = node
+    // nodeList[mainType][subType][nodeName] = node
+    // nodeListByName[nodeName] = node
 
+    widgetList[widgetId].nodes[node.id] = node
 
     return node
 } 
@@ -1307,7 +1323,8 @@ function addNode(mainType, subType, e) {
 
 
     // 0. add node info to node list
-    var newNode = initNode(mainType, subType, null, null)
+    // mainType, subType, widgetId, inputs, outputs
+    var newNode = initNode(mainType, subType, currentWidgetId, null, null)
 
     // var disName = newNode.display
 
@@ -1340,7 +1357,7 @@ function addNode(mainType, subType, e) {
     setCurrentNode(newNode.name)
     
     // 4. add this node to current widget
-    addToWidget(newNode.id)
+    addToWidget(currentWidgetId, newNode)
     console.log("current widget is !!!!")
     console.log(widgetList)
 }
@@ -1351,12 +1368,15 @@ function clearNodeInfo() {
     $("#func-output").empty()
 }
 
-function getNodeById(id) {
-    return getNodeByName(id)
+function getNodeById(widgetId, nodeId) {
+    console.log(widgetList)
+    console.log(widgetList[widgetId].nodes[nodeId])
+    return widgetList[widgetId].nodes[nodeId]
 }
 
-function getNodeByName(name) {
-    return nodeListByName[name]
+// depracate
+function getNodeByName(widgetId, nodeName) {
+    return getNodeById(widgetId, nodeName)
 }
 
 function showNodeInfo(node) {
@@ -1395,13 +1415,13 @@ function showInputs(node) {
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
-            var node = getNodeById(currentNodeId)
+            var node = getNodeById(currentWidgetId, currentNodeId)
 
             var notIdLength = ("text" + node.name + "input").length
             node.input.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
 
             // change all nodes downside of status idle
-            setDownNodesIdle(node.name)
+            setDownNodesIdle(currentWidgetId, node.name)
         });
 
         d.append(s)
@@ -1451,7 +1471,7 @@ function showOutput(node) {
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
-            var node = getNodeById(currentNodeId)
+            var node = getNodeById(currentWidgetId, currentNodeId)
 
             var notIdLength = ("text" + node.name + "output").length
             node.output.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
@@ -1461,7 +1481,7 @@ function showOutput(node) {
             // console.log(node)
 
             // change all nodes downside of status idle
-            setDownNodesIdle(node.name)
+            setDownNodesIdle(currentWidgetId, node.name)
 
             // if connect to a target, then change label name
             jsplumbUtils.setConnectionLabels(window.instance, node)
@@ -1532,32 +1552,34 @@ function showOutput(node) {
 
 }
 
-function getUpNodes(instance, nodeName) {
-    return jsplumbUtils.getUpNodesList(instance, nodeName)
+function getUpNodes(instance, nodeId) {
+    return jsplumbUtils.getUpNodesList(instance, nodeId)
 }
 
-function getDownNodes(instance, nodeName) {
+function getDownNodes(instance, nodeId) {
     // from 2d to 1d
-    var downNodesList = jsplumbUtils.getDownNodesList(instance, nodeName)
+    var downNodesList = jsplumbUtils.getDownNodesList(instance, nodeId)
     console.log("getDownNodes")
     console.log(downNodesList)
     return [].concat.apply([],downNodesList)
 }
 
-function setDownNodesIdle(nodeName) {
+function setDownNodesIdle(widgetId, nodeId) {
 
     // 0. TODO: check circle
 
     // 1. TODO: get all instance down the node
     // TEST: should be current running instance!!!
-    var instance = window.instance
+    // var instance = window.instance
+    var widget = getWidgetById(widgetId)
 
-    setDownNodesIdleInInstance(instance, nodeName)
+    setDownNodesIdleInInstance(widget, nodeId)
 }
 
-function setDownNodesIdleInInstance(instance, nodeName) {
+function setDownNodesIdleInInstance(widget, nodeId) {
+    var instance = widget.instance
     // 1. set down nodes
-    var downList = getDownNodes(instance, nodeName)
+    var downList = getDownNodes(instance, nodeId)
     console.log("Show down list from setDownNodesIdle")
     console.log(downList)
 
@@ -1568,7 +1590,7 @@ function setDownNodesIdleInInstance(instance, nodeName) {
         }
     }
 
-    var node = getNodeByName(nodeName)
+    var node = getNodeById(widget.id, nodeId)
 
     setNodeRunStatus(node, STATUS.IDLE)
 
@@ -1631,12 +1653,15 @@ $(document).ready(function() {
     canvasDict["myCanvas"] = jsInstance
     
     // 2. init widget of workspace
+    // initWidgetList()
+
     currentWidgetId = "WidgetWorkspace"
+    currentRunningWidgetId = currentWidgetId
     addWidgetToList(currentWidgetId)
 
 
     // TODO: init node type list & node list from server
-    initNodeList()
+    // initNodeList()
     // TODO: from node type list, generate node tree
 
     // bind tab
@@ -1739,7 +1764,8 @@ function confirmWidget() {
 
     // addWidgetToList(currentWidgetId)
     
-    initWidgetList()
+    // initWidgetList()
+    resetCurrentWidget()
 
     // console.log(widgetList[currentWidgetId])
 
