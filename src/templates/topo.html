@@ -6,199 +6,188 @@
 	<div class="panel panel-default" id="Data">
 		<div class="panel-heading">
 			<h4 class="panel-title">
-				<a data-toggle="collapse" data-parent="#accordion" 
-				href="#collapseOne">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapseData">
 				<h4><strong>Data<div class="tree-head tree-data"></div></strong></h4>
-			</a>
-		</h4>
+				</a>
+			</h4>
+		</div>
 
-	</div>
-	<div id="collapseOne" class="panel-collapse collapse in">
-		<div class="panel-body" id="File" draggable="true" ondragend="addNode('Data', 'File', event)" onclick="showHelp('Data', 'File')">
-			Add File 
+		<div id="collapseData" class="panel-collapse collapse in">
+			<div class="panel-body" id="File" draggable="true" ondragend="addNode('Data', 'File', event)" onclick="showHelp('Data', 'File')">
+				Add File 
+			</div>
+			<div class="panel-body" id="Merge" draggable="true" ondragend="addNode('Data', 'Merge', event)" onclick="showHelp('Data', 'Merge')">
+				Merge Data 
+			</div>
+			<div class="panel-body" id="Fillna" draggable="true" ondragend="addNode('Data', 'Fillna', event)" onclick="showHelp('Data', 'Fillna')">
+				Fill Missing 
+			</div>
+			<div class="panel-body" id="Split" draggable="true" ondragend="addNode('Data', 'Split', event)" onclick="showHelp('Data', 'Split')">
+				Split Data 
+			</div>
+			<div class="panel-body" id="TrainTest" draggable="true" ondragend="addNode('Data', 'TrainTest', event)" onclick="showHelp('Data', 'TrainTest')">
+				Get Train Test 
+			</div>
 		</div>
-		<div class="panel-body" id="Merge" draggable="true" ondragend="addNode('Data', 'Merge', event)" onclick="showHelp('Data', 'Merge')">
-			Merge Data 
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapseModel">
+				<h4><strong>Model<div class="tree-head tree-model"></div></strong></h4>
+				</a>
+			</h4>
 		</div>
-		<div class="panel-body" id="Fillna" draggable="true" ondragend="addNode('Data', 'Fillna', event)" onclick="showHelp('Data', 'Fillna')">
-			Fill Missing 
+		<div id="collapseModel" class="panel-collapse collapse">
+			<div class="panel-body" id="RandomForestClassifier" draggable="true" ondragend="addNode('Model', 'RandomForestClassifier', event)" onclick="showHelp('Model', 'RandomForestClassifier')">
+				Random Forest Classifier 
+			</div>
+			<div class="panel-body" id="XGBoost" draggable="true" ondragend="addNode('Model', 'XGBoost', event)" onclick="showHelp('Model', 'XGBoost')">
+				XGBoost Classifier 
+			</div>
 		</div>
-		<div class="panel-body" id="Split" draggable="true" ondragend="addNode('Data', 'Split', event)" onclick="showHelp('Data', 'Split')">
-			Split Data 
+	</div>
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapseEvaluate">
+				<h4><strong>Evaluate<div class="tree-head tree-evaluate"></div></strong></h4>
+				</a>
+			</h4>
 		</div>
-		<div class="panel-body" id="TrainTest" draggable="true" ondragend="addNode('Data', 'TrainTest', event)" onclick="showHelp('Data', 'TrainTest')">
-			Get Train Test 
+
+		<div id="collapseEvaluate" class="panel-collapse collapse">
+			<div class="panel-body" id="Predict" draggable="true" ondragend="addNode('Evaluate', 'Predict', event)" onclick="showHelp('Evaluate', 'Predict')">
+				Predict 
+			</div>
+			<div class="panel-body" id="PredictProb" draggable="true" ondragend="addNode('Evaluate', 'PredictProb', event)" onclick="showHelp('Evaluate', 'PredictProb')">
+				Predict Probability
+			</div>
+			<div class="panel-body" id="ROCAUCScore" draggable="true" ondragend="addNode('Evaluate', 'ROCAUCScore', event)" onclick="showHelp('Evaluate', 'ROCAUCScore')">
+				ROC AUC Score
+			</div>
 		</div>
 	</div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion" 
-			href="#collapseTwo">
-			<h4><strong>Model<div class="tree-head tree-model"></div></strong></h4>
-		</a>
-	</h4>
-</div>
-<div id="collapseTwo" class="panel-collapse collapse">
-	<div class="panel-body" id="RandomForestClassifier" draggable="true" ondragend="addNode('Model', 'RandomForestClassifier', event)" onclick="showHelp('Model', 'RandomForestClassifier')">
-		Random Forest Classifier 
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapseVisualize">
+				<h4><strong>Visualize<div class="tree-head tree-visualize"></div></strong></h4>
+				</a>
+			</h4>
+		</div>
+		<div id="collapseVisualize" class="panel-collapse collapse">
+			<div class="panel-body">
+				Hist
+			</div>
+		</div>
 	</div>
-	<div class="panel-body" id="XGBoost" draggable="true" ondragend="addNode('Model', 'XGBoost', event)" onclick="showHelp('Model', 'XGBoost')">
-		XGBoost Classifier 
+
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion" href="#collapseCustomize">
+				<h4><strong>Customize<div class="tree-head tree-customize"></div></strong></h4>
+				</a>
+			</h4>
+		</div>
+
+		<div id="collapseCustomize" class="panel-collapse collapse">
+			<div class="panel-body" id="Merge3" draggable="true" ondragend="addNode('Customize', 'Merge3', event)" onclick="showHelp('Customize', 'Merge3')">
+				Merge 3 Data
+			</div>
+		</div>
 	</div>
-</div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion" 
-			href="#collapseThree">
-			<h4><strong>Evaluate<div class="tree-head tree-evaluate"></div></strong></h4>
-		</a>
-	</h4>
-</div>
-<div id="collapseThree" class="panel-collapse collapse">
-	<div class="panel-body" id="Predict" draggable="true" ondragend="addNode('Evaluate', 'Predict', event)" onclick="showHelp('Evaluate', 'Predict')">
-		Predict 
-	</div>
-	<div class="panel-body" id="PredictProb" draggable="true" ondragend="addNode('Evaluate', 'PredictProb', event)" onclick="showHelp('Evaluate', 'PredictProb')">
-		Predict Probability
-	</div>
-	<div class="panel-body" id="ROCAUCScore" draggable="true" ondragend="addNode('Evaluate', 'ROCAUCScore', event)" onclick="showHelp('Evaluate', 'ROCAUCScore')">
-		ROC AUC Score
-	</div>
-</div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion" 
-			href="#collapseFour">
-			<h4><strong>Visualize<div class="tree-head tree-visualize"></div></strong></h4>
-		</a>
-	</h4>
-</div>
-<div id="collapseFour" class="panel-collapse collapse">
-	<div class="panel-body">
-		Hist
-	</div>
-</div>
-</div>
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion" 
-			href="#collapseFive">
-			<h4><strong>Customize<div class="tree-head tree-customize"></div></strong></h4>
-		</a>
-	</h4>
-</div>
-<div id="collapseFive" class="panel-collapse collapse">
-	<div class="panel-body" id="Merge3" draggable="true" ondragend="addNode('Customize', 'Merge3', event)" onclick="showHelp('Customize', 'Merge3')">
-		Merge 3 Data
-	</div>
-</div>
-</div>
 </div>
 
 {% end %}
 
 
 {% block body %}
-	<div class="row">
-		<ul id="widgetTabs" class="nav nav-tabs">
-			<li class="active">
-				<a href="#WidgetWorkspace" data-toggle="tab" id="maintab1">
-					Workspace
-				</a>
-			</li>
-		</ul>
+<div class="row">
+	<ul id="widgetTabs" class="nav nav-tabs">
+		<li class="active">
+<!-- 			<a href="#workspaceWidget" data-toggle="tab" id="workspaceWidgetTab">
+				Workspace
+			</a> -->
+			<a href="#workspaceWidget" data-toggle="tab" id="workspaceWidgetTab">
+				Workspace
+			</a>
+		</li>
+	</ul>
 
-		<div class="save-widget" id="saveWidget">
+	<div class="save-widget" id="saveWidget">
 
-			<div class="input-group" id="canvasButton"> 
-				<button class="btn btn-default" onclick="saveCanvas()" id="saveCanvasButton">debug</button>   
-				<button class="btn btn-default" onclick="inputWidgetName()" id="widgetButton">Widget</button>    
-			</div>
-		</div>
-
-
-	</div>
-
-	<div class="row">
-		<div id="widgetTabContent" class="tab-content">
-			<div class="tab-pane fade in active" id="WidgetWorkspace">
-				<div class="jtk-demo-main">
-					<div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="WidgetWorkspaceCanvas"></div>
-				</div>
-			</div>
+		<div class="input-group" id="canvasButton"> 
+			<button class="btn btn-default" onclick="saveCanvas()" id="saveCanvasButton">debug</button>   
+			<button class="btn btn-default" onclick="inputWidgetName()" id="widgetButton">Widget</button>    
 		</div>
 	</div>
 
-	<!-- <div class="jtk-demo-main"> -->
 
-	<!-- demo -->
-	<!--             <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas"></div> -->
-	<!-- /demo -->
+</div>
 
-	<!-- </div> -->
-
-
-
-
-	<script src="../static/js/jsplumb.min.js"></script>
-	<script src="../static/js/demo.js"></script>
-	<script src="../static/js/topo.js"></script>
-
-	{% end %}
-
-	{% block console-form %}
-	<div class="console-part">
-		<form  method="post" role="form"  id="scriptform">
-			<div class="row">
-				<div class="input-group">
-					<input type="text" class="form-control" name="content">
-					<span class="input-group-btn">
-						<button class="btn btn-default" type="submit" >Go</button>
-					</span>
-
-
-				</div><!-- /input-group -->
-			</div><!-- /.row -->
-			<input type="hidden" name="channel" value="script">
-			{% module xsrf_form_html() %}	
-		</form>
-
-		<div id="console-div" class="row console-div">
-			<div class="panel-group" id="accordion-console">
-				<div class="panel panel-default" id="description">
-					<div class="panel-heading">
-						<h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#accordion-console" 
-							href="#collapse-description">
-							<h4><strong>Description</strong></h4>
-						</a>
-					</h4>
-				</div>
-				<div id="collapse-description" class="panel-collapse collapse in">
-					<div class="panel-body" id="func-description">
-						Add File 
-					</div>
-				</div>
+<div class="row">
+	<div id="widgetTabContent" class="tab-content">
+		<div class="tab-pane fade in active" id="workspaceWidget">
+			<div class="jtk-demo-main">
+				<div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="workspaceWidgetCanvas"></div>
 			</div>
-			<div class="panel panel-default">
+		</div>
+	</div>
+</div>
+
+<!-- <div class="jtk-demo-main"> -->
+
+<!-- demo -->
+<!--             <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas"></div> -->
+<!-- /demo -->
+
+<!-- </div> -->
+
+
+
+
+<script src="../static/js/jsplumb.min.js"></script>
+<script src="../static/js/demo.js"></script>
+<script src="../static/js/topo.js"></script>
+
+{% end %}
+
+{% block console-form %}
+<div class="console-part">
+	<form  method="post" role="form"  id="scriptform">
+		<div class="row">
+			<div class="input-group">
+				<input type="text" class="form-control" name="content">
+				<span class="input-group-btn">
+					<button class="btn btn-default" type="submit" >Go</button>
+				</span>
+
+
+			</div><!-- /input-group -->
+		</div><!-- /.row -->
+		<input type="hidden" name="channel" value="script">
+		{% module xsrf_form_html() %}	
+	</form>
+
+	<div id="console-div" class="row console-div">
+		<div class="panel-group" id="accordion-console">
+			<div class="panel panel-default" id="description">
 				<div class="panel-heading">
 					<h4 class="panel-title">
 						<a data-toggle="collapse" data-parent="#accordion-console" 
-						href="#collapse-inputs">
-						<h4><strong>Inputs</strong></h4>
+						href="#collapse-description">
+						<h4><strong>Description</strong></h4>
 					</a>
 				</h4>
 			</div>
-			<div id="collapse-inputs" class="panel-collapse collapse">
-				<div class="panel-body" id="func-inputs">
-
+			<div id="collapse-description" class="panel-collapse collapse in">
+				<div class="panel-body" id="func-description">
+					Add File 
 				</div>
 			</div>
 		</div>
@@ -206,18 +195,33 @@
 			<div class="panel-heading">
 				<h4 class="panel-title">
 					<a data-toggle="collapse" data-parent="#accordion-console" 
-					href="#collapse-output">
-					<h4><strong>Output</strong></h4>
+					href="#collapse-inputs">
+					<h4><strong>Inputs</strong></h4>
 				</a>
 			</h4>
 		</div>
-		<div id="collapse-output" class="panel-collapse collapse">
-			<div class="panel-body" id="func-output">
+		<div id="collapse-inputs" class="panel-collapse collapse">
+			<div class="panel-body" id="func-inputs">
 
-				<!-- <div id="console-output"></div> -->
 			</div>
 		</div>
 	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading">
+			<h4 class="panel-title">
+				<a data-toggle="collapse" data-parent="#accordion-console" 
+				href="#collapse-output">
+				<h4><strong>Output</strong></h4>
+			</a>
+		</h4>
+	</div>
+	<div id="collapse-output" class="panel-collapse collapse">
+		<div class="panel-body" id="func-output">
+
+			<!-- <div id="console-output"></div> -->
+		</div>
+	</div>
+</div>
 </div>
 </div>
 </div>

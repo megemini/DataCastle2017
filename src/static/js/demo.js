@@ -188,7 +188,10 @@ function initJsPlumb(container) {
                     node.name +
                     "<img class='closeNode' src='../static/img/close.png'>";
             }
+
+            updateWidgetTabName(node)
         })
+       
 
         jsPlumbUtil.consume(e);
 
@@ -270,6 +273,8 @@ function initJsPlumb(container) {
 
         // listen for new connections; 
         // initialise them the same way we initialise the connections at startup.
+        console.log("instance container")
+        console.log(instance.getContainer())
         initConnection(instance, connInfo.connection);
     });
 
@@ -284,8 +289,8 @@ function initJsPlumb(container) {
         // TODO: 2. set nodes idle
         console.log("connectionDetached")
         console.log(connInfo)
-        var nodeName = connInfo.connection.targetId
-        setDownNodesIdle(nodeName)
+        var nodeId = connInfo.connection.targetId
+        setDownNodesIdle(currentWidgetId, nodeId)
     })
 
 

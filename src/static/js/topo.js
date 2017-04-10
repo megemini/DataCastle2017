@@ -1198,7 +1198,7 @@ var widgetTypeList = {
 //     id: widgetId,
 //     display: "Workspace"/input,
 //     description: "",
-//     container: currentCanvas
+//     container: currentInstanceId
 //     instance: instance,
 //     nodes: [],
 //     conns: [],
@@ -1221,9 +1221,33 @@ var widgetTypeList = {
 // "module" -> default "customize"
 // "func" -> widget defination
 
-// TODO: 
+function getWidgetIdFromNodeId(nodeId) {
+    return nodeId + "Widget"  
+}
+
+function getCanvasIdFromWidgetId(widgetId) {
+    return widgetId + "Canvas"
+}
+
+function getTabIdFromWidgetId(widgetId) {
+    return widgetId + "Tab"
+}
+
+function getWidgetIdFromTabId(tabId) {
+    return tabId.slice(0, -3)
+}
+
+// from user input widget name, get widgetId uuid
 function getWidgetUUID(widgetName) {
-    return widgetName + new Date().getTime()
+    // return widgetName + new Date().getTime()
+    var widgetName = widgetName.replace(/\s+/g, "")
+    var pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？%+_]")
+    var specialstr = "";
+    for(var i = 0; i < widgetName.length; i++) {
+        specialstr += widgetName.substr(i, 1).replace(pattern,'');
+    }
+
+    return specialstr + new Date().getTime()
 }
 
 function getNodeUUID(mainType, subType) {
@@ -1232,6 +1256,7 @@ function getNodeUUID(mainType, subType) {
 
 var widgetList = {}
 var currentWidgetId = null // fore-end user widget 
+var currentInstance = null
 var currentRunningWidgetId = null // back-end running widget
 var currentRunningInstance = null
 
@@ -1287,6 +1312,16 @@ function hasWidget(widgetId) {
     }
 }
 
+function updateWidgetTabName(node) {
+    var widgetId = getWidgetIdFromNodeId(node.id)
+    var tabId = getTabIdFromWidgetId(widgetId)
+
+    // console.log("update tab name")
+    // console.log($("#"+tabId).text())
+    $("#"+tabId).text(node.name)
+    // console.log($("#"+tabId).text())
+}
+
 function getWidgetById(widgetId) {
     return widgetList[widgetId]
 }
@@ -1295,10 +1330,73 @@ function getWidgetById(widgetId) {
 function saveWidget(widgetName) {
 
     // 0. get widget name
-    // var widgetName = $("#widgetDivInput").val()
-    // var widgetId = "testId"
     var widgetId = getWidgetUUID(widgetName)
+    console.log("widgetName")
+    console.log(widgetName)
+    console.log(widgetId)
 
+    // 1. add tree, use widgetId as mainType: subType -> "Customize: widgetId"
+    // 1.1 get all nodes/conns from current canvas
+
+
+
+    // 1.2 add to node type list
+    nodeTypeList.widgetId = {
+            display: "widgetName", 
+            description: "widgetName",
+            type: "widget",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                // func: {
+                //     funcName: "merge_df",
+                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["Data", "Data", "String"],
+                //     funcInputsCount: 2,
+                //     funcInputsDefaults: ["id"], // used for edit paras
+                // },
+                module: "widget",    
+                func: "widgetMerge3",
+                input: {                    
+                    name: ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
+                    type: ["Data", "Data", "Data", "String", "String"],
+                    count: 3,
+                    default: ["'id'", "'id'"],
+                    value: null,
+                },
+                output:{
+                    name: ["File1_data", "File2_data"],
+                    type: ["Data", "Data"],
+                    count: 2,
+                    default: null,
+                    value: null,
+                },                
+            },
+        }
+
+
+
+
+    $("#collapseCustomize").append()
+
+    var t = document.createElement("div")
+
+
+        // <div id="collapseEvaluate" class="panel-collapse collapse">
+        //     <div class="panel-body" id="Predict" draggable="true" ondragend="addNode('Evaluate', 'Predict', event)" onclick="showHelp('Evaluate', 'Predict')">
+        //         Predict 
+        //     </div>
+        //     <div class="panel-body" id="PredictProb" draggable="true" ondragend="addNode('Evaluate', 'PredictProb', event)" onclick="showHelp('Evaluate', 'PredictProb')">
+        //         Predict Probability
+        //     </div>
+        //     <div class="panel-body" id="ROCAUCScore" draggable="true" ondragend="addNode('Evaluate', 'ROCAUCScore', event)" onclick="showHelp('Evaluate', 'ROCAUCScore')">
+        //         ROC AUC Score
+        //     </div>
+        // </div>
+
+
+    return 
     // NOT ADD TO LIST
     // addWidgetToList(widgetId)
 
@@ -1388,34 +1486,45 @@ function initWidget(widgetId, widgetType) {
 // common method for enter widget, 
 // like switch current widget/running widget
 // switch current canvas container
-function enterWidget(widgetId, canvasId, newWidget) {
-    if (!newWidget) {
-        currentWidgetId = widgetId
-        currentRunningWidgetId = widgetId
-    }
-    else {
-        currentWidgetId = getWidgetUUID(widgetId)
-        currentRunningWidgetId = currentWidgetId
-        var currentWidget = addWidgetToList(currentWidgetId)
+function enterWidget(widgetId, newWidget) {
+    currentWidgetId = widgetId
+    currentRunningWidgetId = widgetId
 
+    if (newWidget) {
+        var currentWidget = addWidgetToList(currentWidgetId)
+        var canvasId = getCanvasIdFromWidgetId(widgetId)
         var jsInstance = initJsPlumb(canvasId)
-        currentWidget.canvas = jsInstance
+        currentWidget.instance = jsInstance
         currentWidget.container = canvasId   
     }
+
+    currentInstance = getWidgetById(currentWidgetId).instance
+    currentRunningInstance = currentInstance
+    window.instance = currentInstance
+
+    console.log("enter tab!!!")
+    console.log(currentWidgetId)
+    console.log(currentInstance)
+    console.log(window.instance.getContainer())
 }
 
 function enterWidgetFromNode(node) {
 
     // 1. create tab/canvas
     // 1.1 create tab
-    var h = "widget" + node.id
+    // var h = "widget" + node.id
+    var h = getWidgetIdFromNodeId(node.id)
     var l = document.createElement("li")
-    l.innerHTML =  "<a href='#" + h + "' data-toggle='tab'>"  + node.name + "</a> "
+    var tabId = getTabIdFromWidgetId(h)
+    l.innerHTML =  "<a href='#" + h + "' data-toggle='tab' id='" + tabId + "'>"  + node.name + "</a> "
 
     $("#widgetTabs").append(l)
+
+    bindTab(tabId)
     
     // 1.2 create content
-    var c = h + "Canvas"
+    // var c = h + "Canvas"
+    var c = getCanvasIdFromWidgetId(h)
     var d = document.createElement("div")
     d.className = "tab-pane fade in active"
     d.id = h
@@ -1428,7 +1537,7 @@ function enterWidgetFromNode(node) {
     $('#widgetTabs a[href=#' + h + ']').tab('show')
     
     // 3. init widget of workspace
-    enterWidget(h, c, true)
+    enterWidget(h, true)
 
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!. init one widget
     // var widgetId = node.widgetId
@@ -1896,18 +2005,25 @@ $(document).ready(function() {
     // $("#message").select();
     updater.start();
 
-    // 1. init jsplumb
-    var defaultWidget = "WidgetWorkspace"
-    var canvasId = defaultWidget + "Canvas"
-
+    // 1. init widget/canvas/jsplumb
+    // All from a pseudo-node "workspace"! 
+    // TODO: refactory?!
+    var defaultNodeId = "workspace"
+    var defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
+    var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
+    var tabId = getTabIdFromWidgetId(defaultWidgetId)
     // 2. init widget of workspace
-    enterWidget(defaultWidget, canvasId, true)
+    enterWidget(defaultWidgetId, true)
+
+    // bind tab
+    bindTab(tabId)
+
     // currentWidgetId = getWidgetUUID(defaultWidget)
     // currentRunningWidgetId = currentWidgetId
     // var currentWidget = addWidgetToList(currentWidgetId)
 
     // var jsInstance = initJsPlumb(canvasId)
-    // currentWidget.canvas = jsInstance
+    // currentWidget.instance = jsInstance
     // currentWidget.container = canvasId
 
     // 3. bind events
@@ -1917,8 +2033,7 @@ $(document).ready(function() {
     // initNodeList()
     // TODO: from node type list, generate node tree
 
-    // bind tab
-    bindTab()
+
 });
 
 // function bindEventsOnReady() {
@@ -1946,21 +2061,18 @@ $(document).ready(function() {
 //     })   
 // }
 
-function bindTab() {
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+function bindTab(tabId) {
+
+    $("#" + tabId).on('shown.bs.tab', function (e) {
       // alert(e.target) // clicked tab
       // alert(e.relatedTarget) // prev tab
+      // alert("change tab")
+      console.log("tab!!!!!!!!")
       console.log(e)
 
-      var container = e.relatedTarget.id
-      if (container == "maintab1") {
-        container = "myCanvas2"
-      }
-      else {
-        container = "myCanvas"
-      }
-
-      // jsplumbUtils.changeContainer(container)
+      var tabId = e.target.id
+      var widgetId = getWidgetIdFromTabId(tabId)
+      enterWidget(widgetId, false)
 
     })
 
