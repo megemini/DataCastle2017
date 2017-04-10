@@ -1115,20 +1115,10 @@ var widgetTypeList = {
                 subType: "Merge",
                 inputsDefault: ["'id'"],
                 inputsId: ["xxxxx", "xxxxx"],
-                outputId: ["yyyyy", "yyyyy"],
+                outputsId: ["yyyyy", "yyyyy"],
                 position: {
                     left: 100,
                     top: 100,
-                },
-            },
-            node2: {
-                name: "File2",
-                mainType: "Data",
-                subType: "Merge",
-                inputs: ["'id'"],
-                position: {
-                    left: 200,
-                    top: 200,
                 },
             },
         },
@@ -1143,7 +1133,12 @@ var widgetTypeList = {
             {name: "File1_on", node: "node1",  value: "xxxxx"},  
             {name: "File2_on", node: "node2",  value: "xxxxx"},
         ],
+        outputs: [
+            {name: "File1_data", node: "node1", value: "yyyyy"},  
+            {name: "File1_data", node: "node1",  value: "yyyyy"},  
+        ],
     }
+
     
 
 }
@@ -1265,7 +1260,8 @@ var currentRunningInstance = null
 // }
 
 function resetCurrentWidget() {
-    widgetList[currentWidgetId] = {}
+    // widgetList[currentWidgetId] = {}
+    addWidgetToList(currentWidgetId)
 }
 
 // when enter a new widget, then add to list!
@@ -1349,6 +1345,7 @@ function saveWidget(widgetName) {
     newWidgetType.nodes = {}
     newWidgetType.conns = []
     newWidgetType.inputs = []
+    newWidgetType.outputs = []
 
     for (var key in widgetList[currentWidgetId].nodes) {
         // for each node:
@@ -1364,12 +1361,28 @@ function saveWidget(widgetName) {
         // Two kinds of input: 1. from default(here) 2. from connection(4)
         newWidgetType.nodes[nodeId].inputsId = node.input.id.slice(0)
         newWidgetType.nodes[nodeId].inputsDefault = node.input.default.slice(0)
-        newWidgetType.nodes[nodeId].outputId = node.output.id.slice(0)
+        newWidgetType.nodes[nodeId].outputsId = node.output.id.slice(0)
         newWidgetType.nodes[nodeId].position = {left: node.position.left, top: node.position.top}
 
         // push default input name into inputs
         for (var i = node.input.default.length - 1; i >= 0; i--) {
-            newWidgetType.inputs.push({name: node.name + "_" + node.input.name[i + node.input.count], node: nodeId, value: node.input.id[i + node.input.count]})
+            newWidgetType.inputs.push({
+                name: node.name + "_" + node.input.name[i + node.input.count], 
+                type: node.input.type[i + node.input.count],
+                default: node.input.default[i],
+                node: nodeId, 
+                value: node.input.id[i + node.input.count]})
+        }
+
+        // push output
+        for (var i = node.output.default.length - 1; i >= 0; i--) {
+            newWidgetType.outputs.push({
+                name: node.name + "_" + node.output.name[i],
+                type: node.output.type[i],
+                node: nodeId,
+            })
+
+            node.output.default[i]
         }
 
         // 3. get up connections, if has connection then (4), if not then (5)
@@ -1380,7 +1393,13 @@ function saveWidget(widgetName) {
                 // 5. inputs.push(name: node.name + "_" + node.input.name, value:{nodeX: x})
                 var inputIndex = node.input.id.indexOf(inputJsId)
                 var inputName = node.input.name[inputIndex]
-                newWidgetType.inputs.push({name: node.name + "_" + inputName, node: nodeId, value: inputJsId})
+                var inputType = node.input.type[inputIndex]
+                newWidgetType.inputs.push({
+                    name: node.name + "_" + inputName, 
+                    type: inputType,
+                    default: null,
+                    node: nodeId, 
+                    value: inputJsId})
             }
             else {
                 // 4. conns.push(output:{nodeY: y}, input:{nodeX: x}) node.input.id.indexOf(nodeInputId)
@@ -1400,188 +1419,92 @@ function saveWidget(widgetName) {
                 newWidgetType.conns.push({input: {node: nodeId, value: inputId}, output: {node: conn.sourceId, value: outputId}})
             }
         }
-
-        
-        
     }
 
     console.log(newWidgetType)
-     
 
     widgetTypeList[widgetId] = newWidgetType
 
     console.log(widgetTypeList)
 
     // TODO: from new widget type, create one newNodeType!!! And add to tree!
-
-    return
-
-    widgetMerge3 = {
-        nodes: {
-            node1: {
-                name: "File1",
-                mainType: "Data",
-                subType: "Merge",
-                inputsDefault: ["'id'"],
-                inputsId: [xxxxx, xxxxx],
-                outputId: [yyyyy, yyyyy],
-                position: {
-                    left: 100,
-                    top: 100,
-                },
-            },
-            node2: {
-                name: "File2",
-                mainType: "Data",
-                subType: "Merge",
-                inputs: ["'id'"],
-                position: {
-                    left: 200,
-                    top: 200,
-                },
-            },
-        },
-        conns: [
-            {output: {node: node1, value: yyyyy}, input: {node: node2, value: xxxxx}}, 
-        ],
-        // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-        inputs: [
-            {name: "File1_data1", node: node1, value: xxxxx},  
-            {name: "File1_data2", node: node1,  value: xxxxx},  
-            {name: "File2_data2", node: node2,  value: xxxxx},  
-            {name: "File1_on", node: node1,  value: xxxxx},  
-            {name: "File2_on", node: node2,  value: xxxxx},
-        ],
+    var newNodeInput = {}
+    newNodeInput.name = []
+    newNodeInput.type = []
+    newNodeInput.default = []
+    for (var i = newWidgetType.inputs.length - 1; i >= 0; i--) {
+        var input = newWidgetType.inputs[i]
+        newNodeInput.name.push(input.name)
+        newNodeInput.type.push(input.type)
+        if (input.default != null) {
+            newNodeInput.default.push(input.default)
+        }
     }
-    
-    // console.log(widgetList)
+    newNodeInput.count = newNodeInput.name.length - newNodeInput.default.length
+    newNodeInput.value = null
 
-    // 1.1.2 set conns
-    // var connections = jsplumbUtils.getCurrentConnections(window.instance)
-    // console.log(connections)
-    // for (var i = connections.length - 1; i >= 0; i--) {
-    //     var conn = connections[i]
-    //     // console.log("conn")
-    //     // console.log(conn)
-    //     var endpointList = []
-    //     for (var j = conn.endpoints.length - 1; j >= 0; j--) {
-    //         var e = conn.endpoints[j]
-    //         // console.log(e)
-    //         endpointList.unshift(e._jsPlumb.uuid)
-    //     }
-    //     widgetList[currentWidgetId].conns.push(endpointList)
-    // }
+    var newNodeOutput = {}
+    newNodeOutput.name = []
+    newNodeOutput.type = []
+    for (var i = newWidgetType.outputs.length - 1; i >= 0; i--) {
+        var output = newWidgetType.outputs[i]
+        newNodeOutput.name.push(output.name)
+        newNodeOutput.type.push(output.type)
+    }
+    newNodeOutput.count = newWidgetType.outputs.length
+    newNodeOutput.default = null
+    newNodeOutput.value = null
 
-    // console.log("added connections")
-    // console.log(widgetList)
-
-
-
-
-
-    // 1.2 add to node type list
-    nodeTypeList.widgetId = {
-            display: "widgetName", 
-            description: "widgetName",
+    var newNodeType = {
+            display: widgetName, 
+            description: widgetName,
             type: "widget",
             content: {
                 // 1. basic infomation, from user edit
                 name: null,
                 // 2. func information, from funcutil.get_func_info(func)
-                // func: {
-                //     funcName: "merge_df",
-                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["Data", "Data", "String"],
-                //     funcInputsCount: 2,
-                //     funcInputsDefaults: ["id"], // used for edit paras
-                // },
                 module: "widget",    
-                func: "widgetMerge3",
-                input: {                    
-                    name: ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-                    type: ["Data", "Data", "Data", "String", "String"],
-                    count: 3,
-                    default: ["'id'", "'id'"],
-                    value: null,
-                },
-                output:{
-                    name: ["File1_data", "File2_data"],
-                    type: ["Data", "Data"],
-                    count: 2,
-                    default: null,
-                    value: null,
-                },                
+                func: widgetId,
+                input: newNodeInput,
+                output: newNodeOutput,                
             },
         }
 
+    nodeTypeList.Customize[widgetId] = newNodeType
+
+    console.log(nodeTypeList.Customize)
+
+    // append to customize tree
+    var t = "<div class=\"panel-body\" id=\"" + 
+        widgetId + "\" draggable=\"true\" ondragend=\"addNode(\'Customize\', \'" + 
+        widgetId +"\', event)\" onclick=\"showHelp(\'Customize\', \'" + 
+        widgetId + "\')\">" +
+        widgetName + "</div>"
 
 
+    console.log(t)
 
-    $("#collapseCustomize").append()
+    $("#collapseCustomize").append(t)
 
-    var t = document.createElement("div")
-
-
-        // <div id="collapseEvaluate" class="panel-collapse collapse">
-        //     <div class="panel-body" id="Predict" draggable="true" ondragend="addNode('Evaluate', 'Predict', event)" onclick="showHelp('Evaluate', 'Predict')">
-        //         Predict 
-        //     </div>
-        //     <div class="panel-body" id="PredictProb" draggable="true" ondragend="addNode('Evaluate', 'PredictProb', event)" onclick="showHelp('Evaluate', 'PredictProb')">
-        //         Predict Probability
-        //     </div>
-        //     <div class="panel-body" id="ROCAUCScore" draggable="true" ondragend="addNode('Evaluate', 'ROCAUCScore', event)" onclick="showHelp('Evaluate', 'ROCAUCScore')">
-        //         ROC AUC Score
-        //     </div>
-        // </div>
-
-
-    return 
-/////////////////////////////////////////////////////////////////
-
+   
     // NOT ADD TO LIST
     // addWidgetToList(widgetId)
 
     // 1. create one widget type, from current nodes!
-    widgetList[widgetId].nodes = widgetList[currentWidgetId].nodes 
 
     // 2. add widget type to customize.
 
     // TODO: 
     // 1.1 get all nodes info & positions
-    for (var key in widgetList[widgetId].nodes) {
-        // console.log("key")
-        // console.log(key)
-        // console.log($("#"+key).position())
-
-        widgetList[widgetId].nodes[key].position = $("#"+key).position()
-
-        console.log(widgetList[widgetId].nodes[key])
-    }
 
     // 1.2 jsPlumb.getConnections();jsPlumb.getAllConnections();  
-    var connections = jsplumbUtils.getCurrentConnections(window.instance)
-    for (var i = connections.length - 1; i >= 0; i--) {
-        var conn = connections[i]
-        console.log("conn")
-        console.log(conn)
-        var endpointList = []
-        for (var j = conn.endpoints.length - 1; j >= 0; j--) {
-            var e = conn.endpoints[j]
-            console.log(e)
-            endpointList.unshift(e._jsPlumb.uuid)
-        }
-        widgetList[widgetId].conns.push(endpointList)
-    }
-
-    console.log("added connections")
-    console.log(widgetList[widgetId])
 
     // 2. with widgetId from widgetInput, push in all nodes
 
     // 3.  clear current nodes
     // re-add current widget, means init it with empty
-    console.log("confirmWidget!!!!!!!!!!")
-    console.log(widgetId)
+
+
     // console.log(widgetList[currentWidgetId])
     jsplumbUtils.emptyCanvas(window.instance)
 
@@ -1599,28 +1522,95 @@ function saveWidget(widgetName) {
 
     // 6. add widget to customize
 
-
+    return
 }
 
 // TODO: re-construct widget from widget type list
 function initWidget(widgetId, widgetType) {
 
+    var widgetTypeInfo = widgetTypeList[widgetType]
+    for (var nodeId in widgetTypeInfo.nodes) {
+        var node = widgetTypeInfo.nodes[nodeId]
+        var name = node.name
+        var mainType = node.mainType
+        var subType = node.subType
+        var inputsDefault = node.inputsDefault.slice(0)
+        var inputsId = node.inputsId.slice(0)
+        var outputsId = node.outputsId.slice(0)
+        var inputs = {}
+        inputs.id = inputsId
+        inputs.default = inputsDefault
+        var outputs = {}
+        outputs.id = outputsId
+        var x = node.position.left
+        var y = node.position.top
 
-    initNode(mainType, subType, widgetId, inputs, outputs)
+        var newNode = initNode(mainType, subType, widgetId, inputs, outputs)
 
-    var testId = "testId"
-    console.log(widgetList)
-    // TEST FOR RE DRAW NODES CONNECTIONS
-    for (var nodeId in widgetList[testId].nodes) {
-        var nodeDict = widgetList[testId].nodes[nodeId]
-        var node = nodeDict.node
-        var x = nodeDict.position.left
-        var y = nodeDict.position.top
-        jsplumbUtils.newNode(window.instance, x, y, node);
+        jsplumbUtils.newNode(window.instance, x, y, newNode);
+
     }
 
+    var conns = []
+    for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
+        var eps = widgetTypeInfo.conns[i]
+        var inputEp = eps.input.value
+        var outputEp = eps.output.value
+        conns.push([outputEp, inputEp])
+    }
 
-    jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
+    jsplumbUtils.initWidget(window.instance, conns)
+
+
+    // widgetMerge3 : {
+    //     nodes: {
+    //         node1: {
+    //             name: "File1",
+    //             mainType: "Data",
+    //             subType: "Merge",
+    //             inputsDefault: ["'id'"],
+    //             inputsId: ["xxxxx", "xxxxx"],
+    //             outputId: ["yyyyy", "yyyyy"],
+    //             position: {
+    //                 left: 100,
+    //                 top: 100,
+    //             },
+    //         },
+    //     },
+    //     conns: [
+    //         {output: {node: "node1", value: "yyyyy"}, input: {node: "node2", value: "xxxxx"}}, 
+    //     ],
+    //     // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
+    //     inputs: [
+    //         {name: "File1_data1", node: "node1", value: "xxxxx"},  
+    //         {name: "File1_data2", node: "node1",  value: "xxxxx"},  
+    //         {name: "File2_data2", node: "node2",  value: "xxxxx"},  
+    //         {name: "File1_on", node: "node1",  value: "xxxxx"},  
+    //         {name: "File2_on", node: "node2",  value: "xxxxx"},
+    //     ],
+    //     outputs: [
+    //         {name: "File1_data", node: "node1", value: "yyyyy"},  
+    //         {name: "File1_data", node: "node1",  value: "yyyyy"},  
+    //     ],
+    // }
+
+
+    
+
+
+    // var testId = "testId"
+    // console.log(widgetList)
+    // // TEST FOR RE DRAW NODES CONNECTIONS
+    // for (var nodeId in widgetList[testId].nodes) {
+    //     var nodeDict = widgetList[testId].nodes[nodeId]
+    //     var node = nodeDict.node
+    //     var x = nodeDict.position.left
+    //     var y = nodeDict.position.top
+    //     jsplumbUtils.newNode(window.instance, x, y, node);
+    // }
+
+
+    // jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
 
 }
 
@@ -1682,9 +1672,10 @@ function enterWidgetFromNode(node) {
 
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!. init one widget
     // var widgetId = node.widgetId
-    // var widgetType = node.func
+    var widgetType = node.func
     // var widget = initWidget(widgetId, widgetType)
-    
+    var widget = initWidget(h, widgetType)
+
     // 4. draw nodes
 
     // 5. draw conns
@@ -1728,47 +1719,45 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
 
 
     node.input = {}
+    node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
+    node.input.type = nodeType.content.input.type.slice(0)
+    node.input.count = nodeType.content.input.count
+    // node.input.value = inputs.value.slice(0) // input value should be up nodes output default
+    node.input.value = null // input value should be up nodes output default
+
     if (inputs != null) {
-        node.input.name = inputs.name.slice(0) // input name: not change, not unique
-        node.input.type = inputs.type.slice(0)
-        node.input.count = inputs.count
         node.input.default = inputs.default.slice(0) // intput default: not change, not unique
         node.input.id = inputs.id.slice(0) // input id: not change, unique
-        node.input.value = inputs.value.slice(0) // input value should be up nodes output default
     }
     else {
-        node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
-        node.input.type = nodeType.content.input.type.slice(0)
-        node.input.count = nodeType.content.input.count
         node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
         node.input.id = node.input.name.map(function(value){ // input id: not change, unique
             return "input" + node.id + value;
         });
-        node.input.value = null // input value should be up nodes output default
-
     }
+
 
     // 2. output
     node.output = {} 
+    node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
+    node.output.type = nodeType.content.output.type.slice(0)
+    node.output.count = nodeType.content.output.count
+    node.output.default = node.output.name.map(function(value){ // output default: change, unique
+        return "output" + node.id + value;
+    });
+    node.output.value = null // output value should be result from server
+
     if (outputs != null) {
-        node.output.name = outputs.name.slice(0) // name: not change, not unique
-        node.output.type = outputs.type.slice(0)
-        node.output.count = outputs.count
-        node.output.default = outputs.default.slice(0)
+        // node.output.name = outputs.name.slice(0) // name: not change, not unique
+        // node.output.type = outputs.type.slice(0)
+        // node.output.count = outputs.count
+        // node.output.default = outputs.default.slice(0)
         node.output.id = outputs.id.slice(0) // output id: not change, unique
-        node.output.value = outputs.value.slice(0) // output value should be result from server
+        // node.output.value = outputs.value.slice(0) // output value should be result from server
     }
     else {
-        node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
-        node.output.type = nodeType.content.output.type.slice(0)
-        node.output.count = nodeType.content.output.count
-        node.output.default = node.output.name.map(function(value){ // output default: change, unique
-            return "output" + node.id + value;
-        });
         node.output.id = node.output.default.slice(0) // output id: not change, unique
-        node.output.value = null // output value should be result from server
     }
-
 
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
@@ -2239,7 +2228,6 @@ function cancelWidget() {
     $("#saveWidget").empty()
 
     $("#saveWidget").append("<div class=\"input-group\" id=\"canvasButton\"> \
-                    <button class=\"btn btn-default\" onclick=\"saveCanvas()\" id=\"saveCanvasButton\">Save</button> \
                     <button class=\"btn btn-default\" onclick=\"inputWidgetName()\" id=\"widgetButton\">Widget</button> \
                 </div>")
 }
@@ -2253,11 +2241,11 @@ function confirmWidget() {
     $("#saveWidget").empty()
 
     $("#saveWidget").append("<div class=\"input-group\" id=\"canvasButton\"> \
-                    <button class=\"btn btn-default\" onclick=\"saveCanvas()\" id=\"saveCanvasButton\">Save</button> \
                     <button class=\"btn btn-default\" onclick=\"inputWidgetName()\" id=\"widgetButton\">Widget</button> \
                 </div>")
 }
 
+// TESET: debug
 function saveCanvas() {
     alert("save canvas")
 
