@@ -1107,13 +1107,15 @@ var nodeTypeList = {
 }
 
 var widgetTypeList = {
-    widgetMerge3: {
+    widgetMerge3 : {
         nodes: {
             node1: {
                 name: "File1",
                 mainType: "Data",
                 subType: "Merge",
-                inputs: ["'id'"],
+                inputsDefault: ["'id'"],
+                inputsId: ["xxxxx", "xxxxx"],
+                outputId: ["yyyyy", "yyyyy"],
                 position: {
                     left: 100,
                     top: 100,
@@ -1131,20 +1133,18 @@ var widgetTypeList = {
             },
         },
         conns: [
-            {
-                output: {node1:0}, 
-                input: {node2:0}
-            }, 
+            {output: {node: "node1", value: "yyyyy"}, input: {node: "node2", value: "xxxxx"}}, 
         ],
         // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-        inputs: { 
-            "File1_data1": {node1:0},  
-            "File1_data2": {node1:1},  
-            "File2_data2": {node2:1},  
-            "File1_on": {node1:2},  
-            "File2_on": {node2:2}
-        },
-    },
+        inputs: [
+            {name: "File1_data1", node: "node1", value: "xxxxx"},  
+            {name: "File1_data2", node: "node1",  value: "xxxxx"},  
+            {name: "File2_data2", node: "node2",  value: "xxxxx"},  
+            {name: "File1_on", node: "node1",  value: "xxxxx"},  
+            {name: "File2_on", node: "node2",  value: "xxxxx"},
+        ],
+    }
+    
 
 }
 
@@ -1316,10 +1316,15 @@ function updateWidgetTabName(node) {
     var widgetId = getWidgetIdFromNodeId(node.id)
     var tabId = getTabIdFromWidgetId(widgetId)
 
-    // console.log("update tab name")
-    // console.log($("#"+tabId).text())
-    $("#"+tabId).text(node.name)
-    // console.log($("#"+tabId).text())
+    console.log("update tab name")
+    console.log(widgetId)
+    if (document.getElementById(tabId)) {
+        console.log("update tab ok!!!!")
+        $("#"+tabId).text(node.name)
+    } else {
+        console.log("no tab to update!!!!")
+    } 
+
 }
 
 function getWidgetById(widgetId) {
@@ -1335,8 +1340,142 @@ function saveWidget(widgetName) {
     console.log(widgetName)
     console.log(widgetId)
 
-    // 1. add tree, use widgetId as mainType: subType -> "Customize: widgetId"
-    // 1.1 get all nodes/conns from current canvas
+    // 1. add tree, use widgetId as 'mainType: subType -> "Customize: widgetId"'
+    // get all nodes/conns from current widget's canvas, and generate new widget type!!!
+    console.log(widgetList[currentWidgetId])
+
+    // 1. generate new widget type
+    var newWidgetType = {}
+    newWidgetType.nodes = {}
+    newWidgetType.conns = []
+    newWidgetType.inputs = []
+
+    for (var key in widgetList[currentWidgetId].nodes) {
+        // for each node:
+        // 2. nodes[nodeX] = {name, mainType, subType, inputs.default, position}
+        var node = widgetList[currentWidgetId].nodes[key]
+        node.position = $("#"+key).position()
+
+        var nodeId = node.id
+        newWidgetType.nodes[nodeId] = {}
+        newWidgetType.nodes[nodeId].name = node.name
+        newWidgetType.nodes[nodeId].mainType = node.mainType
+        newWidgetType.nodes[nodeId].subType = node.subType
+        // Two kinds of input: 1. from default(here) 2. from connection(4)
+        newWidgetType.nodes[nodeId].inputsId = node.input.id.slice(0)
+        newWidgetType.nodes[nodeId].inputsDefault = node.input.default.slice(0)
+        newWidgetType.nodes[nodeId].outputId = node.output.id.slice(0)
+        newWidgetType.nodes[nodeId].position = {left: node.position.left, top: node.position.top}
+
+        // push default input name into inputs
+        for (var i = node.input.default.length - 1; i >= 0; i--) {
+            newWidgetType.inputs.push({name: node.name + "_" + node.input.name[i + node.input.count], node: nodeId, value: node.input.id[i + node.input.count]})
+        }
+
+        // 3. get up connections, if has connection then (4), if not then (5)
+        var upConnections = jsplumbUtils.getUpConnections(currentInstance, node.id)
+        for (var inputJsId in upConnections) {
+            var conn = upConnections[inputJsId]
+            if (conn == null) {
+                // 5. inputs.push(name: node.name + "_" + node.input.name, value:{nodeX: x})
+                var inputIndex = node.input.id.indexOf(inputJsId)
+                var inputName = node.input.name[inputIndex]
+                newWidgetType.inputs.push({name: node.name + "_" + inputName, node: nodeId, value: inputJsId})
+            }
+            else {
+                // 4. conns.push(output:{nodeY: y}, input:{nodeX: x}) node.input.id.indexOf(nodeInputId)
+                console.log("connnnnnnnnnnnnnnnnn")
+                console.log(conn)
+                var inputId = null
+                var outputId = null
+                var eps = conn.endpoints
+                for (var j = eps.length - 1; j >= 0; j--) {
+                    if (eps[j].isTarget) {
+                        inputId = eps[j].inputJsId
+                    }
+                    else {
+                        outputId =  eps[j].outputJsId
+                    }
+                }
+                newWidgetType.conns.push({input: {node: nodeId, value: inputId}, output: {node: conn.sourceId, value: outputId}})
+            }
+        }
+
+        
+        
+    }
+
+    console.log(newWidgetType)
+     
+
+    widgetTypeList[widgetId] = newWidgetType
+
+    console.log(widgetTypeList)
+
+    // TODO: from new widget type, create one newNodeType!!! And add to tree!
+
+    return
+
+    widgetMerge3 = {
+        nodes: {
+            node1: {
+                name: "File1",
+                mainType: "Data",
+                subType: "Merge",
+                inputsDefault: ["'id'"],
+                inputsId: [xxxxx, xxxxx],
+                outputId: [yyyyy, yyyyy],
+                position: {
+                    left: 100,
+                    top: 100,
+                },
+            },
+            node2: {
+                name: "File2",
+                mainType: "Data",
+                subType: "Merge",
+                inputs: ["'id'"],
+                position: {
+                    left: 200,
+                    top: 200,
+                },
+            },
+        },
+        conns: [
+            {output: {node: node1, value: yyyyy}, input: {node: node2, value: xxxxx}}, 
+        ],
+        // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
+        inputs: [
+            {name: "File1_data1", node: node1, value: xxxxx},  
+            {name: "File1_data2", node: node1,  value: xxxxx},  
+            {name: "File2_data2", node: node2,  value: xxxxx},  
+            {name: "File1_on", node: node1,  value: xxxxx},  
+            {name: "File2_on", node: node2,  value: xxxxx},
+        ],
+    }
+    
+    // console.log(widgetList)
+
+    // 1.1.2 set conns
+    // var connections = jsplumbUtils.getCurrentConnections(window.instance)
+    // console.log(connections)
+    // for (var i = connections.length - 1; i >= 0; i--) {
+    //     var conn = connections[i]
+    //     // console.log("conn")
+    //     // console.log(conn)
+    //     var endpointList = []
+    //     for (var j = conn.endpoints.length - 1; j >= 0; j--) {
+    //         var e = conn.endpoints[j]
+    //         // console.log(e)
+    //         endpointList.unshift(e._jsPlumb.uuid)
+    //     }
+    //     widgetList[currentWidgetId].conns.push(endpointList)
+    // }
+
+    // console.log("added connections")
+    // console.log(widgetList)
+
+
 
 
 
@@ -1397,6 +1536,8 @@ function saveWidget(widgetName) {
 
 
     return 
+/////////////////////////////////////////////////////////////////
+
     // NOT ADD TO LIST
     // addWidgetToList(widgetId)
 
@@ -1492,7 +1633,7 @@ function enterWidget(widgetId, newWidget) {
 
     if (newWidget) {
         var currentWidget = addWidgetToList(currentWidgetId)
-        var canvasId = getCanvasIdFromWidgetId(widgetId)
+        var canvasId = getCanvasIdFromWidgetId(currentWidgetId)
         var jsInstance = initJsPlumb(canvasId)
         currentWidget.instance = jsInstance
         currentWidget.container = canvasId   
@@ -1700,7 +1841,8 @@ function addNode(mainType, subType, e) {
     var diffX = 9 * 16 / 2
     var diffY = 4 * 16 / 2 + 36
 
-    var canvasId = getWidgetById(currentWidgetId).container
+    // var canvasId = getWidgetById(currentWidgetId).container
+    var canvasId = getCanvasIdFromWidgetId(currentWidgetId)
     var X = $('#' + canvasId).offset().left + diffX
     var Y = $('#accordion').offset().top + diffY
 

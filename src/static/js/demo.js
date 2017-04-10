@@ -15,7 +15,7 @@ var connectionOverlays = [
     [ "Label", {
         location: 0.5,
         id: "label",
-        cssClass: "aLabel",
+        cssClass: "connectionLabel",
         events:{
             tap:function() { 
                 // alert("Connection From A to B"); 
@@ -346,16 +346,6 @@ var jsplumbUtils = {
         instance.empty(instance.getContainer())
     },
 
-    // TODO:
-    changeContainer: function (instance) {
-        // alert(container)
-        // instance.setContainer(container);
-        // instance = jsPlumb.getInstance({
-        //   Container:container
-        // });  
-        window.instance = instance
-    },
-
     initWidget: function (instance, endpointList) {
         // TODO: !!!!!!!!!!
         console.log("endpointList")
@@ -403,27 +393,29 @@ var jsplumbUtils = {
         for (var i = outputIds.length - 1; i >= 0; i--) {
             var connections = downConnection[outputIds[i]]
 
-            for (var j = connections.length - 1; j >= 0; j--) {
-                connections[j].getOverlay("label").setLabel(
-                    outputDefaults[i]);
+            if (connections != null) {
+                for (var j = connections.length - 1; j >= 0; j--) {
+                    connections[j].getOverlay("label").setLabel(
+                        outputDefaults[i]);
+                }
             }
-           
+          
         }
 
     },
 
 
-    getNodeEndpoints: function (instance, nodeName) {
+    getNodeEndpoints: function (instance, nodeId) {
         var endpointList = []
 
-        instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({target:nodeId}).each(function(endpoint) {
             endpointList.push(endpoint)
         })
 
         return endpointList
     },
 
-    getOutInPairsFromEps: function (instance, nodeName) {
+    getOutInPairsFromEps: function (instance, nodeId) {
         // CAUTION: 
         // There are no outputJsDefault!!! Because, it could be changed!!! 
         // So, output-input pair like: data1=inputDataFile0data
@@ -436,7 +428,7 @@ var jsplumbUtils = {
         var upOutputList = []
                    
 
-        instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({target:nodeId}).each(function(endpoint) {
 
             console.log("Show up node!!!!!!!!!!!!! And output pair")
             console.log(endpoint)
@@ -478,59 +470,69 @@ var jsplumbUtils = {
 
     },
 
-    getUpConnections: function (instance, nodeName) {
-        var upConnectionList = []
+    getUpConnections: function (instance, nodeId) {
+        var upConnectionDict = {}
 
-        instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({target:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
-            
 
             // endpoint.connections[i].sourceId is node name of source/output
-            for (var i = endpoint.connections.length - 1; i >= 0; i--) {
-                console.log("Show up connections")
-                console.log(endpoint.connections[i])
-                upConnectionList.push(endpoint.connections[i])
+            // up connection MUST BE 1!!!
+            if (endpoint.connections.length > 0) {
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show up connections")
+                    console.log(endpoint.connections[i])
+                    upConnectionDict[endpoint.inputJsId] = (endpoint.connections[i])
+                }
             }
-            // 
-            
+            else {
+                upConnectionDict[endpoint.inputJsId] = null
+            }
 
         })
 
-        return upConnectionList
+        return upConnectionDict
     },
 
-    getDownConnections: function (instance, nodeName) {
+    getDownConnections: function (instance, nodeId) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
 
-        var downConnectionList = {}
+        var downConnectionDict = {}
 
-        instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({source:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
             
-            var epConnectList = []
+            if (endpoint.connections.length > 0) {
+                var epConnectList = []
 
-            // endpoint.connections[i].sourceId is node name of source/output
-            for (var i = endpoint.connections.length - 1; i >= 0; i--) {
-                console.log("Show down node")
-                console.log(endpoint.connections[i])
-                epConnectList.push(endpoint.connections[i])
+                // endpoint.connections[i].sourceId is node name of source/output
+                for (var i = endpoint.connections.length - 1; i >= 0; i--) {
+                    console.log("Show down node")
+                    console.log(endpoint.connections[i])
+                    epConnectList.push(endpoint.connections[i])
+                }
+
+                downConnectionDict[endpoint.outputJsId] = epConnectList 
+            }
+            else {
+                downConnectionDict[endpoint.outputJsId] = null
             }
 
-            downConnectionList[endpoint.outputJsId] = epConnectList
+
         })
 
 
 
-        return downConnectionList
+        return downConnectionDict
     },
 
-    getUpNodesList: function (instance, nodeName) {
+    getUpNodesList: function (instance, nodeId) {
         var upList = []
 
-        instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({target:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
             
@@ -549,10 +551,10 @@ var jsplumbUtils = {
         return upList
     },
 
-    getUpNodesDict: function (instance, nodeName) {
+    getUpNodesDict: function (instance, nodeId) {
         var upDict = []
 
-        instance.selectEndpoints({target:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({target:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
             
@@ -572,12 +574,12 @@ var jsplumbUtils = {
         return upDict
     },
 
-    getDownNodesList: function (instance, nodeName) {
+    getDownNodesList: function (instance, nodeId) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
         var downList = []
 
-        instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({source:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
             var epNodeList = []
@@ -597,12 +599,12 @@ var jsplumbUtils = {
         return downList
     },
 
-    getDownNodesDict: function (instance, nodeName) {
+    getDownNodesDict: function (instance, nodeId) {
         // each endpoint from output, connect n nodes!
         // so it is a 2-d array!
         var downDict = {}
 
-        instance.selectEndpoints({source:nodeName}).each(function(endpoint) {
+        instance.selectEndpoints({source:nodeId}).each(function(endpoint) {
 
             // console.log(endpoint)
             var epNodeList = []
