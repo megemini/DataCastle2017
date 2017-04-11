@@ -230,7 +230,7 @@ function initJsPlumb(container) {
         pushDelVar(getNodeById(currentWidgetId, toId)) // use currentWidgetId, because it is user's action, so, it must be fore-end
 
         // remove node from this widget list
-        delFromWidget(currentWidgetId, toId)
+        delNodeFromWidget(currentWidgetId, toId)
         console.log("current widget is !!!!")
         console.log(widgetList)
 
@@ -278,7 +278,10 @@ function initJsPlumb(container) {
         initConnection(instance, connInfo.connection);
 
         // TODO: 
-        connectionAdded()
+        console.log("connInfo")
+        console.log(connInfo)
+        // connectionAdded(connInfo.endpoints)
+        connectionAdded(connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
     });
 
     // detach func
@@ -296,7 +299,7 @@ function initJsPlumb(container) {
         setDownNodesIdle(currentWidgetId, nodeId)
 
         // TODO: 
-        connectionDetached()
+        connectionDetached(connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
     })
 
 

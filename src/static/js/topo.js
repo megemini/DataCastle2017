@@ -1312,13 +1312,18 @@ function addNodeToWidget(widgetId, node) {
     // widgetList[widgetId].nodes[nodeId].position.top = null
 }
 
+function delNodeFromWidget(widgetId, nodeId) {
+    widgetList[widgetId].nodes[nodeId] = null
+    delete widgetList[widgetId].nodes[nodeId]
+}
+
 function addConnToWidget(widgetId, conn) {
     widgetList[widgetId].conns[conn.id] = conn
 }
 
-function delFromWidget(widgetId, nodeId) {
-    widgetList[widgetId].nodes[nodeId] = null
-    delete widgetList[widgetId].nodes[nodeId]
+function delConnFromWidget(widgetId, connId) {
+    widgetList[widgetId].conns[connId] = null
+    delete widgetList[widgetId].conns[connId]
 }
 
 function hasWidget(widgetId) {
@@ -1717,16 +1722,43 @@ function getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex) {
     return outputNodeId + outputIndex + inputNodeId + inputIndex
 }
 
-function connectionAdded() {
-    // widgetId, inputEp, outputEp, 
-    // body...
+function connectionAdded(outputNodeId, outputEp, inputNodeId, inputEp) {
 
-    // addConnToWidget()
+    console.log("connection!!!!")
+
+    var conn = {}
+
+    var inputNode = getNodeById(currentWidgetId, inputNodeId)
+    var outputNode = getNodeById(currentWidgetId, outputNodeId)
+
+    var inputIndex = inputNode.input.id.indexOf(inputEp.inputJsId)
+    var outputIndex = outputNode.output.id.indexOf(outputEp.outputJsId)
+    // widgetId, inputEp, outputEp, 
+    conn.id = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
+    conn.output = {node: outputNodeId, index: outputIndex}
+    conn.input = {node: inputNodeId, index: inputIndex}
+
+    addConnToWidget(currentWidgetId, conn)
+
+    console.log("connectionAdded")
+    console.log(widgetList)
+
 }
 
-function connectionDetached() {
+function connectionDetached(outputNodeId, outputEp, inputNodeId, inputEp) {
     // widgetId, inputEp, outputEp, conn_id
-    // body...
+    var inputNode = getNodeById(currentWidgetId, inputNodeId)
+    var outputNode = getNodeById(currentWidgetId, outputNodeId)
+
+    var inputIndex = inputNode.input.id.indexOf(inputEp.inputJsId)
+    var outputIndex = outputNode.output.id.indexOf(outputEp.outputJsId)
+    // widgetId, inputEp, outputEp, 
+    var connId = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
+
+    delConnFromWidget(currentWidgetId, connId)
+
+    console.log("connectionDetached")
+    console.log(widgetList)
 }
 
 function enterWidgetFromNode(node) {
