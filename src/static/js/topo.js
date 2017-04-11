@@ -205,8 +205,8 @@ function runFlow() {
     runNodesList = []
 
     // TEST:!!!!!!!!!! widgets should find its instance
-    var widget = getWidgetById(currentRunningWidgetId)
-    currentRunningInstance = widget.instance
+    var widget = getWidgetById(currentWidgetIdRunning)
+    currentInstanceRunning = widget.instance
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -239,7 +239,7 @@ function runFlow() {
         var node = runQueue.shift()
         
         // TODO: when in widget, get all up nodes/widget
-        var upNodeList = getUpNodes(currentRunningInstance, node.id)
+        var upNodeList = getUpNodes(currentInstanceRunning, node.id)
 
 
         // console.log("shift node is ")
@@ -265,7 +265,7 @@ function runFlow() {
             // 1.1 get pair from endpoint
 
 
-            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentRunningInstance, node.id)
+            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.id)
             var upInputList = outInPair.upInputList
             var upOutputList = outInPair.upOutputList
 
@@ -300,7 +300,7 @@ function runFlow() {
         }
 
         for (var i = upNodeList.length - 1; i >= 0; i--) {
-            var upNode = getNodeById(currentRunningWidgetId, upNodeList[i])
+            var upNode = getNodeById(currentWidgetIdRunning, upNodeList[i])
 
             // TODO: need not use found... enqueue all the input, and uplift the input
             // when run node, if already done, then ignore
@@ -501,7 +501,7 @@ function runOneStepDone(message) {
             setNodeRunStatus(node, STATUS.DONE)
         }
         else if (status == "error") {
-            setDownNodesIdle(currentRunningWidgetId, node.id)
+            setDownNodesIdle(currentWidgetIdRunning, node.id)
             runFlowDone()
         }
     }
@@ -1114,28 +1114,40 @@ var widgetTypeList = {
                 mainType: "Data",
                 subType: "Merge",
                 inputsDefault: ["'id'"],
-                inputsId: ["xxxxx", "xxxxx"],
-                outputsId: ["yyyyy", "yyyyy"],
+                // inputsId: ["xxxxx", "xxxxx"],
+                // outputsId: ["yyyyy", "yyyyy"],
                 position: {
-                    left: 100,
-                    top: 100,
+                    left: 200,
+                    top: 200,
+                },
+            },
+            node2: {
+                name: "File2",
+                mainType: "Data",
+                subType: "Merge",
+                inputsDefault: ["'id'"],
+                // inputsId: ["xxxxx", "xxxxx"],
+                // outputsId: ["yyyyy", "yyyyy"],
+                position: {
+                    left: 550,
+                    top: 550,
                 },
             },
         },
         conns: [
-            {output: {node: "node1", value: "yyyyy"}, input: {node: "node2", value: "xxxxx"}}, 
+            {output: {node: "node1", index: 0}, input: {node: "node2", index: 0}}, 
         ],
         // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
         inputs: [
-            {name: "File1_data1", node: "node1", value: "xxxxx"},  
-            {name: "File1_data2", node: "node1",  value: "xxxxx"},  
-            {name: "File2_data2", node: "node2",  value: "xxxxx"},  
-            {name: "File1_on", node: "node1",  value: "xxxxx"},  
-            {name: "File2_on", node: "node2",  value: "xxxxx"},
+            {name: "File1_data1", node: "node1", index: 0, type: "String", default: null},  
+            {name: "File1_data2", node: "node1",  index: 1, type: "String", default: null},  
+            {name: "File2_data2", node: "node2",  index: 1, type: "String", default: null},  
+            {name: "File1_on", node: "node1",  index: 2, type: "Data", default: "id"},  
+            {name: "File2_on", node: "node2",  index: 2, type: "Data", default: "id"},
         ],
         outputs: [
-            {name: "File1_data", node: "node1", value: "yyyyy"},  
-            {name: "File1_data", node: "node1",  value: "yyyyy"},  
+            {name: "File1_data", node: "node1", index: 0, type: "Data"},  
+            {name: "File1_data", node: "node1",  index: 0, type: "Data"},  
         ],
     }
 
@@ -1246,33 +1258,39 @@ function getWidgetUUID(widgetName) {
 }
 
 function getNodeUUID(mainType, subType) {
-    return mainType + subType + new Date().getTime()
+    return mainType + subType + new Date().getTime() + Math.ceil(Math.random()*10)
 }
 
 var widgetList = {}
 var currentWidgetId = null // fore-end user widget 
 var currentInstance = null
-var currentRunningWidgetId = null // back-end running widget
-var currentRunningInstance = null
+var currentWidgetIdRunning = null // back-end running widget
+var currentInstanceRunning = null
 
 // function initWidgetList() {
 //     widgetList[currentWidgetId] = {}
 // }
 
+function addWidgetToList(widget) {
+    widgetList[widget.id] = widget
+}
+
 function resetCurrentWidget() {
     // widgetList[currentWidgetId] = {}
-    addWidgetToList(currentWidgetId)
+    initWidgetToList(currentWidgetId)
 }
 
 // when enter a new widget, then add to list!
 // create widget need not do this!
-function addWidgetToList(widgetId) {
+function initWidgetToList(widgetId) {
     
     // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
     widgetList[widgetId] = {}
     widgetList[widgetId].id = widgetId
     widgetList[widgetId].nodes = {}
-    widgetList[widgetId].conns = []
+    widgetList[widgetId].conns = {}
+    widgetList[widgetId].instance = null
+    widgetList[widgetId].container = null
 
     return widgetList[widgetId]
 }
@@ -1282,7 +1300,7 @@ function delWidgetFromList(widgetId) {
     delete widgetList[widgetId]
 }
 
-function addToWidget(widgetId, node) {
+function addNodeToWidget(widgetId, node) {
 
     widgetList[widgetId].nodes[node.id] = node
     // widgetList[widgetId].nodes[nodeId].node = node
@@ -1292,6 +1310,10 @@ function addToWidget(widgetId, node) {
     // widgetList[widgetId].nodes[nodeId].position = {}
     // widgetList[widgetId].nodes[nodeId].position.left = null
     // widgetList[widgetId].nodes[nodeId].position.top = null
+}
+
+function addConnToWidget(widgetId, conn) {
+    widgetList[widgetId].conns[conn.id] = conn
 }
 
 function delFromWidget(widgetId, nodeId) {
@@ -1353,17 +1375,20 @@ function saveWidget(widgetName) {
         var node = widgetList[currentWidgetId].nodes[key]
         node.position = $("#"+key).position()
 
+        // nodes info
         var nodeId = node.id
         newWidgetType.nodes[nodeId] = {}
         newWidgetType.nodes[nodeId].name = node.name
         newWidgetType.nodes[nodeId].mainType = node.mainType
         newWidgetType.nodes[nodeId].subType = node.subType
         // Two kinds of input: 1. from default(here) 2. from connection(4)
-        newWidgetType.nodes[nodeId].inputsId = node.input.id.slice(0)
+        // newWidgetType.nodes[nodeId].inputsId = node.input.id.slice(0)
         newWidgetType.nodes[nodeId].inputsDefault = node.input.default.slice(0)
-        newWidgetType.nodes[nodeId].outputsId = node.output.id.slice(0)
+        // newWidgetType.nodes[nodeId].outputsId = node.output.id.slice(0)
         newWidgetType.nodes[nodeId].position = {left: node.position.left, top: node.position.top}
 
+
+        // inputs(default)
         // push default input name into inputs
         for (var i = node.input.default.length - 1; i >= 0; i--) {
             newWidgetType.inputs.push({
@@ -1371,20 +1396,22 @@ function saveWidget(widgetName) {
                 type: node.input.type[i + node.input.count],
                 default: node.input.default[i],
                 node: nodeId, 
-                value: node.input.id[i + node.input.count]})
+                // value: node.input.id[i + node.input.count]
+                index: i + node.input.count})
         }
 
+        // outputs
         // push output
         for (var i = node.output.default.length - 1; i >= 0; i--) {
             newWidgetType.outputs.push({
                 name: node.name + "_" + node.output.name[i],
                 type: node.output.type[i],
                 node: nodeId,
+                index: i,
             })
-
-            node.output.default[i]
         }
 
+        // conns
         // 3. get up connections, if has connection then (4), if not then (5)
         var upConnections = jsplumbUtils.getUpConnections(currentInstance, node.id)
         for (var inputJsId in upConnections) {
@@ -1399,24 +1426,24 @@ function saveWidget(widgetName) {
                     type: inputType,
                     default: null,
                     node: nodeId, 
-                    value: inputJsId})
+                    index: inputIndex})
             }
             else {
                 // 4. conns.push(output:{nodeY: y}, input:{nodeX: x}) node.input.id.indexOf(nodeInputId)
                 console.log("connnnnnnnnnnnnnnnnn")
                 console.log(conn)
-                var inputId = null
-                var outputId = null
+                var inputIdIndex = null
+                var outputIdIndex = null
                 var eps = conn.endpoints
                 for (var j = eps.length - 1; j >= 0; j--) {
                     if (eps[j].isTarget) {
-                        inputId = eps[j].inputJsId
+                        inputIdIndex = node.input.id.indexOf(eps[j].inputJsId)
                     }
                     else {
-                        outputId =  eps[j].outputJsId
+                        outputIdIndex =  node.output.id.indexOf(eps[j].outputJsId)
                     }
                 }
-                newWidgetType.conns.push({input: {node: nodeId, value: inputId}, output: {node: conn.sourceId, value: outputId}})
+                newWidgetType.conns.push({input: {node: nodeId, index: inputIdIndex}, output: {node: conn.sourceId, index: outputIdIndex}})
             }
         }
     }
@@ -1426,6 +1453,8 @@ function saveWidget(widgetName) {
     widgetTypeList[widgetId] = newWidgetType
 
     console.log(widgetTypeList)
+
+
 
     // TODO: from new widget type, create one newNodeType!!! And add to tree!
     var newNodeInput = {}
@@ -1528,40 +1557,6 @@ function saveWidget(widgetName) {
 // TODO: re-construct widget from widget type list
 function initWidget(widgetId, widgetType) {
 
-    var widgetTypeInfo = widgetTypeList[widgetType]
-    for (var nodeId in widgetTypeInfo.nodes) {
-        var node = widgetTypeInfo.nodes[nodeId]
-        var name = node.name
-        var mainType = node.mainType
-        var subType = node.subType
-        var inputsDefault = node.inputsDefault.slice(0)
-        var inputsId = node.inputsId.slice(0)
-        var outputsId = node.outputsId.slice(0)
-        var inputs = {}
-        inputs.id = inputsId
-        inputs.default = inputsDefault
-        var outputs = {}
-        outputs.id = outputsId
-        var x = node.position.left
-        var y = node.position.top
-
-        var newNode = initNode(mainType, subType, widgetId, inputs, outputs)
-
-        jsplumbUtils.newNode(window.instance, x, y, newNode);
-
-    }
-
-    var conns = []
-    for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
-        var eps = widgetTypeInfo.conns[i]
-        var inputEp = eps.input.value
-        var outputEp = eps.output.value
-        conns.push([outputEp, inputEp])
-    }
-
-    jsplumbUtils.initWidget(window.instance, conns)
-
-
     // widgetMerge3 : {
     //     nodes: {
     //         node1: {
@@ -1569,8 +1564,8 @@ function initWidget(widgetId, widgetType) {
     //             mainType: "Data",
     //             subType: "Merge",
     //             inputsDefault: ["'id'"],
-    //             inputsId: ["xxxxx", "xxxxx"],
-    //             outputId: ["yyyyy", "yyyyy"],
+    //             // inputsId: ["xxxxx", "xxxxx"],
+    //             // outputsId: ["yyyyy", "yyyyy"],
     //             position: {
     //                 left: 100,
     //                 top: 100,
@@ -1578,65 +1573,160 @@ function initWidget(widgetId, widgetType) {
     //         },
     //     },
     //     conns: [
-    //         {output: {node: "node1", value: "yyyyy"}, input: {node: "node2", value: "xxxxx"}}, 
+    //         {output: {node: "node1", index: 0}, input: {node: "node2", index: 0}}, 
     //     ],
     //     // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
     //     inputs: [
-    //         {name: "File1_data1", node: "node1", value: "xxxxx"},  
-    //         {name: "File1_data2", node: "node1",  value: "xxxxx"},  
-    //         {name: "File2_data2", node: "node2",  value: "xxxxx"},  
-    //         {name: "File1_on", node: "node1",  value: "xxxxx"},  
-    //         {name: "File2_on", node: "node2",  value: "xxxxx"},
+    //         {name: "File1_data1", node: "node1", index: 0, type: "String", default: null},  
+    //         {name: "File1_data2", node: "node1",  index: 1, type: "String", default: null},  
+    //         {name: "File2_data2", node: "node2",  index: 1, type: "String", default: null},  
+    //         {name: "File1_on", node: "node1",  index: 2, type: "Data", default: "id"},  
+    //         {name: "File2_on", node: "node2",  index: 2, type: "Data", default: "id"},
     //     ],
     //     outputs: [
-    //         {name: "File1_data", node: "node1", value: "yyyyy"},  
-    //         {name: "File1_data", node: "node1",  value: "yyyyy"},  
+    //         {name: "File1_data", node: "node1", index: 0, type: "Data"},  
+    //         {name: "File1_data", node: "node1",  index: 0, type: "Data"},  
     //     ],
     // }
-
 
     
 
+    // TODO: init one widget, and add to list!
+    // TODO: initNode when widget-node added!
+    // paint jsPlumb when tab entered!
 
-    // var testId = "testId"
-    // console.log(widgetList)
-    // // TEST FOR RE DRAW NODES CONNECTIONS
-    // for (var nodeId in widgetList[testId].nodes) {
-    //     var nodeDict = widgetList[testId].nodes[nodeId]
-    //     var node = nodeDict.node
-    //     var x = nodeDict.position.left
-    //     var y = nodeDict.position.top
-    //     jsplumbUtils.newNode(window.instance, x, y, node);
-    // }
+    // 1. init node
+    var nodeIdNewOld = {}
+
+    var widgetTypeInfo = widgetTypeList[widgetType]
+    for (var nodeId in widgetTypeInfo.nodes) {
+        var node = widgetTypeInfo.nodes[nodeId]
+        var name = node.name
+        var mainType = node.mainType
+        var subType = node.subType
+        var inputsDefault = node.inputsDefault.slice(0)
+        // var inputsId = node.inputsId.slice(0)
+        // var outputsId = node.outputsId.slice(0)
+        var inputs = {}
+        // inputs.id = inputsId
+        inputs.default = inputsDefault
+        // var outputs = {}
+        // outputs.id = outputsId
+        var outputs = null
+
+        var position = {}
+        position.left = node.position.left
+        position.top = node.position.top
+
+        var newNode = initNode(mainType, subType, widgetId, inputs, outputs, position)
+
+        addNodeToWidget(widgetId, newNode)
+
+        nodeIdNewOld[nodeId] = newNode.id
+
+    }
+
+    // 2. init conns
+    for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
+        var connOld = widgetTypeInfo.conns[i]
+        var conn = {}
+        var outputNodeId = nodeIdNewOld[connOld.output.node]
+        var outputIndex = connOld.output.index
+        var inputNodeId = nodeIdNewOld[connOld.input.node]
+        var inputIndex = connOld.input.index
+        conn.id = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
+        conn.output = {node: outputNodeId, index: outputIndex}
+        conn.input = {node: inputNodeId, index: inputIndex}
+
+        addConnToWidget(widgetId, conn)
+    }
 
 
-    // jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
 
 }
 
 // common method for enter widget, 
 // like switch current widget/running widget
 // switch current canvas container
-function enterWidget(widgetId, newWidget) {
+function enterWidget(widgetId, newCanvas) {
     currentWidgetId = widgetId
-    currentRunningWidgetId = widgetId
+    currentWidgetIdRunning = widgetId
 
-    if (newWidget) {
-        var currentWidget = addWidgetToList(currentWidgetId)
+    var currentWidget = getWidgetById(currentWidgetId)
+
+    console.log("current widget is ")
+    console.log(currentWidget)
+    console.log("current widget id is ")
+    console.log(currentWidgetId)
+    console.log("current widget list is ")
+    console.log(widgetList)
+
+    if (newCanvas) {
         var canvasId = getCanvasIdFromWidgetId(currentWidgetId)
         var jsInstance = initJsPlumb(canvasId)
         currentWidget.instance = jsInstance
         currentWidget.container = canvasId   
+
+        currentInstance = jsInstance
+        currentInstanceRunning = currentInstance
+        window.instance = currentInstance
+
+        drawWidgetNodes(currentWidget)
+    }
+    else {
+
+        currentInstance = getWidgetById(currentWidgetId).instance
+        currentInstanceRunning = currentInstance
+        window.instance = currentInstance
     }
 
-    currentInstance = getWidgetById(currentWidgetId).instance
-    currentRunningInstance = currentInstance
-    window.instance = currentInstance
 
     console.log("enter tab!!!")
     console.log(currentWidgetId)
     console.log(currentInstance)
     console.log(window.instance.getContainer())
+}
+
+function drawWidgetNodes(widget) {
+
+    // TODO:
+
+    for (var nodeId in widget.nodes) {
+        var newNode = widget.nodes[nodeId]
+        var x = newNode.position.left
+        var y = newNode.position.top
+        jsplumbUtils.newNode(window.instance, x, y, newNode);
+    }
+
+    var conns = []
+    for (var connId in widget.conns) {
+        var conn = widget.conns[connId]
+        var inputEp = getNodeById(widget.id, conn.input.node).input.id[conn.input.index]
+        var outputEp = getNodeById(widget.id, conn.output.node).output.id[conn.output.index]
+        conns.push([outputEp, inputEp])
+
+    }
+
+    jsplumbUtils.initWidgetJsPlumb(window.instance, conns)
+
+}
+
+function getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex) {
+    // body...
+    // id = outputNodeId + index + inputNodeId + index!!!
+    return outputNodeId + outputIndex + inputNodeId + inputIndex
+}
+
+function connectionAdded() {
+    // widgetId, inputEp, outputEp, 
+    // body...
+
+    // addConnToWidget()
+}
+
+function connectionDetached() {
+    // widgetId, inputEp, outputEp, conn_id
+    // body...
 }
 
 function enterWidgetFromNode(node) {
@@ -1672,9 +1762,9 @@ function enterWidgetFromNode(node) {
 
     // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!. init one widget
     // var widgetId = node.widgetId
-    var widgetType = node.func
+    // var widgetType = node.func
     // var widget = initWidget(widgetId, widgetType)
-    var widget = initWidget(h, widgetType)
+    // var widget = initWidget(h, widgetType)
 
     // 4. draw nodes
 
@@ -1691,7 +1781,7 @@ function enterWidgetFromTab(tabId) {
     enterWidget(widget)
 }
 
-function initNode(mainType, subType, widgetId, inputs, outputs) {
+function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     var nodeType = nodeTypeList[mainType][subType]
 
     // var nodeId = nodeList[mainType][subType].count
@@ -1716,6 +1806,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
     // 1. inputs
     node.module = nodeType.content.module
     node.func = nodeType.content.func
+    node.widgetType = nodeType.content.func
 
 
     node.input = {}
@@ -1724,16 +1815,17 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
     node.input.count = nodeType.content.input.count
     // node.input.value = inputs.value.slice(0) // input value should be up nodes output default
     node.input.value = null // input value should be up nodes output default
+    node.input.id = node.input.name.map(function(value){ // input id: not change, unique
+        return "input" + node.id + value;
+    });
 
     if (inputs != null) {
         node.input.default = inputs.default.slice(0) // intput default: not change, not unique
-        node.input.id = inputs.id.slice(0) // input id: not change, unique
+        // node.input.id = inputs.id.slice(0) // input id: not change, unique
     }
     else {
         node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
-        node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-            return "input" + node.id + value;
-        });
+
     }
 
 
@@ -1746,31 +1838,39 @@ function initNode(mainType, subType, widgetId, inputs, outputs) {
         return "output" + node.id + value;
     });
     node.output.value = null // output value should be result from server
+    node.output.id = node.output.default.slice(0) // output id: not change, unique
 
-    if (outputs != null) {
-        // node.output.name = outputs.name.slice(0) // name: not change, not unique
-        // node.output.type = outputs.type.slice(0)
-        // node.output.count = outputs.count
-        // node.output.default = outputs.default.slice(0)
-        node.output.id = outputs.id.slice(0) // output id: not change, unique
-        // node.output.value = outputs.value.slice(0) // output value should be result from server
-    }
-    else {
-        node.output.id = node.output.default.slice(0) // output id: not change, unique
-    }
+    // if (outputs != null) {
+    //     // node.output.name = outputs.name.slice(0) // name: not change, not unique
+    //     // node.output.type = outputs.type.slice(0)
+    //     // node.output.count = outputs.count
+    //     // node.output.default = outputs.default.slice(0)
+    //     node.output.id = outputs.id.slice(0) // output id: not change, unique
+    //     // node.output.value = outputs.value.slice(0) // output value should be result from server
+    // }
+    // else {
+    //     node.output.id = node.output.default.slice(0) // output id: not change, unique
+    // }
 
     node.status = STATUS.IDLE
     // node.status = STATUS.BUSY
     node.found = false
     
     node.position = {}
-    node.position.top = null
-    node.position.left = null
+    if (position != null) {
+        node.position.top = position.top
+        node.position.left = position.left 
+    }
+    else {
+        node.position.top = null
+        node.position.left = null 
+    }
+
 
     // nodeList[mainType][subType][nodeName] = node
     // nodeListByName[nodeName] = node
 
-    widgetList[widgetId].nodes[node.id] = node
+    // widgetList[widgetId].nodes[node.id] = node
 
     return node
 } 
@@ -1809,7 +1909,18 @@ function addNode(mainType, subType, e) {
 
     // 0. add node info to node list
     // mainType, subType, widgetId, inputs, outputs
-    var newNode = initNode(mainType, subType, currentWidgetId, null, null)
+    var newNode = initNode(mainType, subType, currentWidgetId, null, null, null)
+    // 1. add this node to current widget
+    addNodeToWidget(currentWidgetId, newNode)
+
+    if (newNode.type == "widget") {
+        var widgetId = getWidgetIdFromNodeId(newNode.id)
+        initWidgetToList(widgetId)
+        initWidget(widgetId, newNode.widgetType)
+        // addWidgetToList(newWidget)
+        console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
+        console.log(widgetList)
+    }
 
     // var disName = newNode.display
 
@@ -1843,8 +1954,7 @@ function addNode(mainType, subType, e) {
     // 3. set current node is this
     setCurrentNode(newNode.id)
     
-    // 4. add this node to current widget
-    addToWidget(currentWidgetId, newNode)
+
     console.log("current widget is !!!!")
     console.log(widgetList)
 }
@@ -2144,13 +2254,15 @@ $(document).ready(function() {
     var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
     var tabId = getTabIdFromWidgetId(defaultWidgetId)
     // 2. init widget of workspace
+    initWidgetToList(defaultWidgetId)
+
     enterWidget(defaultWidgetId, true)
 
     // bind tab
     bindTab(tabId)
 
     // currentWidgetId = getWidgetUUID(defaultWidget)
-    // currentRunningWidgetId = currentWidgetId
+    // currentWidgetIdRunning = currentWidgetId
     // var currentWidget = addWidgetToList(currentWidgetId)
 
     // var jsInstance = initJsPlumb(canvasId)
@@ -2261,7 +2373,7 @@ function saveCanvas() {
     }
 
 
-    jsplumbUtils.initWidget(window.instance, widgetList[testId].conns)
+    jsplumbUtils.initWidgetJsPlumb(window.instance, widgetList[testId].conns)
 
     // 1. if current widget == default widget, then save workspace
 

@@ -276,6 +276,9 @@ function initJsPlumb(container) {
         console.log("instance container")
         console.log(instance.getContainer())
         initConnection(instance, connInfo.connection);
+
+        // TODO: 
+        connectionAdded()
     });
 
     // detach func
@@ -291,6 +294,9 @@ function initJsPlumb(container) {
         console.log(connInfo)
         var nodeId = connInfo.connection.targetId
         setDownNodesIdle(currentWidgetId, nodeId)
+
+        // TODO: 
+        connectionDetached()
     })
 
 
@@ -313,7 +319,7 @@ var initConnection = function (instance, connection) {
     var sourceNodeId = connection.sourceId
     // var targetNodeId = connection.targetId
 
-    var sourceNode = getNodeById(currentRunningWidgetId, sourceNodeId) // // use currentRunningWidgetId, because it can be back-end
+    var sourceNode = getNodeById(currentWidgetIdRunning, sourceNodeId) // // use currentWidgetIdRunning, because it can be back-end
     // var targetNode = getNodeById(targetNodeId)
 
     // TODO: 1. set label source output name
@@ -346,7 +352,7 @@ var jsplumbUtils = {
         instance.empty(instance.getContainer())
     },
 
-    initWidget: function (instance, endpointList) {
+    initWidgetJsPlumb: function (instance, endpointList) {
         // TODO: !!!!!!!!!!
         console.log("endpointList")
         console.log(endpointList)
@@ -456,7 +462,7 @@ var jsplumbUtils = {
             
             console.log(conn)
             console.log(conn.sourceId)
-            var upNode = getNodeById(currentRunningWidgetId, conn.sourceId)
+            var upNode = getNodeById(currentWidgetIdRunning, conn.sourceId)
 
             var index = upNode.output.id.indexOf(upNodeOutputId)
             upOutputList.push(upNode.output.default[index])
