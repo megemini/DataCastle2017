@@ -232,7 +232,11 @@ function runFlow() {
     // currentInstanceRunning = widget.instance
     // from widget conns, get up nodes
     // we can also get index, if necessary
-    var upInfo = getUpInfoFromWidgetConns(node.widgetId)
+
+
+    var upInfo = getUpInfoFromWidgetConns(node.widgetId, {})
+    upInfo = getUpInfoFromParentWidget(node, upInfo)
+
     var enqueueFlag = getRunQueueFromNode(node, upInfo)
 
     if (!enqueueFlag) {
@@ -1315,7 +1319,7 @@ function resetCurrentWidget() {
 
 // when enter a new widget, then add to list!
 // create widget need not do this!
-function initWidgetToList(widgetId) {
+function initWidgetToList(soureWidgetId, sourceNodeId, widgetId) {
     
     // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
     widgetList[widgetId] = {}
@@ -1324,6 +1328,9 @@ function initWidgetToList(widgetId) {
     widgetList[widgetId].conns = {}
     widgetList[widgetId].instance = null
     widgetList[widgetId].container = null
+    widgetList[widgetId].sourceWidgetId = soureWidgetId
+    widgetList[widgetId].sourceNodeId = sourceNodeId
+    widgetList[widgetId].newOldPair = {}
 
     return widgetList[widgetId]
 }
@@ -1331,6 +1338,10 @@ function initWidgetToList(widgetId) {
 function delWidgetFromList(widgetId) {
     widgetList[widgetId] = null
     delete widgetList[widgetId]
+}
+
+function addNewOldPairToWidget(widgetId, nodeIdNewOld) {
+    widgetList[widgetId].newOldPair = nodeIdNewOld
 }
 
 function addNodeToWidget(widgetId, node) {
@@ -1663,6 +1674,7 @@ function initWidget(widgetId, widgetType) {
 
     // 1. init node
     var nodeIdNewOld = {}
+    var nodes = []
 
     var widgetTypeInfo = widgetTypeList[widgetType]
     for (var nodeId in widgetTypeInfo.nodes) {
@@ -1690,7 +1702,10 @@ function initWidget(widgetId, widgetType) {
 
         nodeIdNewOld[nodeId] = newNode.id
 
+        nodes.push(newNode)
     }
+
+    addNewOldPairToWidget(widgetId, nodeIdNewOld)
 
     // 2. init conns
     for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
@@ -1707,8 +1722,18 @@ function initWidget(widgetId, widgetType) {
         addConnToWidget(widgetId, conn)
     }
 
-
-
+    // check all nodes, and init widget
+    for (var i = nodes.length - 1; i >= 0; i--) {
+        var newNode = nodes[i]
+        if (newNode.type == "widget") {
+            var newWidgetId = getWidgetIdFromNodeId(newNode.id)
+            initWidgetToList(widgetId, newNode.id, newWidgetId)
+            initWidget(newWidgetId, newNode.widgetType)
+            // addWidgetToList(newWidget)
+            console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
+            console.log(widgetList)
+        }
+    }
 }
 
 // common method for enter widget, 
@@ -1994,6 +2019,8 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
 //     nodeList[mainType][subType][nodeName] = null
 // }
 
+
+
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
 
@@ -2007,7 +2034,7 @@ function addNode(mainType, subType, e) {
 
     if (newNode.type == "widget") {
         var widgetId = getWidgetIdFromNodeId(newNode.id)
-        initWidgetToList(widgetId)
+        initWidgetToList(currentWidgetId, newNode.id, widgetId)
         initWidget(widgetId, newNode.widgetType)
         // addWidgetToList(newWidget)
         console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
@@ -2249,11 +2276,11 @@ function getOutInPairsFromWidget(widgetId) {
 
 }
 
-function getUpInfoFromWidgetConns(widgetId) {
+function getUpInfoFromWidgetConns(widgetId, upNodes) {
     var widget = getWidgetById(widgetId)
     var conns = widget.conns
 
-    var upNodes = {}
+    // var upNodes = {}
 
     for (var connId in conns) {
         var conn = conns[connId]
@@ -2275,6 +2302,36 @@ function getUpInfoFromWidgetConns(widgetId) {
     return upNodes
 }
 
+function getUpInfoFromParentWidget(node, upInfo) {
+
+    var widget = widgetList[node.widgetId]
+    if (widget.sourceWidgetId != null) {
+                
+        upInfo = getUpInfoFromWidgetConns(widget.sourceWidgetId, upInfo)
+        upInfo = getUpInfoFromParentWidget(node, upInfo)
+
+        var sourceWidget = widgetList[widget.sourceWidgetId]
+
+        var souceNode = sourceWidget.nodes[widget.sourceNodeId]
+
+
+        var inputs = widgetTypeList[node.subType].inputs
+        for (var i = inputs.length - 1; i >= 0; i--) {
+            var newNodeId = widget.newOldPair[inputs[i].node]
+
+            
+        }
+
+        go2
+
+
+    }
+    
+
+
+
+    return upInfo
+}
 
 function getUpNodes(instance, nodeId) {
     return jsplumbUtils.getUpNodesList(instance, nodeId)
@@ -2380,7 +2437,7 @@ $(document).ready(function() {
     var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
     var tabId = getTabIdFromWidgetId(defaultWidgetId)
     // 2. init widget of workspace
-    initWidgetToList(defaultWidgetId)
+    initWidgetToList(null, null, defaultWidgetId)
 
     enterWidget(defaultWidgetId, true)
 
