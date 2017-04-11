@@ -67,5 +67,6 @@
 - [ ] Widget button function!
 
 ## 2017/4/12
+- [ ] Refactor: Inputs "Default" full length!!!
 
 ## 2017/4/15

@@ -204,16 +204,13 @@ var kernelId = ""
 function runFlow() {
     runNodesList = []
 
-    // TEST:!!!!!!!!!! widgets should find its instance
-    var widget = getWidgetById(currentWidgetIdRunning)
-    currentInstanceRunning = widget.instance
-
     // 0. check current node to run
     if (currentNodeId == null) {
         alert("Please choose a node!")
         runFlowDone()
         return true
     }
+
 
     // TODO: unshift up nodes until all is start node!!!
     var node = getNodeById(currentWidgetId, currentNodeId)
@@ -229,90 +226,14 @@ function runFlow() {
     // 2.0 TODO: check circle!!!
 
 
-
     // 2.1 recursive get run flow node list
-    var runQueue = []
-    runQueue.push(node)
-    runNodesList.unshift(node)
-    var enqueueFlag = true
-    while (!(runQueue.length == 0)) {
-        var node = runQueue.shift()
-        
-        // TODO: when in widget, get all up nodes/widget
-        var upNodeList = getUpNodes(currentInstanceRunning, node.id)
-
-
-        // console.log("shift node is ")
-        // console.log(n)
-        // console.log("uplist ")
-        // console.log(upList)
-
-        // check whether all inputs feeded
-        if (upNodeList.length != node.input.count) {
-            enqueueFlag = false
-            runQueue = []
-            break
-        }
-        else { // if inputs OK, then assemble inputs
-            // var endpointsList = jsplumbUtils.getNodeEndpoints(n.name)
-            // for (var i = endpointsList.length - 1; i >= 0; i--) {
-            //     console.log("endpoint is ")
-            //     console.log(endpointsList[i].inputJsName)
-            //     console.log(endpointsList[i])
-            // }
-            var inputAssembleList = {}
-
-            // 1.1 get pair from endpoint
-
-
-            var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.id)
-            var upInputList = outInPair.upInputList
-            var upOutputList = outInPair.upOutputList
-
-            var lenIn = upInputList.length
-            var lenOut = upOutputList.length
-
-            if (lenIn != lenOut) {
-                enqueueFlag = false
-                runQueue = []
-                break
-            }
-
-            // 1.2 assemble input output
-            for (var i = lenIn - 1; i >= 0; i--) {
-                // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
-                inputAssembleList[upInputList[i]] = upOutputList[i]
-            }
-
-            console.log("inputAssembleList node")
-            // console.log(inputAssembleList)
-
-            // 2. get pair from default
-            for (var i = node.input.default.length - 1; i >= 0; i--) {
-                // inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
-                inputAssembleList[node.input.name[node.input.count + i]] = node.input.default[i]
-            }
-
-            // 3. set node input value
-            node.input.value = inputAssembleList
-            
-            console.log(node)
-        }
-
-        for (var i = upNodeList.length - 1; i >= 0; i--) {
-            var upNode = getNodeById(currentWidgetIdRunning, upNodeList[i])
-
-            // TODO: need not use found... enqueue all the input, and uplift the input
-            // when run node, if already done, then ignore
-            // but, what if cycle?
-            if (upNode.status == STATUS.IDLE) {
-                runQueue.push(upNode)
-                runNodesList.unshift(upNode)
-            }
-        }
-
-        // console.log(runQueue.length)
-    }
+    // TEST:!!!!!!!!!! widgets should find its instance
+    // var widget = getWidgetById(currentWidgetIdRunning)
+    // currentInstanceRunning = widget.instance
+    // from widget conns, get up nodes
+    // we can also get index, if necessary
+    var upInfo = getUpInfoFromWidgetConns(node.widgetId)
+    var enqueueFlag = getRunQueueFromNode(node, upInfo)
 
     if (!enqueueFlag) {
         showNodeInfo(node)
@@ -339,6 +260,115 @@ function runFlow() {
     // 2.5 run nodes upside-down, one-by-one
     runOneStep(runNodesList[0])
     
+}
+
+function getRunQueueFromNode(node, upInfo) {
+
+    console.log("upInfo")
+    console.log(upInfo)
+
+    var runQueue = []
+    runQueue.push(node)
+
+    runNodesList.unshift(node)
+
+    var enqueueFlag = true
+
+    while (!(runQueue.length == 0)) {
+        var node = runQueue.shift()
+        
+        // TODO: when in widget, get all up nodes/widget
+        // @deprecated
+        // var upNodeList = getUpNodes(currentInstanceRunning, node.id)
+        var upNodeList = []
+        if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
+            upNodeList = upInfo[node.id].nodes
+        }
+         
+
+        // console.log("shift node is ")
+        // console.log(n)
+        // console.log("uplist ")
+        // console.log(upList)
+
+        // check whether all inputs feeded
+        if (upNodeList.length != node.input.count) {
+            enqueueFlag = false
+            runQueue = []
+            break
+        }
+        else { // if inputs OK, then assemble inputs
+            // var endpointsList = jsplumbUtils.getNodeEndpoints(n.name)
+            // for (var i = endpointsList.length - 1; i >= 0; i--) {
+            //     console.log("endpoint is ")
+            //     console.log(endpointsList[i].inputJsName)
+            //     console.log(endpointsList[i])
+            // }
+            var inputAssembleList = {}
+
+            // 1.1 get pair from endpoint
+
+            // @deprecated
+            // var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.id)
+            // var upInputList = outInPair.upInputList
+            // var upOutputList = outInPair.upOutputList
+            var upInputList = []
+            var upOutputList = []
+            if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
+                upInputList = upInfo[node.id].upInputList
+                upOutputList = upInfo[node.id].upOutputList
+            }
+             
+
+            var lenIn = upInputList.length
+            var lenOut = upOutputList.length
+
+            if (lenIn != lenOut) {
+                enqueueFlag = false
+                runQueue = []
+                break
+            }
+
+            // 1.2 assemble input output
+            for (var i = lenIn - 1; i >= 0; i--) {
+                // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
+                inputAssembleList[upInputList[i]] = upOutputList[i]
+            }
+
+            console.log("inputAssembleList node")
+            console.log(inputAssembleList)
+
+            // 2. get pair from default
+            for (var i = node.input.default.length - 1; i >= 0; i--) {
+                // inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
+                inputAssembleList[node.input.name[node.input.count + i]] = node.input.default[i]
+            }
+
+            // 3. set node input value
+            node.input.value = inputAssembleList
+            
+            console.log(node)
+        }
+
+        for (var i = upNodeList.length - 1; i >= 0; i--) {
+            // @deprecated
+            var upNode = getNodeById(node.widgetId, upNodeList[i])
+
+            // TODO: need not use found... enqueue all the input, and uplift the input
+            // when run node, if already done, then ignore
+            // but, what if cycle?
+            if (upNode.status == STATUS.IDLE) {
+                runQueue.push(upNode)
+                runNodesList.unshift(upNode)
+            }
+        }
+
+        // console.log(runQueue.length)
+    }
+
+    console.log("getRunQueueFromNode")
+    console.log(runNodesList)
+    return enqueueFlag
 }
 
 function getCookie(name) {
@@ -429,6 +459,7 @@ function runOneStep(node) {
     pushDelVar(node)
 
     var content = {
+        widget: node.widgetId,
         node: node.id,
         module: node.module,
         func: node.func,
@@ -1277,7 +1308,9 @@ function addWidgetToList(widget) {
 
 function resetCurrentWidget() {
     // widgetList[currentWidgetId] = {}
-    initWidgetToList(currentWidgetId)
+    // initWidgetToList(currentWidgetId)
+    widgetList[currentWidgetId].nodes = {}
+    widgetList[currentWidgetId].conns = {}
 }
 
 // when enter a new widget, then add to list!
@@ -1445,10 +1478,13 @@ function saveWidget(widgetName) {
                         inputIdIndex = node.input.id.indexOf(eps[j].inputJsId)
                     }
                     else {
-                        outputIdIndex =  node.output.id.indexOf(eps[j].outputJsId)
+                        var sourceNode = getNodeById(currentWidgetId, conn.sourceId)
+                        outputIdIndex =  sourceNode.output.id.indexOf(eps[j].outputJsId)
                     }
                 }
-                newWidgetType.conns.push({input: {node: nodeId, index: inputIdIndex}, output: {node: conn.sourceId, index: outputIdIndex}})
+                newWidgetType.conns.push({
+                    input: {node: nodeId, index: inputIdIndex}, 
+                    output: {node: conn.sourceId, index: outputIdIndex}})
             }
         }
     }
@@ -1466,14 +1502,37 @@ function saveWidget(widgetName) {
     newNodeInput.name = []
     newNodeInput.type = []
     newNodeInput.default = []
+
+    // sooooooooooooooo bad............
+    // because default.length != inputs.length....
+    // bad design...
+    // so, we first push null(with connect endpoint)
+    // then, we push not null(with defaults...)
+    var nameNull = []
+    var typeNull = []
+    var defaultNull = []
+    var nameNot = []
+    var typeNot = []
+    var defaultNot = []
+
     for (var i = newWidgetType.inputs.length - 1; i >= 0; i--) {
         var input = newWidgetType.inputs[i]
-        newNodeInput.name.push(input.name)
-        newNodeInput.type.push(input.type)
-        if (input.default != null) {
-            newNodeInput.default.push(input.default)
+        if (input.default == null) {
+            nameNull.push(input.name)
+            typeNull.push(input.type)
+            // defaultNull.push(input.default)
+        }
+        else {
+            nameNot.push(input.name)
+            typeNot.push(input.type)
+            defaultNot.push(input.default)
         }
     }
+
+    newNodeInput.name = ([].concat.apply(nameNull,nameNot)).slice(0)
+    newNodeInput.type = ([].concat.apply(typeNull,typeNot)).slice(0)
+    newNodeInput.default = ([].concat.apply(defaultNull,defaultNot)).slice(0)
+
     newNodeInput.count = newNodeInput.name.length - newNodeInput.default.length
     newNodeInput.value = null
 
@@ -1520,6 +1579,12 @@ function saveWidget(widgetName) {
 
     $("#collapseCustomize").append(t)
 
+
+    // clear current canvas!!!
+    jsplumbUtils.emptyCanvas(window.instance)
+    resetCurrentWidget()
+
+
    
     // NOT ADD TO LIST
     // addWidgetToList(widgetId)
@@ -1540,12 +1605,8 @@ function saveWidget(widgetName) {
 
 
     // console.log(widgetList[currentWidgetId])
-    jsplumbUtils.emptyCanvas(window.instance)
 
-    // addWidgetToList(currentWidgetId)
-    
-    // initWidgetList()
-    resetCurrentWidget()
+
 
     // console.log(widgetList[currentWidgetId])
 
@@ -1654,6 +1715,11 @@ function initWidget(widgetId, widgetType) {
 // like switch current widget/running widget
 // switch current canvas container
 function enterWidget(widgetId, newCanvas) {
+
+    // set current node null
+    setCurrentNode(null)
+
+    // widget
     currentWidgetId = widgetId
     currentWidgetIdRunning = widgetId
 
@@ -1805,12 +1871,6 @@ function enterWidgetFromNode(node) {
 
 
 
-}
-
-function enterWidgetFromTab(tabId) {
-
-    // 1. enter widget
-    enterWidget(widget)
 }
 
 function initNode(mainType, subType, widgetId, inputs, outputs, position) {
@@ -2182,6 +2242,40 @@ function showOutput(node) {
 
 }
 
+function getOutInPairsFromWidget(widgetId) {
+    var upInputList = []
+    var upOutputList = []
+
+
+}
+
+function getUpInfoFromWidgetConns(widgetId) {
+    var widget = getWidgetById(widgetId)
+    var conns = widget.conns
+
+    var upNodes = {}
+
+    for (var connId in conns) {
+        var conn = conns[connId]
+        if (typeof upNodes[conn.input.node] == "undefined" || upNodes[conn.input.node] == null) {
+            upNodes[conn.input.node] = {}
+            upNodes[conn.input.node].nodes = []
+            upNodes[conn.input.node].upInputList = []
+            upNodes[conn.input.node].upOutputList = []
+        }
+        upNodes[conn.input.node].nodes.push(conn.output.node)
+
+        var inputNode = getNodeById(widgetId, conn.input.node)
+        var outputNode = getNodeById(widgetId, conn.output.node)
+        upNodes[conn.input.node].upInputList.push(inputNode.input.name[conn.input.index])
+        upNodes[conn.input.node].upOutputList.push(outputNode.output.default[conn.output.index])
+
+    }
+
+    return upNodes
+}
+
+
 function getUpNodes(instance, nodeId) {
     return jsplumbUtils.getUpNodesList(instance, nodeId)
 }
@@ -2280,7 +2374,7 @@ $(document).ready(function() {
 
     // 1. init widget/canvas/jsplumb
     // All from a pseudo-node "workspace"! 
-    // TODO: refactory?!
+    // TODO: refactor?!
     var defaultNodeId = "workspace"
     var defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
     var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
@@ -2347,6 +2441,9 @@ function bindTab(tabId) {
 
       var tabId = e.target.id
       var widgetId = getWidgetIdFromTabId(tabId)
+      console.log("widget id from tab is ")
+      console.log(widgetId)
+
       enterWidget(widgetId, false)
 
     })
@@ -2389,28 +2486,6 @@ function confirmWidget() {
                 </div>")
 }
 
-// TESET: debug
-function saveCanvas() {
-    alert("save canvas")
-
-    var testId = "testId"
-    console.log(widgetList)
-    // TEST FOR RE DRAW NODES CONNECTIONS
-    for (var nodeId in widgetList[testId].nodes) {
-        var nodeDict = widgetList[testId].nodes[nodeId]
-        var node = nodeDict.node
-        var x = nodeDict.position.left
-        var y = nodeDict.position.top
-        jsplumbUtils.newNode(window.instance, x, y, node);
-    }
-
-
-    jsplumbUtils.initWidgetJsPlumb(window.instance, widgetList[testId].conns)
-
-    // 1. if current widget == default widget, then save workspace
-
-    // 2. if current widget != default widget, then it is a widget, update widget
-}
 
 // TODO: unified message assemble!!!
 function newScript(form) {

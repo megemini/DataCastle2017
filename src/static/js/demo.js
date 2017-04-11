@@ -431,7 +431,7 @@ var jsplumbUtils = {
         // comes from: 
         // 1. inputJsName: each endpoint(input) of this TARGET node
         // 2. upNode.output.default[index]: index from outputJsId of output id!!! 
-        // This could refactory!!!
+        // This could refactor!!!
 
         var upInputList = []
         var upOutputList = []
