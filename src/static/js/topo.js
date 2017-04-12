@@ -211,7 +211,6 @@ function runFlow() {
         return true
     }
 
-
     // TODO: unshift up nodes until all is start node!!!
     var node = getNodeById(currentWidgetId, currentNodeId)
 
@@ -222,6 +221,13 @@ function runFlow() {
         return true
     }
 
+    // TODO: can not run widget!!!
+    if (node.type == "widget") {
+        alert("Please choose a node instead of widget!")
+        showNodeInfo(node)
+        runFlowDone()
+        return true
+    }
     // 2. this node is idle, need run 
     // 2.0 TODO: check circle!!!
 
@@ -234,10 +240,22 @@ function runFlow() {
     // we can also get index, if necessary
 
 
-    var upInfo = getUpInfoFromWidgetConns(node.widgetId, {})
-    upInfo = getUpInfoFromParentWidget(node, upInfo)
+    // TODO: get all up info, from this widget upside! Not all widgets...
+    // var upInfo = {}
+    // for (var wId in widgetList) {
+    //     upInfo[wId] = getUpInfoFromWidgetConns(wId)
+    // }
 
-    var enqueueFlag = getRunQueueFromNode(node, upInfo)
+    // upInfo = getUpInfo(upInfo)
+
+    // console.log("upInfo!!!!!!!!!!!!!")
+    // console.log(upInfo)
+
+    // return
+
+
+    // get all node, from widget to widget!
+    var enqueueFlag = getRunQueueFromNode(node)
 
     if (!enqueueFlag) {
         showNodeInfo(node)
@@ -266,10 +284,10 @@ function runFlow() {
     
 }
 
-function getRunQueueFromNode(node, upInfo) {
+function getRunQueueFromNode(node) {
 
-    console.log("upInfo")
-    console.log(upInfo)
+    // console.log("upInfo")
+    // console.log(upInfo)
 
     var runQueue = []
     runQueue.push(node)
@@ -285,10 +303,17 @@ function getRunQueueFromNode(node, upInfo) {
         // @deprecated
         // var upNodeList = getUpNodes(currentInstanceRunning, node.id)
         var upNodeList = []
-        if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
-            upNodeList = upInfo[node.id].nodes
+        // if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
+        //     upNodeList = upInfo[node.id].nodes
+        // }
+        for (var i = node.input.value.length - 1; i >= 0; i--) {
+            var input = node.input.value[i]
+            if (!(typeof input == "undefined" || input == null)) {
+                input.index = i
+                upNodeList.push(input)
+            }
         }
-         
+     
 
         // console.log("shift node is ")
         // console.log(n)
@@ -308,7 +333,7 @@ function getRunQueueFromNode(node, upInfo) {
             //     console.log(endpointsList[i].inputJsName)
             //     console.log(endpointsList[i])
             // }
-            var inputAssembleList = {}
+            // var inputAssembleList = {}
 
             // 1.1 get pair from endpoint
 
@@ -316,31 +341,48 @@ function getRunQueueFromNode(node, upInfo) {
             // var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.id)
             // var upInputList = outInPair.upInputList
             // var upOutputList = outInPair.upOutputList
-            var upInputList = []
-            var upOutputList = []
-            if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
-                upInputList = upInfo[node.id].upInputList
-                upOutputList = upInfo[node.id].upOutputList
-            }
+            // var upInputList = []
+            // var upOutputList = []
+            // if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
+            //     upInputList = upInfo[node.id].upInputList
+            //     upOutputList = upInfo[node.id].upOutputList
+            // }
              
 
-            var lenIn = upInputList.length
-            var lenOut = upOutputList.length
+            // var lenIn = upInputList.length
+            // var lenOut = upOutputList.length
 
-            if (lenIn != lenOut) {
-                enqueueFlag = false
-                runQueue = []
-                break
+            // if (lenIn != lenOut) {
+            //     enqueueFlag = false
+            //     runQueue = []
+            //     break
+            // }
+
+            // // 1.2 assemble input output
+            // for (var i = lenIn - 1; i >= 0; i--) {
+            //     // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
+            //     inputAssembleList[upInputList[i]] = upOutputList[i]
+            // }
+
+            // console.log("inputAssembleList node")
+            // console.log(inputAssembleList)
+
+            var inputAssembleList = {}
+            // 1. get pair from input, and push to run queue
+            for (var i = upNodeList.length - 1; i >= 0; i--) {
+                var input = upNodeList[i]
+                var upNode = getNodeById(input.widgetId, input.nodeId)
+                // TODO: need not use found... enqueue all the input, and uplift the input
+                // when run node, if already done, then ignore
+                // but, what if cycle?
+                if (upNode.status == STATUS.IDLE) {
+                    runQueue.push(upNode)
+                    runNodesList.unshift(upNode)
+                }
+
+                inputAssembleList[node.input.name[input.index]] = input.outputId
             }
 
-            // 1.2 assemble input output
-            for (var i = lenIn - 1; i >= 0; i--) {
-                // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
-                inputAssembleList[upInputList[i]] = upOutputList[i]
-            }
-
-            console.log("inputAssembleList node")
-            console.log(inputAssembleList)
 
             // 2. get pair from default
             for (var i = node.input.default.length - 1; i >= 0; i--) {
@@ -349,23 +391,12 @@ function getRunQueueFromNode(node, upInfo) {
             }
 
             // 3. set node input value
-            node.input.value = inputAssembleList
+            node.input.valuePair = inputAssembleList
             
             console.log(node)
         }
 
-        for (var i = upNodeList.length - 1; i >= 0; i--) {
-            // @deprecated
-            var upNode = getNodeById(node.widgetId, upNodeList[i])
 
-            // TODO: need not use found... enqueue all the input, and uplift the input
-            // when run node, if already done, then ignore
-            // but, what if cycle?
-            if (upNode.status == STATUS.IDLE) {
-                runQueue.push(upNode)
-                runNodesList.unshift(upNode)
-            }
-        }
 
         // console.log(runQueue.length)
     }
@@ -467,12 +498,12 @@ function runOneStep(node) {
         node: node.id,
         module: node.module,
         func: node.func,
-        input: node.input.value,
+        input: node.input.valuePair,
         output: node.output.default,
         delete: runDelVarList,
     }
 
-    var uid = node.id + new Date().getTime()
+    var uid = node.widgetId + node.id + new Date().getTime()
     // alert(uid)
 
     var flow = {
@@ -569,27 +600,41 @@ function runFlowDone() {
 
 function setNodeRunStatus(node, status) {
 
+    // 0. set status
     node.status = status
 
-    var nId = "#" + node.id
-    if (status == STATUS.WAIT) {
-        $(nId).css("background-color", COLORSTATUS.WAIT)
+    // 1. node is in the widget?!
+    var widgetId = node.widgetId
+    var nodeId = node.id
+    while (widgetId != null) {
+        nId = "#" + nodeId
 
-    }
-    else if (status == STATUS.BUSY) {
-        $(nId).css("background-color", COLORSTATUS.BUSY)
+        if ($(nId).length > 0){ 
 
-    }
-    else if (status == STATUS.DONE) {
-        $(nId).css("background-color", COLORSTATUS.DONE)
+            if (status == STATUS.WAIT) {
+                $(nId).css("background-color", COLORSTATUS.WAIT)
 
-    }
-    else if (status == STATUS.IDLE) {
-        $(nId).css("background-color", COLORSTATUS.IDLE)
+            }
+            else if (status == STATUS.BUSY) {
+                $(nId).css("background-color", COLORSTATUS.BUSY)
 
+            }
+            else if (status == STATUS.DONE) {
+                $(nId).css("background-color", COLORSTATUS.DONE)
+
+            }
+            else if (status == STATUS.IDLE) {
+                $(nId).css("background-color", COLORSTATUS.IDLE)
+
+            }
+            
+        }
+
+        // TODO: stop search when source node status == node status?!
+        var widget = getWidgetById(widgetId)
+        nodeId = widget.sourceNodeId
+        widgetId = widget.sourceId
     }
-    
-    
 }
 
 // function isStartNode(node) {
@@ -714,6 +759,7 @@ var nodeTypeList = {
                     count: 0,
                     default: ["'/home/shun/Projects/Pkbigdata/gitProject/DataCastle2017/src/data/user_info_train.txt'", "None"],
                     value: null,
+                    valuePair: null,
                 },
                 output:{
                     name: ["data"],
@@ -721,6 +767,7 @@ var nodeTypeList = {
                     count: 1,
                     default: null,
                     value: null,
+                    connNodes: [],
                 },
             },
         },
@@ -1263,6 +1310,10 @@ var widgetTypeList = {
 // "module" -> default "customize"
 // "func" -> widget defination
 
+function getNodeIdFromWidgetId(widgetId) {
+    return widgetId.slice(0, -6)
+}
+
 function getWidgetIdFromNodeId(nodeId) {
     return nodeId + "Widget"  
 }
@@ -1391,6 +1442,22 @@ function updateWidgetTabName(node) {
     } else {
         console.log("no tab to update!!!!")
     } 
+
+    showNodeInfo(node)
+
+    // if (document.getElementById(node.id)) {
+    //     var disLength = node.name.length * 8 + 64
+    //     // alert(disLength)
+    //     var inLength = (node.input.count + 1) * 50
+    //     var outLength = (node.output.count + 1) * 50
+    //     var maxLength = Math.max.apply(Math,[disLength, inLength, outLength])
+
+    //     // alert(maxLength)
+    //     $("#" + node.id).css("width", maxLength + "px")
+
+    // }
+
+
 
 }
 
@@ -1545,7 +1612,9 @@ function saveWidget(widgetName) {
     newNodeInput.default = ([].concat.apply(defaultNull,defaultNot)).slice(0)
 
     newNodeInput.count = newNodeInput.name.length - newNodeInput.default.length
-    newNodeInput.value = null
+    newNodeInput.value = []
+    newNodeInput.valuePair = {}
+
 
     var newNodeOutput = {}
     newNodeOutput.name = []
@@ -1558,6 +1627,7 @@ function saveWidget(widgetName) {
     newNodeOutput.count = newWidgetType.outputs.length
     newNodeOutput.default = null
     newNodeOutput.value = null
+    newNodeOutput.connNodes = []
 
     var newNodeType = {
             display: widgetName, 
@@ -1719,7 +1789,13 @@ function initWidget(widgetId, widgetType) {
         conn.output = {node: outputNodeId, index: outputIndex}
         conn.input = {node: inputNodeId, index: inputIndex}
 
-        addConnToWidget(widgetId, conn)
+        // addConnToWidget(widgetId, conn)
+        // fake endpoints
+        var outputNode = getNodeById(widgetId, outputNodeId)
+        var inputNode = getNodeById(widgetId, inputNodeId)
+        var outputEp = {outputJsId: outputNode.output.id[outputIndex]}
+        var inputEp = {inputJsId: inputNode.input.id[inputIndex]}
+        connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
     }
 
     // check all nodes, and init widget
@@ -1813,14 +1889,56 @@ function getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex) {
     return outputNodeId + outputIndex + inputNodeId + inputIndex
 }
 
-function connectionAdded(outputNodeId, outputEp, inputNodeId, inputEp) {
+function getInputNodeIndepth(node, index) {
+    if (node.type == "node") {
+        return {node: node, index: index}
+    }
+    else {
+        // 1. get widge type
+        var widgetType = widgetTypeList[node.widgetType]
+        var widgetTypeInput = widgetType.inputs[index]
+
+        // 2. get node from widget with this input
+        var widgetId = getWidgetIdFromNodeId(node.id)
+        var widget = widgetList[widgetId]
+        var newNodeId = widget.newOldPair[widgetTypeInput.node]
+        var newIndex = widgetTypeInput.index
+        var newNode = getNodeById(widgetId, newNodeId)
+
+        return getInputNodeIndepth(newNode, newIndex)
+    }
+ 
+}
+
+function getOutputNodeIndepth(node, index) {
+    if (node.type == "node") {
+        return {node: node, index: index}
+    }
+    else {
+        // 1. get widge type
+        var widgetType = widgetTypeList[node.widgetType]
+        var widgetTypeOutput = widgetType.outputs[index]
+
+        // 2. get node from widget with this input
+        var widgetId = getWidgetIdFromNodeId(node.id)
+        var widget = widgetList[widgetId]
+        var newNodeId = widget.newOldPair[widgetTypeOutput.node]
+        var newIndex = widgetTypeOutput.index
+        var newNode = getNodeById(widgetId, newNodeId)
+
+        return getOutputNodeIndepth(newNode, newIndex)
+    }
+ 
+}
+
+function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp) {
 
     console.log("connection!!!!")
 
     var conn = {}
 
-    var inputNode = getNodeById(currentWidgetId, inputNodeId)
-    var outputNode = getNodeById(currentWidgetId, outputNodeId)
+    var inputNode = getNodeById(widgetId, inputNodeId)
+    var outputNode = getNodeById(widgetId, outputNodeId)
 
     var inputIndex = inputNode.input.id.indexOf(inputEp.inputJsId)
     var outputIndex = outputNode.output.id.indexOf(outputEp.outputJsId)
@@ -1829,24 +1947,201 @@ function connectionAdded(outputNodeId, outputEp, inputNodeId, inputEp) {
     conn.output = {node: outputNodeId, index: outputIndex}
     conn.input = {node: inputNodeId, index: inputIndex}
 
-    addConnToWidget(currentWidgetId, conn)
+    addConnToWidget(widgetId, conn)
+
+    // 
+    var inputIndepth = getInputNodeIndepth(inputNode, inputIndex)
+    var outputIndepth = getOutputNodeIndepth(outputNode, outputIndex)
+
+    var inputIndepthNode = inputIndepth.node
+    var inputIndepthIndex = inputIndepth.index
+
+    var outputIndepthNode = outputIndepth.node
+    var outputIndepthIndex = outputIndepth.index
+
+    inputIndepthNode.input.value[inputIndepthIndex] = {}
+    inputIndepthNode.input.value[inputIndepthIndex].widgetId = outputIndepthNode.widgetId
+    inputIndepthNode.input.value[inputIndepthIndex].nodeId = outputIndepthNode.id
+    inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.default[outputIndepthIndex]
+
+    outputIndepthNode.output.connNodes.push(inputIndepthNode)
+
+    // BUG: cannot connect widget indepth, means, only combine widget with nodes!!!
+    // if node is widget, then also add connection to widget's node
+    // if (inputNode.type == "widget" && outputNode.type == "node") {
+    //     // 1. get widge type
+    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
+    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
+    //     // 2. get node from widget with this input
+    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
+    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
+    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
+    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
+    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = {}
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].widgetId = widgetId
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].nodeId = outputNodeId
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].outputId = outputEp.outputJsId
+
+    //     outputNode.output.connNodes.push(inputNodeOfWidget)
+
+    // }
+    // else if (outputNode.type == "widget" && inputNode.type == "node") {
+    //     // 1. get widge type
+    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
+    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
+    //     // 2. get node from widget with this input
+    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
+    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
+    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
+    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
+    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNode.input.value[inputIndex] = {}
+    //     inputNode.input.value[inputIndex].widgetId = outWidgetIdOfWidgetType
+    //     inputNode.input.value[inputIndex].nodeId = outputNodeIdOfWidget
+    //     inputNode.input.value[inputIndex].outputId = outputNodeOfWidget.output.default[outputNodeIndexOfWidget]
+
+    //     outputNodeOfWidget.output.connNodes.push(inputNode)
+    // }
+    // else if (inputNode.type == "widget" && outputNode.type == "widget"){
+    //     // 1. get widge type
+    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
+    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
+    //     // 2. get node from widget with this input
+    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
+    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
+    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
+    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
+    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
+
+    //     // 1. get widge type
+    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
+    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
+    //     // 2. get node from widget with this input
+    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
+    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
+    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
+    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
+    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = {}
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].widgetId = outWidgetIdOfWidgetType
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].nodeId = outputNodeIdOfWidget
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].outputId = outputNodeOfWidget.output.default[outputNodeIndexOfWidget]
+
+
+    //     outputNodeOfWidget.output.connNodes.push(inputNodeOfWidget)
+    // }
+    // else {
+    //     inputNode.input.value[inputIndex] = {}
+    //     inputNode.input.value[inputIndex].widgetId = widgetId
+    //     inputNode.input.value[inputIndex].nodeId = outputNodeId
+    //     inputNode.input.value[inputIndex].outputId = outputEp.outputJsId
+
+    //     outputNode.output.connNodes.push(inputNode)
+    // }
 
     console.log("connectionAdded")
     console.log(widgetList)
 
 }
 
-function connectionDetached(outputNodeId, outputEp, inputNodeId, inputEp) {
+function connectionDetached(widgetId, outputNodeId, outputEp, inputNodeId, inputEp) {
     // widgetId, inputEp, outputEp, conn_id
-    var inputNode = getNodeById(currentWidgetId, inputNodeId)
-    var outputNode = getNodeById(currentWidgetId, outputNodeId)
+    var inputNode = getNodeById(widgetId, inputNodeId)
+    var outputNode = getNodeById(widgetId, outputNodeId)
 
     var inputIndex = inputNode.input.id.indexOf(inputEp.inputJsId)
     var outputIndex = outputNode.output.id.indexOf(outputEp.outputJsId)
     // widgetId, inputEp, outputEp, 
     var connId = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
 
-    delConnFromWidget(currentWidgetId, connId)
+    delConnFromWidget(widgetId, connId)
+
+
+    // 
+    var inputIndepth = getInputNodeIndepth(inputNode, inputIndex)
+    var outputIndepth = getOutputNodeIndepth(outputNode, outputIndex)
+
+    var inputIndepthNode = inputIndepth.node
+    var inputIndepthIndex = inputIndepth.index
+
+    var outputIndepthNode = outputIndepth.node
+    var outputIndepthIndex = outputIndepth.index
+
+    inputIndepthNode.input.value[inputIndepthIndex] = null
+    outputIndepthNode.output.connNodes.splice(outputIndepthNode.output.connNodes.indexOf(inputIndepthNode), 1)
+
+    // if node is widget, then also add connection to widget's node
+    // if (inputNode.type == "widget" && outputNode.type == "node") {
+    //     // 1. get widge type
+    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
+    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
+    //     // 2. get node from widget with this input
+    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
+    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
+    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
+    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
+    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = null
+
+    //     outputNode.output.connNodes.splice(outputNode.output.connNodes.indexOf(inputNodeOfWidget), 1)
+    // }
+    // else if (outputNode.type == "widget" && inputNode.type == "node") {
+    //     // 1. get widge type
+    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
+    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
+    //     // 2. get node from widget with this input
+    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
+    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
+    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
+    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
+    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNode.input.value[inputIndex] = null
+
+    //     outputNodeOfWidget.output.connNodes.splice(outputNodeOfWidget.output.connNodes.indexOf(inputNode), 1)
+
+    // }
+    // else if (inputNode.type == "widget" && outputNode.type == "widget"){
+    //     // 1. get widge type
+    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
+    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
+    //     // 2. get node from widget with this input
+    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
+    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
+    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
+    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
+    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
+
+    //     // 1. get widge type
+    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
+    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
+    //     // 2. get node from widget with this input
+    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
+    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
+    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
+    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
+    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
+
+    //     // add input value to node
+    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = null
+
+    //     outputNodeOfWidget.output.connNodes.splice(outputNodeOfWidget.output.connNodes.indexOf(inputNodeOfWidget), 1)
+    // }
+    // else {
+    //     inputNode.input.value[inputIndex] = null
+
+    //     outputNode.output.connNodes.splice(outputNode.output.connNodes.indexOf(inputNode), 1)
+    // }
 
     console.log("connectionDetached")
     console.log(widgetList)
@@ -1858,6 +2153,17 @@ function enterWidgetFromNode(node) {
     // 1.1 create tab
     // var h = "widget" + node.id
     var h = getWidgetIdFromNodeId(node.id)
+
+    var widget = getWidgetById(h)
+    if (widget.container != null) {
+
+        console.log(widget.container)
+
+        $('#widgetTabs a[href=#' + h + ']').tab('show')
+        return 
+    }
+
+    // 2.
     var l = document.createElement("li")
     var tabId = getTabIdFromWidgetId(h)
     l.innerHTML =  "<a href='#" + h + "' data-toggle='tab' id='" + tabId + "'>"  + node.name + "</a> "
@@ -1931,17 +2237,18 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.input.type = nodeType.content.input.type.slice(0)
     node.input.count = nodeType.content.input.count
     // node.input.value = inputs.value.slice(0) // input value should be up nodes output default
-    node.input.value = null // input value should be up nodes output default
+    node.input.value = [] // input value should be up nodes output default
+    node.input.valuePair = {}
     node.input.id = node.input.name.map(function(value){ // input id: not change, unique
         return "input" + node.id + value;
     });
 
     if (inputs != null) {
-        node.input.default = inputs.default.slice(0) // intput default: not change, not unique
+        node.input.default = inputs.default.slice(0) // input default: not change, not unique
         // node.input.id = inputs.id.slice(0) // input id: not change, unique
     }
     else {
-        node.input.default = nodeType.content.input.default.slice(0) // intput default: not change, not unique
+        node.input.default = nodeType.content.input.default.slice(0) // input default: not change, not unique
 
     }
 
@@ -1954,6 +2261,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.output.default = node.output.name.map(function(value){ // output default: change, unique
         return "output" + node.id + value;
     });
+    node.output.connNodes = []
     node.output.value = null // output value should be result from server
     node.output.id = node.output.default.slice(0) // output id: not change, unique
 
@@ -2096,9 +2404,10 @@ function getNodeByName(widgetId, nodeName) {
 }
 
 function showNodeInfo(node) {
+
     showDescription(node)
     showInputs(node)
-    showOutput(node)
+    showOutput(node) 
 }
 
 function showDescription(node) {
@@ -2106,7 +2415,7 @@ function showDescription(node) {
     $("#func-description").empty()
     var d = document.createElement("pre")
 
-    d.innerHTML = node.display + "\n" + node.description
+    d.innerHTML = node.name + "\n" + "Type: " + node.display + "\n" + node.description
 
     $("#func-description").append(d)
 
@@ -2126,8 +2435,13 @@ function showInputs(node) {
         var t = document.createElement("input")
         t.type = "text"
         t.className = "form-control"
-        t.value = node.input.default[i]
+        // t.value = node.input.default[i]
+        t.value = getInputHtml(node, i)
         t.id = "text" + node.id + "input" + i
+
+        if (node.type == "widget") {
+            $(t).attr("disabled", "true")
+        }
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
@@ -2206,13 +2520,20 @@ function showOutput(node) {
 
         dc.append(t)
 */
-        if (node.output.value != null) {
-            var v = node.output.value[i]
-            var vDiv = document.createElement("div")
-            vDiv.innerHTML = v
+        // if (node.output.value != null) {
+        //     // var v = node.output.value[i]
+        //     var v = getOutputHtml(node, i)
+        //     var vDiv = document.createElement("div")
+        //     vDiv.innerHTML = v
 
-            dc.append(vDiv)    
-        }
+        //     dc.append(vDiv)    
+        // }
+
+        var v = getOutputHtml(node, i)
+        var vDiv = document.createElement("div")
+        vDiv.innerHTML = v
+
+        dc.append(vDiv)  
 
         uc.append(dc)
 
@@ -2269,18 +2590,46 @@ function showOutput(node) {
 
 }
 
-function getOutInPairsFromWidget(widgetId) {
-    var upInputList = []
-    var upOutputList = []
+function getInputHtml(node, index) {
+    var inputIndepth = getInputNodeIndepth(node, index)
+
+    var inputIndepthNode = inputIndepth.node
+    var inputIndepthIndex = inputIndepth.index
+
+
+    return inputIndepthNode.input.default[inputIndepthIndex]
+}
+
+function getOutputHtml(node, index) {
+    var outputIndepth = getOutputNodeIndepth(node, index)
+
+    var outputIndepthNode = outputIndepth.node
+    var outputIndepthIndex = outputIndepth.index
+
+    
+
+    if (outputIndepthNode.output.value == null || outputIndepthNode.output.value.length == 0) {
+        return ""
+    }
+    else {
+        var value = outputIndepthNode.output.value[outputIndepthIndex] 
+        if (typeof value == "undefined" || value == null) {
+            return ""
+        }
+        else {
+            return value
+        }
+    }
+
 
 
 }
 
-function getUpInfoFromWidgetConns(widgetId, upNodes) {
+function getUpInfoFromWidgetConns(widgetId) {
     var widget = getWidgetById(widgetId)
     var conns = widget.conns
 
-    // var upNodes = {}
+    var upNodes = {}
 
     for (var connId in conns) {
         var conn = conns[connId]
@@ -2302,41 +2651,41 @@ function getUpInfoFromWidgetConns(widgetId, upNodes) {
     return upNodes
 }
 
-function getUpInfoFromParentWidget(node, upInfo) {
+// function getUpInfoFromParentWidget(node, upInfo) {
 
-    var widget = widgetList[node.widgetId]
-    if (widget.sourceWidgetId != null) {
+//     var widget = widgetList[node.widgetId]
+//     if (widget.sourceWidgetId != null) {
                 
-        upInfo = getUpInfoFromWidgetConns(widget.sourceWidgetId, upInfo)
-        upInfo = getUpInfoFromParentWidget(node, upInfo)
+//         upInfo = getUpInfoFromWidgetConns(widget.sourceWidgetId, upInfo)
+//         upInfo = getUpInfoFromParentWidget(node, upInfo)
 
-        var sourceWidget = widgetList[widget.sourceWidgetId]
+//         var sourceWidget = widgetList[widget.sourceWidgetId]
 
-        var souceNode = sourceWidget.nodes[widget.sourceNodeId]
+//         var souceNode = sourceWidget.nodes[widget.sourceNodeId]
 
 
-        var inputs = widgetTypeList[node.subType].inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
-            var newNodeId = widget.newOldPair[inputs[i].node]
+//         var inputs = widgetTypeList[node.subType].inputs
+//         for (var i = inputs.length - 1; i >= 0; i--) {
+//             var newNodeId = widget.newOldPair[inputs[i].node]
 
             
-        }
-
-        go2
+//         }
 
 
-    }
+//     }
     
 
 
 
-    return upInfo
-}
+//     return upInfo
+// }
 
+// @deprecated
 function getUpNodes(instance, nodeId) {
     return jsplumbUtils.getUpNodesList(instance, nodeId)
 }
 
+// @deprecated
 function getDownNodes(instance, nodeId) {
     // from 2d to 1d
     var downNodesList = jsplumbUtils.getDownNodesList(instance, nodeId)
@@ -2345,6 +2694,7 @@ function getDownNodes(instance, nodeId) {
     return [].concat.apply([],downNodesList)
 }
 
+
 function setDownNodesIdle(widgetId, nodeId) {
 
     // 0. TODO: check circle
@@ -2352,26 +2702,29 @@ function setDownNodesIdle(widgetId, nodeId) {
     // 1. TODO: get all instance down the node
     // TEST: should be current running instance!!!
     // var instance = window.instance
-    var widget = getWidgetById(widgetId)
+    // var widget = getWidgetById(widgetId)
 
-    setDownNodesIdleInInstance(widget, nodeId)
+    setDownNodesIdleInInstance(widgetId, nodeId)
 }
 
-function setDownNodesIdleInInstance(widget, nodeId) {
-    var instance = widget.instance
+function setDownNodesIdleInInstance(widgetId, nodeId) {
+    // var instance = widget.instance
     // 1. set down nodes
-    var downList = getDownNodes(instance, nodeId)
+    // var downList = getDownNodes(instance, nodeId)
+    var node = getNodeById(widgetId, nodeId)
+    var downList = node.output.connNodes
     console.log("Show down list from setDownNodesIdle")
     console.log(downList)
 
     // recursive set node down to idle
     if (downList.length > 0) {
         for (var i = downList.length - 1; i >= 0; i--) {
-            setDownNodesIdleInInstance(instance, downList[i])
+            var downNode = downList[i]
+            setDownNodesIdleInInstance(downNode.widgetId, downNode.id)
         }
     }
 
-    var node = getNodeById(widget.id, nodeId)
+    // var node = getNodeById(widget.id, nodeId)
 
     setNodeRunStatus(node, STATUS.IDLE)
 

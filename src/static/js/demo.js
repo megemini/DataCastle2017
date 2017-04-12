@@ -281,7 +281,7 @@ function initJsPlumb(container) {
         console.log("connInfo")
         console.log(connInfo)
         // connectionAdded(connInfo.endpoints)
-        connectionAdded(connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
+        connectionAdded(currentWidgetId, connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
     });
 
     // detach func
@@ -299,7 +299,7 @@ function initJsPlumb(container) {
         setDownNodesIdle(currentWidgetId, nodeId)
 
         // TODO: 
-        connectionDetached(connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
+        connectionDetached(currentWidgetId, connInfo.sourceId, connInfo.sourceEndpoint, connInfo.targetId, connInfo.targetEndpoint)
     })
 
 
@@ -724,6 +724,13 @@ var jsplumbUtils = {
 
         // alert(maxLength)
         d.style.width =  maxLength + "px"
+
+
+        // $(d).css("max-width", maxLength + 54 + "px")
+        $(d).css("overflow", "hidden")
+        $(d).css("text-overflow", "ellipsis")
+        $(d).css("white-space", "nowrap")
+
 
         instance.getContainer().appendChild(d);
 
