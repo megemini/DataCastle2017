@@ -202,7 +202,6 @@ var kernelId = ""
 
 
 function runFlow() {
-    runNodesList = []
 
     // 0. check current node to run
     if (currentNodeId == null) {
@@ -222,12 +221,12 @@ function runFlow() {
     }
 
     // TODO: can not run widget!!!
-    if (node.type == "widget") {
-        alert("Please choose a node instead of widget!")
-        showNodeInfo(node)
-        runFlowDone()
-        return true
-    }
+    // if (node.type == "widget") {
+    //     alert("Please choose a node instead of widget!")
+    //     showNodeInfo(node)
+    //     runFlowDone()
+    //     return true
+    // }
     // 2. this node is idle, need run 
     // 2.0 TODO: check circle!!!
 
@@ -284,15 +283,40 @@ function runFlow() {
     
 }
 
+function getAllNodes(node, nodeList) {
+    if (node.type == "widget") {
+        var widget = getWidgetById(getWidgetIdFromNodeId(node.id))
+        for (var nodeId in widget.nodes) {
+            console.log("node in widget")
+            console.log(nodeId)
+            var newNode = widget.nodes[nodeId]
+            getAllNodes(newNode, nodeList)
+        }
+    }
+    else {
+        nodeList.push(node)
+    }
+
+    return nodeList
+}
+
 function getRunQueueFromNode(node) {
 
     // console.log("upInfo")
     // console.log(upInfo)
-
+    runNodesList = []
     var runQueue = []
-    runQueue.push(node)
 
-    runNodesList.unshift(node)
+    var nodes = getAllNodes(node, [])
+// console.log("get all nodes")
+// console.log(nodes)
+// return 
+    // runQueue.push(nodes)
+
+    // runNodesList.unshift(nodes)
+    runQueue = nodes.slice(0)
+    runNodesList = nodes.slice(0)
+    delete nodes
 
     var enqueueFlag = true
 
