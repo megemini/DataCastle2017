@@ -306,7 +306,8 @@ function getRunQueueFromNode(node) {
         // if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
         //     upNodeList = upInfo[node.id].nodes
         // }
-        for (var i = node.input.value.length - 1; i >= 0; i--) {
+        // for (var i = node.input.value.length - 1; i >= 0; i--) {
+        for (var i = 0; i < node.input.value.length; i++) {
             var input = node.input.value[i]
             if (!(typeof input == "undefined" || input == null)) {
                 input.index = i
@@ -369,7 +370,7 @@ function getRunQueueFromNode(node) {
 
             var inputAssembleList = {}
             // 1. get pair from input, and push to run queue
-            for (var i = upNodeList.length - 1; i >= 0; i--) {
+            for (var i = 0; i < upNodeList.length; i++) {
                 var input = upNodeList[i]
                 var upNode = getNodeById(input.widgetId, input.nodeId)
                 // TODO: need not use found... enqueue all the input, and uplift the input
@@ -385,7 +386,7 @@ function getRunQueueFromNode(node) {
 
 
             // 2. get pair from default
-            for (var i = node.input.default.length - 1; i >= 0; i--) {
+            for (var i = 0; i < node.input.default.length; i++) {
                 // inputAssembleList.push(node.input.name[node.input.count + i] + "=" + node.input.default[i])
                 inputAssembleList[node.input.name[node.input.count + i]] = node.input.default[i]
             }
@@ -591,7 +592,7 @@ function runFlowDone() {
     $("#run_button_img").attr("src", "../static/img/run.png"); 
 
     // 2. for all nodes in run list, set idle
-    for (var i = runNodesList.length - 1; i >= 0; i--) {
+    for (var i = 0; i < runNodesList.length; i++) {
         setNodeRunStatus(runNodesList[i], STATUS.IDLE)
     }
 
@@ -1342,13 +1343,13 @@ function getWidgetIdFromTabId(tabId) {
 }
 
 // from user input widget name, get widgetId uuid
-function getWidgetUUID(widgetName) {
+function getPureString(text) {
     // return widgetName + new Date().getTime()
-    var widgetName = widgetName.replace(/\s+/g, "")
+    var text = text.replace(/\s+/g, "")
     var pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？%+_]")
     var specialstr = "";
-    for(var i = 0; i < widgetName.length; i++) {
-        specialstr += widgetName.substr(i, 1).replace(pattern,'');
+    for(var i = 0; i < text.length; i++) {
+        specialstr += text.substr(i, 1).replace(pattern,'');
     }
 
     return specialstr + new Date().getTime()
@@ -1481,7 +1482,7 @@ function getWidgetById(widgetId) {
 function saveWidget(widgetName) {
 
     // 0. get widget name
-    var widgetId = getWidgetUUID(widgetName)
+    var widgetId = getPureString(widgetName)
     console.log("widgetName")
     console.log(widgetName)
     console.log(widgetId)
@@ -1786,7 +1787,7 @@ function initWidgetNodes(widgetId, widgetType) {
     // check all nodes, and init widget
     console.log("init widget")
     console.log(nodes)
-    for (var i = nodes.length - 1; i >= 0; i--) {
+    for (var i = 0; i < nodes.length; i++) {
         var newNode = nodes[i]
         if (newNode.type == "widget") {
             console.log("add new widget from widget")
@@ -1808,7 +1809,8 @@ function initWidgetConns(widgetId, widgetType) {
     var nodeIdNewOld = getWidgetById(widgetId).newOldPair
     var nodes = getWidgetById(widgetId).nodes
     // 2. init conns
-    for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
+    for (var i = 0; i < widgetTypeInfo.conns.length; i++) {
+
         var connOld = widgetTypeInfo.conns[i]
         // var conn = {}
         var outputNodeId = nodeIdNewOld[connOld.output.node]
@@ -2128,7 +2130,8 @@ function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
     inputIndepthNode.input.value[inputIndepthIndex] = {}
     inputIndepthNode.input.value[inputIndepthIndex].widgetId = outputIndepthNode.widgetId
     inputIndepthNode.input.value[inputIndepthIndex].nodeId = outputIndepthNode.id
-    inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.default[outputIndepthIndex]
+    // inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.default[outputIndepthIndex]
+    inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.id[outputIndepthIndex]
 
     outputIndepthNode.output.connNodes.push(inputIndepthNode)
 
@@ -2406,7 +2409,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.input.value = [] // input value should be up nodes output default
     node.input.valuePair = {}
     node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-        return "input" + node.id + value;
+        return "input" + node.id + getPureString(value);
     });
 
     if (inputs != null) {
@@ -2426,7 +2429,9 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.output.type = nodeType.content.output.type.slice(0)
     node.output.count = nodeType.content.output.count
     node.output.default = node.output.name.map(function(value){ // output default: change, unique
-        return "output" + node.id + value;
+        // TODO: add uuid!!!!!!!!!!!!!
+
+        return "output" + node.id + getPureString(value) ;
     });
     node.output.connNodes = []
     node.output.value = null // output value should be result from server
@@ -2888,7 +2893,7 @@ function setDownNodesIdleInInstance(widgetId, nodeId) {
 
     // recursive set node down to idle
     if (downList.length > 0) {
-        for (var i = downList.length - 1; i >= 0; i--) {
+        for (var i = 0; i < downList.length; i++) {
             var downNode = downList[i]
             setDownNodesIdleInInstance(downNode.widgetId, downNode.id)
         }
@@ -2967,7 +2972,7 @@ $(document).ready(function() {
     // bind tab
     bindTab(tabId)
 
-    // currentWidgetId = getWidgetUUID(defaultWidget)
+    // currentWidgetId = getPureString(defaultWidget)
     // currentWidgetIdRunning = currentWidgetId
     // var currentWidget = addWidgetToList(currentWidgetId)
 
