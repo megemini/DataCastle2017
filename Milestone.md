@@ -68,5 +68,9 @@
 
 ## 2017/4/12
 - [ ] Refactor: Inputs "Default" full length!!!
+- [x] Batch add nodes with widget structure
+- [x] Batch draw nodes with widget structure
+- [ ] Widget button function!
+
 
 ## 2017/4/15

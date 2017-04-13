@@ -1229,7 +1229,7 @@ var widgetTypeList = {
         ],
         outputs: [
             {name: "File1_data", node: "node1", index: 0, type: "Data"},  
-            {name: "File1_data", node: "node1",  index: 0, type: "Data"},  
+            {name: "File2_data", node: "node2",  index: 0, type: "Data"},  
         ],
     }
 
@@ -1485,6 +1485,10 @@ function saveWidget(widgetName) {
     newWidgetType.inputs = []
     newWidgetType.outputs = []
 
+    var inputNull = []
+    var inputNot = []
+
+
     for (var key in widgetList[currentWidgetId].nodes) {
         // for each node:
         // 2. nodes[nodeX] = {name, mainType, subType, inputs.default, position}
@@ -1506,19 +1510,30 @@ function saveWidget(widgetName) {
 
         // inputs(default)
         // push default input name into inputs
-        for (var i = node.input.default.length - 1; i >= 0; i--) {
-            newWidgetType.inputs.push({
+        // for (var i = node.input.default.length - 1; i >= 0; i--) {
+        for (var i = 0; i < node.input.default.length; i++) {
+            // newWidgetType.inputs.push({
+            //     name: node.name + "_" + node.input.name[i + node.input.count], 
+            //     type: node.input.type[i + node.input.count],
+            //     default: node.input.default[i],
+            //     node: nodeId, 
+            //     // value: node.input.id[i + node.input.count]
+            //     index: i + node.input.count})
+
+            inputNot.push({
                 name: node.name + "_" + node.input.name[i + node.input.count], 
                 type: node.input.type[i + node.input.count],
                 default: node.input.default[i],
                 node: nodeId, 
                 // value: node.input.id[i + node.input.count]
                 index: i + node.input.count})
+
         }
 
         // outputs
         // push output
-        for (var i = node.output.default.length - 1; i >= 0; i--) {
+        // for (var i = node.output.default.length - 1; i >= 0; i--) {
+        for (var i = 0; i < node.output.default.length; i++) {
             newWidgetType.outputs.push({
                 name: node.name + "_" + node.output.name[i],
                 type: node.output.type[i],
@@ -1537,7 +1552,14 @@ function saveWidget(widgetName) {
                 var inputIndex = node.input.id.indexOf(inputJsId)
                 var inputName = node.input.name[inputIndex]
                 var inputType = node.input.type[inputIndex]
-                newWidgetType.inputs.push({
+                // newWidgetType.inputs.push({
+                //     name: node.name + "_" + inputName, 
+                //     type: inputType,
+                //     default: null,
+                //     node: nodeId, 
+                //     index: inputIndex})
+
+                inputNull.push({
                     name: node.name + "_" + inputName, 
                     type: inputType,
                     default: null,
@@ -1551,7 +1573,8 @@ function saveWidget(widgetName) {
                 var inputIdIndex = null
                 var outputIdIndex = null
                 var eps = conn.endpoints
-                for (var j = eps.length - 1; j >= 0; j--) {
+                // for (var j = eps.length - 1; j >= 0; j--) {
+                for (var j = 0; j < eps.length; j++) {
                     if (eps[j].isTarget) {
                         inputIdIndex = node.input.id.indexOf(eps[j].inputJsId)
                     }
@@ -1566,6 +1589,10 @@ function saveWidget(widgetName) {
             }
         }
     }
+
+    newWidgetType.inputs.push(inputNull)
+    newWidgetType.inputs.push(inputNot)
+    newWidgetType.inputs = ([].concat.apply([],newWidgetType.inputs))
 
     console.log(newWidgetType)
 
@@ -1593,7 +1620,8 @@ function saveWidget(widgetName) {
     var typeNot = []
     var defaultNot = []
 
-    for (var i = newWidgetType.inputs.length - 1; i >= 0; i--) {
+    // for (var i = newWidgetType.inputs.length - 1; i >= 0; i--) {
+    for (var i = 0; i < newWidgetType.inputs.length; i++) {
         var input = newWidgetType.inputs[i]
         if (input.default == null) {
             nameNull.push(input.name)
@@ -1619,7 +1647,8 @@ function saveWidget(widgetName) {
     var newNodeOutput = {}
     newNodeOutput.name = []
     newNodeOutput.type = []
-    for (var i = newWidgetType.outputs.length - 1; i >= 0; i--) {
+    // for (var i = newWidgetType.outputs.length - 1; i >= 0; i--) {
+    for (var i = 0; i < newWidgetType.outputs.length; i++) {
         var output = newWidgetType.outputs[i]
         newNodeOutput.name.push(output.name)
         newNodeOutput.type.push(output.type)
@@ -1758,6 +1787,7 @@ function initWidget(widgetId, widgetType) {
         var inputs = {}
         // inputs.id = inputsId
         inputs.default = inputsDefault
+        inputs.nodeName = name
         // var outputs = {}
         // outputs.id = outputsId
         var outputs = null
@@ -1896,6 +1926,7 @@ function getInputNodeIndepth(node, index) {
     else {
         // 1. get widge type
         var widgetType = widgetTypeList[node.widgetType]
+        // var input = nodeTypeList[node.mainType][node.subType].input.
         var widgetTypeInput = widgetType.inputs[index]
 
         // 2. get node from widget with this input
@@ -2244,6 +2275,7 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     });
 
     if (inputs != null) {
+        node.name = inputs.nodeName
         node.input.default = inputs.default.slice(0) // input default: not change, not unique
         // node.input.id = inputs.id.slice(0) // input id: not change, unique
     }
@@ -2424,20 +2456,23 @@ function showDescription(node) {
 function showInputs(node) {
     $("#func-inputs").empty()
 
-    for (var i = node.input.default.length - 1; i >= 0; i--) {
+    // for (var i = node.input.default.length - 1; i >= 0; i--) {
+    for (var i = 0; i < node.input.default.length; i++) {
+        var index = node.input.count + i
+
         var d = document.createElement("div")
         d.className = "input-group"
 
         var s = document.createElement("span")
         s.className = "input-group-addon"
-        s.innerHTML = node.input.name[node.input.count + i]
+        s.innerHTML = node.input.name[index]
 
         var t = document.createElement("input")
         t.type = "text"
         t.className = "form-control"
         // t.value = node.input.default[i]
-        t.value = getInputHtml(node, i)
-        t.id = "text" + node.id + "input" + i
+        t.value = getInputHtml(node, index)
+        t.id = "text" + node.id + "input" + index
 
         if (node.type == "widget") {
             $(t).attr("disabled", "true")
@@ -2597,7 +2632,7 @@ function getInputHtml(node, index) {
     var inputIndepthIndex = inputIndepth.index
 
 
-    return inputIndepthNode.input.default[inputIndepthIndex]
+    return inputIndepthNode.input.default[inputIndepthIndex - inputIndepthNode.input.count]
 }
 
 function getOutputHtml(node, index) {
