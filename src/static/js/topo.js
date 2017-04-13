@@ -2408,8 +2408,8 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     // node.input.value = inputs.value.slice(0) // input value should be up nodes output default
     node.input.value = [] // input value should be up nodes output default
     node.input.valuePair = {}
-    node.input.id = node.input.name.map(function(value){ // input id: not change, unique
-        return "input" + node.id + getPureString(value);
+    node.input.id = node.input.name.map(function(value, index){ // input id: not change, unique
+        return "input" + node.id + getPureString(value) + index
     });
 
     if (inputs != null) {
@@ -2428,10 +2428,8 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.output.name = nodeType.content.output.name.slice(0) // name: not change, not unique
     node.output.type = nodeType.content.output.type.slice(0)
     node.output.count = nodeType.content.output.count
-    node.output.default = node.output.name.map(function(value){ // output default: change, unique
-        // TODO: add uuid!!!!!!!!!!!!!
-
-        return "output" + node.id + getPureString(value) ;
+    node.output.default = node.output.name.map(function(value, index){ // output default: change, unique
+        return "output" + node.id + getPureString(value) + index
     });
     node.output.connNodes = []
     node.output.value = null // output value should be result from server
