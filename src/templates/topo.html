@@ -22,6 +22,9 @@
 			<div class="panel-body" id="Fillna" draggable="true" ondragend="addNode('Data', 'Fillna', event)" onclick="showHelp('Data', 'Fillna')">
 				Fill Missing 
 			</div>
+			<div class="panel-body" id="Filter" draggable="true" ondragend="addNode('Data', 'Filter', event)" onclick="showHelp('Data', 'Filter')">
+				Filter Data 
+			</div>
 			<div class="panel-body" id="Split" draggable="true" ondragend="addNode('Data', 'Split', event)" onclick="showHelp('Data', 'Split')">
 				Split Data 
 			</div>
@@ -80,8 +83,14 @@
 			</h4>
 		</div>
 		<div id="collapseVisualize" class="panel-collapse collapse">
-			<div class="panel-body">
+			<div class="panel-body" id="Hist" draggable="true" ondragend="addNode('Visualize', 'Hist', event)" onclick="showHelp('Visualize', 'Hist')">
 				Hist
+			</div>
+			<div class="panel-body" id="Scatter" draggable="true" ondragend="addNode('Visualize', 'Scatter', event)" onclick="showHelp('Visualize', 'Scatter')">
+				Scatter
+			</div>
+			<div class="panel-body" id="Plot" draggable="true" ondragend="addNode('Visualize', 'Plot', event)" onclick="showHelp('Visualize', 'Plot')">
+				Plot
 			</div>
 		</div>
 	</div>
@@ -211,18 +220,39 @@
 			<h4 class="panel-title">
 				<a data-toggle="collapse" data-parent="#accordion-console" 
 				href="#collapse-output">
-				<h4><strong>Output</strong></h4>
-			</a>
-		</h4>
-	</div>
+				<h4><strong>Outputs<button class="btn btn-default modal-button" data-toggle="modal" data-target="#outputModal">^</button></strong>		
+				</h4>
+				</a>
+			</h4>
+		</div>
 	<div id="collapse-output" class="panel-collapse collapse">
 		<div class="panel-body" id="func-output">
 
 			<!-- <div id="console-output"></div> -->
 		</div>
 	</div>
+
+		</div>
+	</div>
 </div>
 </div>
+
+<div class="modal fade" id="outputModal" tabindex="-1" role="dialog" aria-labelledby="outputModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="outputModalLabel"></h4>
+            </div>
+            <div class="modal-body" id="outputModalBody"></div>
+<!--             <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+            </div> -->
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
 </div>
-</div>
+
 {% end %}
+
+
+

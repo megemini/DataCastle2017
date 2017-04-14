@@ -5,9 +5,6 @@
 -------------------
 
 """
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 
 def get_csv(file="", names=None):
 	"""
@@ -56,6 +53,12 @@ def fillna_df(data, method="mean"):
 		df = data.fillna(data.median())
 
 	return df
+
+def filter_df(data, by=None):
+	if by == None:
+		return data
+	else:
+		return data.query(by)
 
 def split_df(data, columns=None):
 	"""

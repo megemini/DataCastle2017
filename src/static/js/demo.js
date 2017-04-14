@@ -286,7 +286,7 @@ function initJsPlumb(container) {
 
     // detach func
     instance.bind("connectionDetached", function (connInfo, originalEvent) {
-        alert("detach")    
+        // alert("detach")    
 
 
         // TODO: 1. remove input from target

@@ -203,3 +203,18 @@
     filter: alpha(opacity=50);background-color:rgba(139,69,19,0.8);
 }
 
+.modal-button {
+    float:right; 
+    display:inline;
+    height: 26px;
+}
+
+.modal {
+    z-index: 7000;
+
+}
+
+.modal-dialog { 
+    width: 900px; 
+} 
+

@@ -876,6 +876,40 @@ var nodeTypeList = {
             },
         },
 
+        Filter: {
+            display: "Filter Data", 
+            description: "Filter Data by conditions. \n Inputs: \n - data: Data \n - by: conditions, String \n Output: Data, (default get all columns)",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "data",
+                func: "filter_df",
+                input: {
+                    name: ["data", "by"],
+                    type: ["Data", "String"],
+                    count: 1,
+                    default: ["None"],
+                    value: null,
+                },
+                output:{
+                    name: ["data"],
+                    type: ["Data"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
         Split: {
             display: "Split Data", 
             description: "Get part columns of data. \n Inputs: \n - data: Data \n - columns: columns, List, String \n Output: Data, (default get all columns)",
@@ -1185,7 +1219,109 @@ var nodeTypeList = {
         },
     },
 
-    Visualize: {},
+    Visualize: {
+        Hist: {
+            display: "Hist", 
+            description: "A histogram of data. \n Inputs: \n - data: Data \n - bins: Number \n - orientation: orientation, String \n Output: - Image",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "visualize",
+                func: "show_hist",
+                input: {
+                    name: ["data", "bins", "orientation"],
+                    type: ["Data", "Number", "String"],
+                    count: 1,
+                    default: ["10", "'vertical'"],
+                    value: null,
+                },
+                output:{
+                    name: ["image"],
+                    type: ["Image"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        Scatter: {
+            display: "Scatter", 
+            description: "A scatter of data. \n Inputs: \n - dataX: Data \n - dataY: Data \n Output: - Image",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "visualize",
+                func: "show_scatter",
+                input: {
+                    name: ["dataX", "dataY",],
+                    type: ["Data", "Data"],
+                    count: 2,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["image"],
+                    type: ["Image"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+
+        Plot: {
+            display: "Plot", 
+            description: "A plot of data. \n Inputs: \n - dataX: Data \n - dataY: Data \n - method: \"count\" or \"sum\", String \n - kind: \"line\" or \"area\", String \n Output: - Image",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null, // name for save this node
+                // 2. func information, from funcutil.get_func_info(func), just for display
+                // func: {
+                //     funcName: "get_csv",
+                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
+                //     funcInputsType: ["File", "String"],
+                //     funcInputsCount: 0,
+                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
+                // },
+                module: "visualize",
+                func: "show_plot",
+                input: {
+                    name: ["dataX", "dataY", "method", "kind"],
+                    type: ["Data", "Data", "String", "String"],
+                    count: 2,
+                    default: ["'count'", "'line'"],
+                    value: null,
+                },
+                output:{
+                    name: ["image"],
+                    type: ["Image"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },
+            },
+        },
+    },
 
     Customize: {
         Merge3: {
@@ -3017,8 +3153,85 @@ $(document).ready(function() {
     // TODO: from node type list, generate node tree
 
 
+    // bind output modal
+    bindOutputModal()
+
 });
 
+function bindOutputModal() {
+
+    $('#outputModal').on('show.bs.modal', function () {
+
+        $('#collapse-output').collapse('hide')
+
+        // $("#outputModalLabel").empty()
+        $("#outputModalBody").empty()
+
+        if (currentNodeId == null || currentNodeId == undefined) {
+            return 
+        }
+
+        var node = getNodeById(currentWidgetId, currentNodeId)
+        $("#outputModalLabel").text(node.name)
+
+        if (node.output.value != null) {
+            // TODO!!!!!!!!!!!!!!
+            var ul = document.createElement("ul")
+            ul.id = "outputModalTab"
+            ul.className = "nav nav-tabs"
+
+            var uc = document.createElement("div")
+            uc.id = "outputModalContent"
+            uc.className = "tab-content"
+
+            for (var i = 0; i < node.output.name.length; i++) {
+                var li = document.createElement("li")
+
+                var a = document.createElement("a")
+                $(a).attr('href', "#" + node.output.name[i] + "Modal")
+                $(a).attr('data-toggle', "tab")
+                a.innerHTML = node.output.name[i]
+
+                li.append(a)
+                ul.append(li)
+
+                var dc = document.createElement("div")
+                dc.className = "tab-pane fade"
+                dc.id = node.output.name[i] + "Modal"
+
+                if (i == 0) {
+                    li.className = "active"
+                    dc.className = dc.className + " in active"
+                }
+
+
+                var v = getOutputHtml(node, i)
+                var vDiv = document.createElement("div")
+                vDiv.innerHTML = v
+
+                dc.append(vDiv)  
+
+                uc.append(dc)
+
+            }
+
+            $("#outputModalBody").append(ul)
+            $("#outputModalBody").append(uc)
+
+            // change table style
+            var tc = $("table").attr("class")
+            $("table").attr("class", tc + " table table-striped")
+
+        }
+
+
+    })
+
+    $('#outputModal').on('hidden.bs.modal', function () {
+        $('#collapse-output').collapse('show')
+
+    })
+}
 // function bindEventsOnReady() {
 
 //     $(".unm,.email").dblclick(function(){   
@@ -3125,8 +3338,8 @@ var updater = {
 
     start: function() {
     	// alert("ws")
-        var host = document.location.hostname
-        var url = "ws://" + host + ":8008/run_socket";
+        var host = document.location.host
+        var url = "ws://" + host + "/run_socket";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             updater.showMessage(JSON.parse(event.data));

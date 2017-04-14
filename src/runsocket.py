@@ -273,6 +273,8 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         if len(s_delete) > 0: 
             yield self.run_script(scriptutil.get_delete_script(s_delete), "func")
 
+        yield self.run_script(scriptutil.get_delete_script(s_output), "func")
+
         # f1 = scriptutil.get_script(data.get_csv, inputs, output)
 
         # 2. run func
@@ -363,7 +365,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
             logging.info("read msg!!!!!!!!!!!")
             logging.info(type(msg))
-            # logging.info("MSG IS " + msg)
+            logging.info("MSG IS " + msg)
 
             msg = json_decode(msg)
             msg_type = msg['msg_type']
@@ -397,15 +399,20 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("!!!!!!!!!!!!!!!msg['content']['data']['text/plain']:")
                     logging.info(msg['content']['data']['text/plain'])
 
+                    if msg['content']['data'].get('image/png'):
+                        logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                        raise gen.Return(self.assemble_result([msg['content']['data']['image/png'], "image", True], name))
+
+
                     # if there is text/html returned, then return this first, instead of text/plain
                     if msg['content']['data'].get('text/html'):
                         raise gen.Return(self.assemble_result([msg['content']['data']['text/html'], "html", True], name))
 
                     raise gen.Return(self.assemble_result([msg['content']['data']['text/plain'], "text", True], name))
 
-                if msg_type == 'display_data' and parent_msg_id == msg_id:
-                    logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-                    raise gen.Return(self.assemble_result([msg['content']['data']['image/png'], "image", True], name))
+                # if msg_type == 'display_data' and parent_msg_id == msg_id:
+                #     logging.info("IMAGE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+                #     raise gen.Return(self.assemble_result([msg['content']['data']['image/png'], "image", True], name))
 
             elif msg_channel == "shell":
                 """

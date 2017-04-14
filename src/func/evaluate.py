@@ -6,13 +6,7 @@
 
 """
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_auc_score
-from xgboost.core import Booster
 
-import numpy as np
-import pandas as pd
-import xgboost as xgb
 
 def eva_predict(model, X):
 	
