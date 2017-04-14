@@ -2636,19 +2636,26 @@ function showInputs(node) {
         t.value = getInputHtml(node, index)
         t.id = "text" + node.id + "input" + index
 
-        if (node.type == "widget") {
-            $(t).attr("disabled", "true")
-        }
+        // if (node.type == "widget") {
+        //     $(t).attr("disabled", "true")
+        // }
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
             var node = getNodeById(currentWidgetId, currentNodeId)
 
             var notIdLength = ("text" + node.id + "input").length
-            node.input.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+            var notIdIndex = e.currentTarget.id.substring(notIdLength)
+            // node.input.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
+
+            var nodeIndepth = getInputNodeIndepth(node, notIdIndex)
+            nodeIndepth.node.input.default[nodeIndepth.index - nodeIndepth.node.input.count] = $(this).val()
+
+            console.log("change input ")
+            console.log(nodeIndepth)
 
             // change all nodes downside of status idle
-            setDownNodesIdle(node.widgetId, node.id)
+            setDownNodesIdle(nodeIndepth.node.widgetId, nodeIndepth.node.id)
         });
 
         d.append(s)
@@ -3118,7 +3125,8 @@ var updater = {
 
     start: function() {
     	// alert("ws")
-        var url = "ws://localhost:8008/run_socket";
+        var host = document.location.hostname
+        var url = "ws://" + host + ":8008/run_socket";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             updater.showMessage(JSON.parse(event.data));
