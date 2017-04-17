@@ -6,9 +6,6 @@
 
 """
 
-from sklearn.ensemble import RandomForestClassifier
-import xgboost as xgb
-
 def cls_rfc(X, y, n_estimators=10):
 	model = RandomForestClassifier(n_estimators=n_estimators)
 

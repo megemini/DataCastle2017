@@ -72,5 +72,9 @@
 - [x] Batch draw nodes with widget structure
 - [ ] Widget button function!
 
-
 ## 2017/4/15
+- [x] docx/pdf of MARS!
+
+## 2017/4/18
+- [ ] Code cleaning!!!!!!!!!
+
