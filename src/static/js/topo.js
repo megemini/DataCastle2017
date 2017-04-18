@@ -1,160 +1,46 @@
-/*
-Node Structure
 
-<div class="node" id=nodeType+No.>
-    <strong>nodeType</strong>
-    <a href="#" id="removeNode">x</a>
-</div>
+/////////////////////////////////////////////////////////////////
+// TODO: global object instance hold these vars...
+var STATUS = {
+    IDLE : 0, // rgba(255, 255, 255, 0.2)
+    BUSY : 1, // rgba(255, 0, 0, 0.2)
+    DONE : 2, // rgba(0, 255, 0, 0.2)
+    WAIT : 3, // rgba(255, 255, 111, 0.2)
+}
 
+var COLORSTATUS = {
+    IDLE : "rgba(255, 255, 255, 0.2)",
+    BUSY : "rgba(255, 0, 0, 0.4)",
+    DONE : "rgba(0, 255, 0, 0.2)",
+    WAIT : "rgba(255, 255, 111, 0.3)",
+}
 
-
-
-Node = {
-	nodeType: nodeType;
-	nodeName: nodeName;	
-	inputs: endpoints_list; // top
-	outputs: endpoints_list; // bottom
-	
+var COLORNODE = {
+    "Data"        : "rgba(100,221,23,1)",
+    "Model"       : "rgba(52,103,137, 1)",
+    "Evaluate"    : "rgba(0,191,255,1)",
+    "Visualize"   : "rgba(255,215,0,1)",
+    "Customize"   : "rgba(139,69,19,1)",
 }
 
 
-# Demo Flow
-. Add train_x.txt, train_y.txt, test_x.txt 
-. Merge train_x/train_y By id
-. Shuffle merged
-. Split train_x/train_y
-. Pre-process train_x with impute/normarlize
-. Fit/Train train_x/train_y with RFC/SVM/NN/RNN/XGBoost
-. Predict test_x
-. Show Predict with plain text
-. Show Predict with draw hist/scatter
-*/
+var runNodesList = []
+var runNodeMessage = []
+var runDelVarList = []
+var kernelId = ""
+var nodeListByName = {}
 
-    // var _addEndpoints = function (toId, sourceAnchors, targetAnchors) {
-    //     for (var i = 0; i < sourceAnchors.length; i++) {
-    //         var sourceUUID = toId + sourceAnchors[i];
-    //         instance.addEndpoint("flowchart" + toId, sourceEndpoint, {
-    //             anchor: sourceAnchors[i], uuid: sourceUUID
-    //         });
-    //     }
-    //     for (var j = 0; j < targetAnchors.length; j++) {
-    //         var targetUUID = toId + targetAnchors[j];
-    //         instance.addEndpoint("flowchart" + toId, targetEndpoint, { anchor: targetAnchors[j], uuid: targetUUID });
-    //     }
-    // };
+var currentNodeId = null
+var currentStatus = STATUS.IDLE
+
+var widgetList = {}
+var currentWidgetId = null // fore-end user widget 
+var currentInstance = null
+var currentWidgetIdRunning = null // back-end running widget
+var currentInstanceRunning = null
 
 
-// // TODO: node color
-// // TODO: save node vars, and auto-name var
-// var NodeList = null
-
-// // TODO: save node structures as json, 
-// // TODO: code python func, inspect.getsource to jupyter. 
-// // Call func: 
-// // (outputName + count) or edited name = 
-// //     func.name + ( + input paras of outputName from up node... + )
-// // TODO: connect two node:
-// //     down node paras = up node ouputName or input/pre-set
-// var NodeStructure = {
-//     "Data": {
-//         "File": {
-//             disName: "File", 
-//             descript: "Read a data file as pandas dataframe.",
-//             func: {
-//                 name: "read_csv",
-//                 input: {
-//                     names: ["File Name", "Header Names"],
-//                     paras: null,
-//                     types: ["file", "list"],
-//                     descripts: ["Please choose the file.", "Enter the header names"],
-//                     editable: [false, true], // true then edit at web
-//                 },
-//                 output: {
-//                     name: ["Data", ],
-//                     outputName: ["data", ],
-//                     types: ["pandas dataframe"]
-//                     descripts: ["Data from the file.", ],
-//                     content: null,
-//                 },
-//             },
-//         },
-
-//         "Merge": {
-//             disName: "Merge", 
-//             descript: "Merge two data files.",
-//             func: {
-//                 name: "merge_df",
-//                 input: {
-//                     names: ["Data 1", "Data 2", ],
-//                     paras: null,
-//                     types: ["pandas dataframe", "pandas dataframe"],
-//                     descripts: ["Please choose the data.", "Please choose the data.",],
-//                     editable: [false, false, ],
-//                 },
-//                 output: {
-//                     name: ["Data", ],
-//                     outputName: ["merge", ],
-//                     types: ["pandas dataframe"]
-//                     descripts: ["Data merged from two files.", ],
-//                     content: null,
-//                 },
-//             },
-//         },   
-//     }
-
-// }
-
-// var NodeTypeList = {
-// 	// Data: 1.file 2.numpy 3.merge 4.sklearn-pre 
-// 	"Data": {
-// 		"File": {
-// 			inputs: null, 
-// 			outputs: ["File"], 
-// 			paras: null},
-// 		"Merge": {			
-// 			inputs: ["File_1", "File_2"], 
-// 			outputs: ["File"], 
-// 			paras: ["By"]},
-// 		"Split": {},
-// 		"Shuffle": {},
-// 		"Impute": {},
-// 		"Normalize": {},
-// 	},
-// 	// Mining: 1.sklearn-mining 2.tensorflow 3.xgboost
-// 	"Model": {
-// 		"RandomForest": {},
-// 		"SVM": {},
-// 		"XGBoost": {},
-// 	},
-// 	"Evaluate": {
-// 		"Prediction": {},
-// 	},
-// 	"Visualize": {
-// 		"Hist": {},
-// 		"Scatter": {},
-// 	}
-// };
-
-
-
-
-
-
-
-// inputs/outputs with endpoints, paras with default value and editable
-// function NodeFactory(mainType, subType) {
-// 	this.nodeType = NodeTypeList[mainType][subType];
-
-// 	this.inputs = this.nodeType.inputs;
-// 	this.outputs = this.nodeType.outputs;
-// 	this.paras = this.nodeType.paras;
-
-// 	return node
-// }
-
-// function AddJsplumb(node, e) {
-// 	// body...
-// }
+/////////////////////////////////////////////////////////////////
 
 function moveNodes() {
     for (var key in nodeListByName) {
@@ -167,20 +53,9 @@ function moveNodes() {
 }
 
 function run() {
-    alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
+    // alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
 
-    // TEST!!!
-    // moveNodes()
-
-
-    // return
-
-    // TODO: test for down side nodes idle
-    // for (var key in nodeListByName)  {
-    //     console.log(nodeListByName[key])
-    // }
-
-    // return
+    // TODO : OK!: test for down side nodes idle
 
     // 0. switch run/stop
     if (currentStatus == STATUS.IDLE) {
@@ -192,13 +67,6 @@ function run() {
     }
 }
 
-// var canvasDict = {}
-
-// set runNodesList as global var
-var runNodesList = []
-var runNodeMessage = []
-var runDelVarList = []
-var kernelId = ""
 
 
 function runFlow() {
@@ -220,37 +88,7 @@ function runFlow() {
         return true
     }
 
-    // TODO: can not run widget!!!
-    // if (node.type == "widget") {
-    //     alert("Please choose a node instead of widget!")
-    //     showNodeInfo(node)
-    //     runFlowDone()
-    //     return true
-    // }
-    // 2. this node is idle, need run 
-    // 2.0 TODO: check circle!!!
-
-
-    // 2.1 recursive get run flow node list
-    // TEST:!!!!!!!!!! widgets should find its instance
-    // var widget = getWidgetById(currentWidgetIdRunning)
-    // currentInstanceRunning = widget.instance
-    // from widget conns, get up nodes
-    // we can also get index, if necessary
-
-
-    // TODO: get all up info, from this widget upside! Not all widgets...
-    // var upInfo = {}
-    // for (var wId in widgetList) {
-    //     upInfo[wId] = getUpInfoFromWidgetConns(wId)
-    // }
-
-    // upInfo = getUpInfo(upInfo)
-
-    // console.log("upInfo!!!!!!!!!!!!!")
-    // console.log(upInfo)
-
-    // return
+    // TODO : OK!: can not run widget!!!
 
 
     // get all node, from widget to widget!
@@ -308,12 +146,7 @@ function getRunQueueFromNode(node) {
     var runQueue = []
 
     var nodes = getAllNodes(node, [])
-// console.log("get all nodes")
-// console.log(nodes)
-// return 
-    // runQueue.push(nodes)
 
-    // runNodesList.unshift(nodes)
     runQueue = nodes.slice(0)
     runNodesList = nodes.slice(0)
     delete nodes
@@ -447,7 +280,7 @@ function stopFlow() {
         // 2. reset run node list, left last node
         // clearNodeInfo()
         // $("#func-output").append(result.statusText);
-        alert(result.statusText)
+        // alert(result.statusText)
 
         // . all done
         runFlowDone()
@@ -493,28 +326,6 @@ function runOneStep(node) {
     }
 
     // 2. assemble flow message
-
-// {
-//     "name": "DataFile0",
-//     "id": "DataFile0",
-//     "mainType": "Data",
-//     "subType": "File",
-//     "func": "get_csv",
-//     "input": {
-//         "value": [
-//             "names=None",
-//             "file=user_info_train.txt"
-//         ]
-//     },
-//     "output": {
-
-//         "default": [
-//             "outputDataFile0"
-//         ],
-
-//     },
-
-// }
 
     pushDelVar(node)
 
@@ -673,19 +484,6 @@ function setNodeRunStatus(node, status) {
     }
 }
 
-// function isStartNode(node) {
-//     if (node.inputsJs.length == 0) {
-//         return true
-//     }
-//     else {
-//         return false
-//     }
-// }
-
-// function isEndNode(node) {
-//     // TODO: 
-//     return false
-// }
 
 function setCurrentNode(nodeId) {
     $("#"+currentNodeId).css("box-shadow", "")
@@ -700,14 +498,6 @@ function setCurrentNode(nodeId) {
     }
     else {
 
-        // var nodeColor = getNodeColorById(currentNodeId)
-        // // alert(nodeColor)
-
-        // $("#"+currentNodeId).css("box-shadow", "2px 2px 12px " + nodeColor)
-        // $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 12px " + nodeColor)
-        // $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 12px " + nodeColor)
-        // $("#"+currentNodeId).css("-moz-box-shadow", "2px 2px 12px " + nodeColor)
-
         $("#"+currentNodeId).css("box-shadow", "2px 2px 16px #444")
         $("#"+currentNodeId).css("-o-box-shadow", "2px 2px 16px #444")
         $("#"+currentNodeId).css("-webkit-box-shadow", "2px 2px 16px #444")
@@ -720,758 +510,6 @@ function getNodeColorById(widgetId, nodeId) {
     return COLORNODE[nodeType]
 }
 
-///////////////////////////////////////////////////
-// add node
-
-// var nodeCount = 0
-// var nodeList = {}
-// var nodeList = {
-//     "Data": {
-//         "File": {
-//             count: 0,
-//             },
-
-//         "Merge": {
-//             count: 0,
-//             },
-//         },
-//     }
-
-var nodeListByName = {}
-// var connectList = {}
-// var inputsList = {}
-// var outputList = {}
-var currentNodeId = null
-
-
-var STATUS = {
-    IDLE : 0, // rgba(255, 255, 255, 0.2)
-    BUSY : 1, // rgba(255, 0, 0, 0.2)
-    DONE : 2, // rgba(0, 255, 0, 0.2)
-    WAIT : 3, // rgba(255, 255, 111, 0.2)
-}
-
-var COLORSTATUS = {
-    IDLE : "rgba(255, 255, 255, 0.2)",
-    BUSY : "rgba(255, 0, 0, 0.4)",
-    DONE : "rgba(0, 255, 0, 0.2)",
-    WAIT : "rgba(255, 255, 111, 0.3)",
-}
-
-var COLORNODE = {
-    "Data"        : "rgba(100,221,23,1)",
-    "Model"       : "rgba(52,103,137, 1)",
-    "Evaluate"    : "rgba(0,191,255,1)",
-    "Visualize"   : "rgba(255,215,0,1)",
-    "Customize"   : "rgba(139,69,19,1)",
-}
-
-var currentStatus = STATUS.IDLE
-
-
-// Get node type list from server when init
-var nodeTypeList = {
-    Data: {
-        File: {
-            display: "Add File", 
-            description: "Read a data file as pandas dataframe. \n Inputs: \n - file: csv file \n - names: header names \n Output: pandas dataframe",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "get_csv",
-                input: {
-                    name: ["file", "names"],
-                    type: ["File", "String"],
-                    count: 0,
-                    default: ["'/home/shun/Projects/Pkbigdata/gitProject/DataCastle2017/src/data/user_info_train.txt'", "None"],
-                    value: null,
-                    valuePair: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                    connNodes: [],
-                },
-            },
-        },
-
-        Merge: {
-            display: "Merge Data", 
-            description: "Merge two data files on columns. \n Inputs: \n - data1: dataframe \n - data2: dataframe - on: columns \n Output: pandas dataframe",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null,
-                // 2. func information, from funcutil.get_func_info(func)
-                // func: {
-                //     funcName: "merge_df",
-                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["Data", "Data", "String"],
-                //     funcInputsCount: 2,
-                //     funcInputsDefaults: ["id"], // used for edit paras
-                // },
-                module: "data",    
-                func: "merge_df",
-                input: {                    
-                    name: ["data1", "data2", "on"],
-                    type: ["Data", "Data", "String"],
-                    count: 2,
-                    default: ["'id'"],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },                
-            },
-        },
-
-        Fillna: {
-            display: "Fill Missing", 
-            description: "Fill missing value. \n Inputs: \n - data: Data \n - method: 'mean'/'median', String \n Output: Data",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "fillna_df",
-                input: {
-                    name: ["data", "method"],
-                    type: ["Data", "String"],
-                    count: 1,
-                    default: ["'mean'"],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        Filter: {
-            display: "Filter Data", 
-            description: "Filter Data by conditions. \n Inputs: \n - data: Data \n - by: conditions, String \n Output: Data, (default get all columns)",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "filter_df",
-                input: {
-                    name: ["data", "by"],
-                    type: ["Data", "String"],
-                    count: 1,
-                    default: ["None"],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        Split: {
-            display: "Split Data", 
-            description: "Get part columns of data. \n Inputs: \n - data: Data \n - columns: columns, List, String \n Output: Data, (default get all columns)",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "split_df",
-                input: {
-                    name: ["data", "columns"],
-                    type: ["Data", "List"],
-                    count: 1,
-                    default: ["None"],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        TrainTest: {
-            display: "Get Train Test", 
-            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: \n - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "get_train_test",
-                input: {
-                    name: ["X", "y", "train_size"],
-                    type: ["Data", "Data", "Number"],
-                    count: 2,
-                    default: ["0.5"],
-                    value: null,
-                },
-                output:{
-                    name: ["X1", "X2", "y1", "y2"],
-                    type: ["Data", "Data", "Data", "Data"],
-                    count: 4,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-    },
-    Model: {
-        RandomForestClassifier: {
-            display: "Random Forest Classifier", 
-            description: "Random Forest Classifier. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - n_estimators: Number  \n Output: Model",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "model",
-                func: "cls_rfc",
-                input: {
-                    name: ["X", "y", "n_estimators"],
-                    type: ["Data", "Data", "Number"],
-                    count: 2,
-                    default: ["10"],
-                    value: null,
-                },
-                output:{
-                    name: ["model"],
-                    type: ["Model"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        XGBoost: {
-            display: "XGBoost", 
-            description: "XGBoost. \n Inputs: \n - Inputs: \n - X: features, Data \n - y: labels, Data \n - objective: logistic regression for binary classification  \n Output: Model",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null,
-                // 2. func information, from funcutil.get_func_info(func)
-                // func: {
-                //     funcName: "merge_df",
-                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["Data", "Data", "String"],
-                //     funcInputsCount: 2,
-                //     funcInputsDefaults: ["id"], // used for edit paras
-                // },
-                module: "model",    
-                func: "cls_xgb",
-                input: {                    
-                    name: ["X", "y", "objective"],
-                    type: ["Data", "Data", "String"],
-                    count: 2,
-                    default: ["'binary:logistic'"],
-                    value: null,
-                },
-                output:{
-                    name: ["model"],
-                    type: ["Model"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },                
-            },
-        },
-    },
-    Evaluate: {
-        Predict: {
-            display: "Predict", 
-            description: "Predict. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "evaluate",
-                func: "eva_predict",
-                input: {
-                    name: ["model", "X"],
-                    type: ["Model", "Data"],
-                    count: 2,
-                    default: [],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        PredictProb: {
-            display: "Predict Probability", 
-            description: "Predict Probability. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null,
-                // 2. func information, from funcutil.get_func_info(func)
-                // func: {
-                //     funcName: "merge_df",
-                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["Data", "Data", "String"],
-                //     funcInputsCount: 2,
-                //     funcInputsDefaults: ["id"], // used for edit paras
-                // },
-                module: "evaluate",    
-                func: "eva_predict_proba",
-                input: {
-                    name: ["model", "X"],
-                    type: ["Model", "Data"],
-                    count: 2,
-                    default: [],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },              
-            },
-        },
-
-        ROCAUCScore: {
-            display: "ROC AUC Score", 
-            description: "ROC AUC Score. \n Inputs: \n - y_true: Data \n - y_score: Data \n Output: Number",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "evaluate",
-                func: "eva_roc_auc_score",
-                input: {
-                    name: ["y_true", "y_score"],
-                    type: ["Data", "Data"],
-                    count: 2,
-                    default: [],
-                    value: null,
-                },
-                output:{
-                    name: ["score"],
-                    type: ["Number"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        Split: {
-            display: "Split Data", 
-            description: "Get part columns of data. \n Inputs: \n - data: Data \n - columns: columns, List, String \n Output: Data, (default get all columns)",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "split_df",
-                input: {
-                    name: ["data", "columns"],
-                    type: ["Data", "List"],
-                    count: 1,
-                    default: ["None"],
-                    value: null,
-                },
-                output:{
-                    name: ["data"],
-                    type: ["Data"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        TrainTest: {
-            display: "Get Train Test", 
-            description: "Standardize data, and then split X, y to X1, X2, y1, y2. \n Inputs: \n - X: features, Data \n - y: labels, Data \n - train_size: The proportion of the train, Number \n Output: - X1: For train, Data \n - X2: For test, Data \n - y1: For train, Data \n - y2: For test, Data",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "data",
-                func: "get_train_test",
-                input: {
-                    name: ["X", "y", "train_size"],
-                    type: ["Data", "Data", "Number"],
-                    count: 2,
-                    default: ["0.5"],
-                    value: null,
-                },
-                output:{
-                    name: ["X1", "X2", "y1", "y2"],
-                    type: ["Data", "Data", "Data", "Data"],
-                    count: 4,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-    },
-
-    Visualize: {
-        Hist: {
-            display: "Hist", 
-            description: "A histogram of data. \n Inputs: \n - data: Data \n - bins: Number \n - orientation: orientation, String \n Output: - Image",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "visualize",
-                func: "show_hist",
-                input: {
-                    name: ["data", "bins", "orientation"],
-                    type: ["Data", "Number", "String"],
-                    count: 1,
-                    default: ["10", "'vertical'"],
-                    value: null,
-                },
-                output:{
-                    name: ["image"],
-                    type: ["Image"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        Scatter: {
-            display: "Scatter", 
-            description: "A scatter of data. \n Inputs: \n - dataX: Data \n - dataY: Data \n Output: - Image",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "visualize",
-                func: "show_scatter",
-                input: {
-                    name: ["dataX", "dataY",],
-                    type: ["Data", "Data"],
-                    count: 2,
-                    default: [],
-                    value: null,
-                },
-                output:{
-                    name: ["image"],
-                    type: ["Image"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-
-        Plot: {
-            display: "Plot", 
-            description: "A plot of data. \n Inputs: \n - dataX: Data \n - dataY: Data \n - method: \"count\" or \"sum\", String \n - kind: \"line\" or \"area\", String \n Output: - Image",
-            type: "node",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null, // name for save this node
-                // 2. func information, from funcutil.get_func_info(func), just for display
-                // func: {
-                //     funcName: "get_csv",
-                //     funcInputs: ["file", "names"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["File", "String"],
-                //     funcInputsCount: 0,
-                //     funcInputsDefaults: ["user_info_train.txt", "None"], // used for edit paras
-                // },
-                module: "visualize",
-                func: "show_plot",
-                input: {
-                    name: ["dataX", "dataY", "method", "kind"],
-                    type: ["Data", "Data", "String", "String"],
-                    count: 2,
-                    default: ["'count'", "'line'"],
-                    value: null,
-                },
-                output:{
-                    name: ["image"],
-                    type: ["Image"],
-                    count: 1,
-                    default: null,
-                    value: null,
-                },
-            },
-        },
-    },
-
-    Customize: {
-        Merge3: {
-            display: "Merge 3 Data", 
-            description: "Merge 3 data files on columns. \n Inputs: \n - data1: dataframe \n - data2: dataframe \n - data3: dataframe \n - on: columns \n Output: pandas dataframe",
-            type: "widget",
-            content: {
-                // 1. basic infomation, from user edit
-                name: null,
-                // 2. func information, from funcutil.get_func_info(func)
-                // func: {
-                //     funcName: "merge_df",
-                //     funcInputs: ["data1", "data2", "by"], // node input endpoints <-- funcInputs - funcInputsDefaults
-                //     funcInputsType: ["Data", "Data", "String"],
-                //     funcInputsCount: 2,
-                //     funcInputsDefaults: ["id"], // used for edit paras
-                // },
-                module: "widget",    
-                func: "widgetMerge3",
-                input: {                    
-                    name: ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-                    type: ["Data", "Data", "Data", "String", "String"],
-                    count: 3,
-                    default: ["'id'", "'id'"],
-                    value: null,
-                },
-                output:{
-                    name: ["File1_data", "File2_data"],
-                    type: ["Data", "Data"],
-                    count: 2,
-                    default: null,
-                    value: null,
-                },                
-            },
-        },
-    },
-}
-
-var widgetTypeList = {
-    widgetMerge3 : {
-        nodes: {
-            node1: {
-                name: "File1",
-                mainType: "Data",
-                subType: "Merge",
-                inputsDefault: ["'id'"],
-                // inputsId: ["xxxxx", "xxxxx"],
-                // outputsId: ["yyyyy", "yyyyy"],
-                position: {
-                    left: 200,
-                    top: 200,
-                },
-            },
-            node2: {
-                name: "File2",
-                mainType: "Data",
-                subType: "Merge",
-                inputsDefault: ["'id'"],
-                // inputsId: ["xxxxx", "xxxxx"],
-                // outputsId: ["yyyyy", "yyyyy"],
-                position: {
-                    left: 550,
-                    top: 550,
-                },
-            },
-        },
-        conns: [
-            {output: {node: "node1", index: 0}, input: {node: "node2", index: 0}}, 
-        ],
-        // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-        inputs: [
-            {name: "File1_data1", node: "node1", index: 0, type: "String", default: null},  
-            {name: "File1_data2", node: "node1",  index: 1, type: "String", default: null},  
-            {name: "File2_data2", node: "node2",  index: 1, type: "String", default: null},  
-            {name: "File1_on", node: "node1",  index: 2, type: "Data", default: "id"},  
-            {name: "File2_on", node: "node2",  index: 2, type: "Data", default: "id"},
-        ],
-        outputs: [
-            {name: "File1_data", node: "node1", index: 0, type: "Data"},  
-            {name: "File2_data", node: "node2",  index: 0, type: "Data"},  
-        ],
-    }
-
-    
-
-}
-
-// function initNodeList() {
-//     for (var mainType in nodeTypeList) {
-//         nodeList[mainType] = {}
-
-//         for (var subType in nodeTypeList[mainType]) {
-//             nodeList[mainType][subType] = {}
-//             nodeList[mainType][subType].count = 0
-//         }
-
-//     }
-// }
-
-// function initNodeList() {
-//     for (var i = nodeTypeList.length - 1; i >= 0; i--) {
-//         var mainType = nodeTypeList.mainType
-//         var subType = nodeTypeList.subType
-
-//         if (typeof nodeList[mainType] === "undefined" && nodeList[mainType] === null) {
-//             nodeList[mainType] = {}
-//         }
-
-//         if (typeof nodeList[mainType][subType] === "undefined" && nodeList[mainType][subType] === null) {
-//             nodeList[mainType][subType] = {}
-//             // count for node, in case of delete node, always + 1
-//             nodeList[mainType][subType].count = 0
-//         }
-        
-//     }
-// }
-
-// IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// About Widget
-// 1. each widget contains: 
-// id: user input, unique
-// display: for display, default id
-// description: xxxxx
-// canvas: current canvas
-// nodes: {node1/nodeId:[mainType, subType, type, inputs, outputs, position], xxxxx}
-// conns: [[nodes[x1]:x2, nodes[y1]:y2], xxxxxx]
-// [[getNodeById(node1.id).output.name[x], getNodeById(node2.id).output.name[y]], xxxxxxxxxxxxxx]
-
-// 2. Widget init
-// var widgetList = {
-//     widgetId: widget,
-//     xxxxxx
-// }
-// var widget = {
-//     id: widgetId,
-//     display: "Workspace"/input,
-//     description: "",
-//     container: currentInstanceId
-//     instance: instance,
-//     nodes: [],
-//     conns: [],
-// }
-
-// 3. init node(nodeId = uuid!!!, not use nodeList!!!)
-// paras input: [mainType, subType, type, widgetId, inputs=null, outputs=null, position=null]
-// paras output: return node!
-// push node in nodeList for search by widgetId/nodeId
-
-// 4. if node type is widget, should init widget with class widget
-// When, click enter, then batch draw canvas of jsPlumb, with canvasId from widget inited
 
 // TODO: output var not editable!!!
 
@@ -1504,7 +542,6 @@ function getWidgetIdFromTabId(tabId) {
 
 // from user input widget name, get widgetId uuid
 function getPureString(text) {
-    // return widgetName + new Date().getTime()
     var text = text.replace(/\s+/g, "")
     var pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？%+_]")
     var specialstr = "";
@@ -1520,23 +557,12 @@ function getNodeUUID(mainType, subType) {
     return mainType + subType + new Date().getTime() + Math.ceil(Math.random()*100)
 }
 
-var widgetList = {}
-var currentWidgetId = null // fore-end user widget 
-var currentInstance = null
-var currentWidgetIdRunning = null // back-end running widget
-var currentInstanceRunning = null
-
-// function initWidgetList() {
-//     widgetList[currentWidgetId] = {}
-// }
 
 function addWidgetToList(widget) {
     widgetList[widget.id] = widget
 }
 
 function resetCurrentWidget() {
-    // widgetList[currentWidgetId] = {}
-    // initWidgetToList(currentWidgetId)
     widgetList[currentWidgetId].nodes = {}
     widgetList[currentWidgetId].conns = {}
 }
@@ -1545,7 +571,6 @@ function resetCurrentWidget() {
 // create widget need not do this!
 function initWidgetToList(soureWidgetId, sourceNodeId, widgetId) {
     
-    // var widget = {nodeIdxxxx:{ node: null,position: [null, null]}}
     widgetList[widgetId] = {}
     widgetList[widgetId].id = widgetId
     widgetList[widgetId].nodes = {}
@@ -1571,16 +596,15 @@ function addNewOldPairToWidget(widgetId, nodeIdNewOld) {
 function addNodeToWidget(widgetId, node) {
 
     widgetList[widgetId].nodes[node.id] = node
-    // widgetList[widgetId].nodes[nodeId].node = node
-    // widgetList[widgetId].nodes[nodeId].node.inputs = node.input
-    // widgetList[widgetId].nodes[nodeId].node.outputs = node.output
-    
-    // widgetList[widgetId].nodes[nodeId].position = {}
-    // widgetList[widgetId].nodes[nodeId].position.left = null
-    // widgetList[widgetId].nodes[nodeId].position.top = null
 }
 
 function delNodeFromWidget(widgetId, nodeId) {
+    console.log("delNodeFromWidget(widgetId, nodeId)")
+    console.log(widgetId)
+    console.log(nodeId)
+    console.log(currentWidgetId)
+    console.log(currentNodeId)
+
     widgetList[widgetId].nodes[nodeId] = null
     delete widgetList[widgetId].nodes[nodeId]
 }
@@ -1594,6 +618,7 @@ function delConnFromWidget(widgetId, connId) {
     delete widgetList[widgetId].conns[connId]
 }
 
+// TODO: delete widget, if create a new widget contains widget-node!
 function hasWidget(widgetId) {
     if (typeof widgetList[widgetId] === "undefined" || widgetList[widgetId] === null) {
         return false
@@ -1617,21 +642,6 @@ function updateWidgetTabName(node) {
     } 
 
     showNodeInfo(node)
-
-    // if (document.getElementById(node.id)) {
-    //     var disLength = node.name.length * 8 + 64
-    //     // alert(disLength)
-    //     var inLength = (node.input.count + 1) * 50
-    //     var outLength = (node.output.count + 1) * 50
-    //     var maxLength = Math.max.apply(Math,[disLength, inLength, outLength])
-
-    //     // alert(maxLength)
-    //     $("#" + node.id).css("width", maxLength + "px")
-
-    // }
-
-
-
 }
 
 function getWidgetById(widgetId) {
@@ -1675,24 +685,12 @@ function saveWidget(widgetName) {
         newWidgetType.nodes[nodeId].mainType = node.mainType
         newWidgetType.nodes[nodeId].subType = node.subType
         // Two kinds of input: 1. from default(here) 2. from connection(4)
-        // newWidgetType.nodes[nodeId].inputsId = node.input.id.slice(0)
         newWidgetType.nodes[nodeId].inputsDefault = node.input.default.slice(0)
-        // newWidgetType.nodes[nodeId].outputsId = node.output.id.slice(0)
         newWidgetType.nodes[nodeId].position = {left: node.position.left, top: node.position.top}
-
 
         // inputs(default)
         // push default input name into inputs
-        // for (var i = node.input.default.length - 1; i >= 0; i--) {
         for (var i = 0; i < node.input.default.length; i++) {
-            // newWidgetType.inputs.push({
-            //     name: node.name + "_" + node.input.name[i + node.input.count], 
-            //     type: node.input.type[i + node.input.count],
-            //     default: node.input.default[i],
-            //     node: nodeId, 
-            //     // value: node.input.id[i + node.input.count]
-            //     index: i + node.input.count})
-
             inputNot.push({
                 name: node.name + "_" + node.input.name[i + node.input.count], 
                 type: node.input.type[i + node.input.count],
@@ -1705,7 +703,6 @@ function saveWidget(widgetName) {
 
         // outputs
         // push output
-        // for (var i = node.output.default.length - 1; i >= 0; i--) {
         for (var i = 0; i < node.output.default.length; i++) {
             newWidgetType.outputs.push({
                 name: node.name + "_" + node.output.name[i],
@@ -1725,13 +722,6 @@ function saveWidget(widgetName) {
                 var inputIndex = node.input.id.indexOf(inputJsId)
                 var inputName = node.input.name[inputIndex]
                 var inputType = node.input.type[inputIndex]
-                // newWidgetType.inputs.push({
-                //     name: node.name + "_" + inputName, 
-                //     type: inputType,
-                //     default: null,
-                //     node: nodeId, 
-                //     index: inputIndex})
-
                 inputNull.push({
                     name: node.name + "_" + inputName, 
                     type: inputType,
@@ -1746,7 +736,6 @@ function saveWidget(widgetName) {
                 var inputIdIndex = null
                 var outputIdIndex = null
                 var eps = conn.endpoints
-                // for (var j = eps.length - 1; j >= 0; j--) {
                 for (var j = 0; j < eps.length; j++) {
                     if (eps[j].isTarget) {
                         inputIdIndex = node.input.id.indexOf(eps[j].inputJsId)
@@ -1793,7 +782,6 @@ function saveWidget(widgetName) {
     var typeNot = []
     var defaultNot = []
 
-    // for (var i = newWidgetType.inputs.length - 1; i >= 0; i--) {
     for (var i = 0; i < newWidgetType.inputs.length; i++) {
         var input = newWidgetType.inputs[i]
         if (input.default == null) {
@@ -1863,42 +851,16 @@ function saveWidget(widgetName) {
     $("#collapseCustomize").append(t)
 
 
+
     // clear current canvas!!!
     jsplumbUtils.emptyCanvas(window.instance)
+
+    // TODO: REMOVE WIDGET OF WIDGET-NODE!
     resetCurrentWidget()
 
 
-   
-    // NOT ADD TO LIST
-    // addWidgetToList(widgetId)
-
-    // 1. create one widget type, from current nodes!
-
-    // 2. add widget type to customize.
-
-    // TODO: 
-    // 1.1 get all nodes info & positions
-
-    // 1.2 jsPlumb.getConnections();jsPlumb.getAllConnections();  
-
-    // 2. with widgetId from widgetInput, push in all nodes
-
-    // 3.  clear current nodes
-    // re-add current widget, means init it with empty
-
-
-    // console.log(widgetList[currentWidgetId])
-
-
-
-    // console.log(widgetList[currentWidgetId])
-
-    // 4. add one node with type "widget", position center
-
-    // 5. set current node is this widget, and show its info
-
-
-    // 6. add widget to customize
+    // TODO: change all alert!!!
+    alert("Widget added!")
 
     return
 }
@@ -1915,16 +877,10 @@ function initWidgetNodes(widgetId, widgetType) {
         var mainType = node.mainType
         var subType = node.subType
         var inputsDefault = node.inputsDefault.slice(0)
-        // var inputsId = node.inputsId.slice(0)
-        // var outputsId = node.outputsId.slice(0)
         var inputs = {}
-        // inputs.id = inputsId
         inputs.default = inputsDefault
         inputs.nodeName = name
-        // var outputs = {}
-        // outputs.id = outputsId
         var outputs = null
-
         var position = {}
         position.left = node.position.left
         position.top = node.position.top
@@ -1956,7 +912,6 @@ function initWidgetNodes(widgetId, widgetType) {
             var newWidgetId = getWidgetIdFromNodeId(newNode.id)
             initWidgetToList(widgetId, newNode.id, newWidgetId)
             initWidgetNodes(newWidgetId, newNode.widgetType)
-            // addWidgetToList(newWidget)
             console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
             console.log(widgetList)
         }
@@ -1977,12 +932,11 @@ function initWidgetConns(widgetId, widgetType) {
         var outputIndex = connOld.output.index
         var inputNodeId = nodeIdNewOld[connOld.input.node]
         var inputIndex = connOld.input.index
-        // conn.id = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
-        // conn.output = {node: outputNodeId, index: outputIndex}
-        // conn.input = {node: inputNodeId, index: inputIndex}
+
 
         // addConnToWidget(widgetId, conn)
         // fake endpoints
+        // bad....................
         var outputNode = getNodeById(widgetId, outputNodeId)
         var inputNode = getNodeById(widgetId, inputNodeId)
         var outputEp = {outputJsId: outputNode.output.id[outputIndex]}
@@ -2003,7 +957,6 @@ function initWidgetConns(widgetId, widgetType) {
 
             initWidgetConns(newWidgetId, newNode.widgetType)
 
-            // addWidgetToList(newWidget)
             console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
             console.log(widgetList)
         }
@@ -2019,122 +972,13 @@ function initWidget(widgetId, widgetType) {
     // 1. init conns
     initWidgetConns(widgetId, widgetType)
 
+ 
 
-    // widgetMerge3 : {
-    //     nodes: {
-    //         node1: {
-    //             name: "File1",
-    //             mainType: "Data",
-    //             subType: "Merge",
-    //             inputsDefault: ["'id'"],
-    //             // inputsId: ["xxxxx", "xxxxx"],
-    //             // outputsId: ["yyyyy", "yyyyy"],
-    //             position: {
-    //                 left: 100,
-    //                 top: 100,
-    //             },
-    //         },
-    //     },
-    //     conns: [
-    //         {output: {node: "node1", index: 0}, input: {node: "node2", index: 0}}, 
-    //     ],
-    //     // ["File1_data1", "File1_data2", "File2_data2", "File1_on", "File2_on"],
-    //     inputs: [
-    //         {name: "File1_data1", node: "node1", index: 0, type: "String", default: null},  
-    //         {name: "File1_data2", node: "node1",  index: 1, type: "String", default: null},  
-    //         {name: "File2_data2", node: "node2",  index: 1, type: "String", default: null},  
-    //         {name: "File1_on", node: "node1",  index: 2, type: "Data", default: "id"},  
-    //         {name: "File2_on", node: "node2",  index: 2, type: "Data", default: "id"},
-    //     ],
-    //     outputs: [
-    //         {name: "File1_data", node: "node1", index: 0, type: "Data"},  
-    //         {name: "File1_data", node: "node1",  index: 0, type: "Data"},  
-    //     ],
-    // }
+    // TODO: OK!: init one widget, and add to list!
+    // TODO: OK!: initNode when widget-node added!
+    // TODO: OK!: paint jsPlumb when tab entered!
 
-    
 
-    // TODO: init one widget, and add to list!
-    // TODO: initNode when widget-node added!
-    // paint jsPlumb when tab entered!
-
-    // // 1. init node
-    // var nodeIdNewOld = {}
-    // var nodes = []
-
-    // var widgetTypeInfo = widgetTypeList[widgetType]
-    // for (var nodeId in widgetTypeInfo.nodes) {
-    //     var node = widgetTypeInfo.nodes[nodeId]
-    //     var name = node.name
-    //     var mainType = node.mainType
-    //     var subType = node.subType
-    //     var inputsDefault = node.inputsDefault.slice(0)
-    //     // var inputsId = node.inputsId.slice(0)
-    //     // var outputsId = node.outputsId.slice(0)
-    //     var inputs = {}
-    //     // inputs.id = inputsId
-    //     inputs.default = inputsDefault
-    //     inputs.nodeName = name
-    //     // var outputs = {}
-    //     // outputs.id = outputsId
-    //     var outputs = null
-
-    //     var position = {}
-    //     position.left = node.position.left
-    //     position.top = node.position.top
-
-    //     var newNode = initNode(mainType, subType, widgetId, inputs, outputs, position)
-
-    //     addNodeToWidget(widgetId, newNode)
-
-    //     nodeIdNewOld[nodeId] = newNode.id
-
-    //     nodes.push(newNode)
-    // }
-
-    // console.log("nodeIdNewOld")
-    // console.log(nodeIdNewOld)
-
-    // addNewOldPairToWidget(widgetId, nodeIdNewOld)
-
-    // // 2. init conns
-    // for (var i = widgetTypeInfo.conns.length - 1; i >= 0; i--) {
-    //     var connOld = widgetTypeInfo.conns[i]
-    //     // var conn = {}
-    //     var outputNodeId = nodeIdNewOld[connOld.output.node]
-    //     var outputIndex = connOld.output.index
-    //     var inputNodeId = nodeIdNewOld[connOld.input.node]
-    //     var inputIndex = connOld.input.index
-    //     // conn.id = getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex)
-    //     // conn.output = {node: outputNodeId, index: outputIndex}
-    //     // conn.input = {node: inputNodeId, index: inputIndex}
-
-    //     // addConnToWidget(widgetId, conn)
-    //     // fake endpoints
-    //     var outputNode = getNodeById(widgetId, outputNodeId)
-    //     var inputNode = getNodeById(widgetId, inputNodeId)
-    //     var outputEp = {outputJsId: outputNode.output.id[outputIndex]}
-    //     var inputEp = {inputJsId: inputNode.input.id[inputIndex]}
-    //     connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
-    // }
-
-    // // check all nodes, and init widget
-    // console.log("init widget")
-    // console.log(nodes)
-    // for (var i = nodes.length - 1; i >= 0; i--) {
-    //     var newNode = nodes[i]
-    //     if (newNode.type == "widget") {
-    //         console.log("add new widget from widget")
-    //         console.log(widgetId)
-    //         console.log(widgetList)
-    //         var newWidgetId = getWidgetIdFromNodeId(newNode.id)
-    //         initWidgetToList(widgetId, newNode.id, newWidgetId)
-    //         initWidget(newWidgetId, newNode.widgetType)
-    //         // addWidgetToList(newWidget)
-    //         console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
-    //         console.log(widgetList)
-    //     }
-    // }
 }
 
 // common method for enter widget, 
@@ -2186,8 +1030,7 @@ function enterWidget(widgetId, newCanvas) {
 
 function drawWidgetNodes(widget) {
 
-    // TODO:
-
+    // TODO: draw nodes
     for (var nodeId in widget.nodes) {
         var newNode = widget.nodes[nodeId]
         var x = newNode.position.left
@@ -2211,11 +1054,11 @@ function drawWidgetNodes(widget) {
 }
 
 function getConnectionUUID(outputNodeId, outputIndex, inputNodeId, inputIndex) {
-    // body...
     // id = outputNodeId + index + inputNodeId + index!!!
     return outputNodeId + outputIndex + inputNodeId + inputIndex
 }
 
+// find node inside widgetS, one by one
 function getInputNodeIndepth(node, index) {
     if (node.type == "node") {
         return {node: node, index: index}
@@ -2238,6 +1081,7 @@ function getInputNodeIndepth(node, index) {
  
 }
 
+// find node inside widgetS, one by one
 function getOutputNodeIndepth(node, index) {
     if (node.type == "node") {
         return {node: node, index: index}
@@ -2263,6 +1107,7 @@ function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
 
     console.log("connection!!!!")
 
+    // 1. add to widget
     var conn = {}
 
     var inputNode = getNodeById(widgetId, inputNodeId)
@@ -2277,7 +1122,7 @@ function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
 
     addConnToWidget(widgetId, conn)
 
-    // 
+    // 2. conn to nodes
     var inputIndepth = getInputNodeIndepth(inputNode, inputIndex)
     var outputIndepth = getOutputNodeIndepth(outputNode, outputIndex)
 
@@ -2290,90 +1135,10 @@ function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
     inputIndepthNode.input.value[inputIndepthIndex] = {}
     inputIndepthNode.input.value[inputIndepthIndex].widgetId = outputIndepthNode.widgetId
     inputIndepthNode.input.value[inputIndepthIndex].nodeId = outputIndepthNode.id
-    // inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.default[outputIndepthIndex]
     inputIndepthNode.input.value[inputIndepthIndex].outputId = outputIndepthNode.output.id[outputIndepthIndex]
 
     outputIndepthNode.output.connNodes.push(inputIndepthNode)
 
-    // BUG: cannot connect widget indepth, means, only combine widget with nodes!!!
-    // if node is widget, then also add connection to widget's node
-    // if (inputNode.type == "widget" && outputNode.type == "node") {
-    //     // 1. get widge type
-    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
-    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
-    //     // 2. get node from widget with this input
-    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
-    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
-    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
-    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
-    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = {}
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].widgetId = widgetId
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].nodeId = outputNodeId
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].outputId = outputEp.outputJsId
-
-    //     outputNode.output.connNodes.push(inputNodeOfWidget)
-
-    // }
-    // else if (outputNode.type == "widget" && inputNode.type == "node") {
-    //     // 1. get widge type
-    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
-    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
-    //     // 2. get node from widget with this input
-    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
-    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
-    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
-    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
-    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNode.input.value[inputIndex] = {}
-    //     inputNode.input.value[inputIndex].widgetId = outWidgetIdOfWidgetType
-    //     inputNode.input.value[inputIndex].nodeId = outputNodeIdOfWidget
-    //     inputNode.input.value[inputIndex].outputId = outputNodeOfWidget.output.default[outputNodeIndexOfWidget]
-
-    //     outputNodeOfWidget.output.connNodes.push(inputNode)
-    // }
-    // else if (inputNode.type == "widget" && outputNode.type == "widget"){
-    //     // 1. get widge type
-    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
-    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
-    //     // 2. get node from widget with this input
-    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
-    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
-    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
-    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
-    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
-
-    //     // 1. get widge type
-    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
-    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
-    //     // 2. get node from widget with this input
-    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
-    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
-    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
-    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
-    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = {}
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].widgetId = outWidgetIdOfWidgetType
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].nodeId = outputNodeIdOfWidget
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget].outputId = outputNodeOfWidget.output.default[outputNodeIndexOfWidget]
-
-
-    //     outputNodeOfWidget.output.connNodes.push(inputNodeOfWidget)
-    // }
-    // else {
-    //     inputNode.input.value[inputIndex] = {}
-    //     inputNode.input.value[inputIndex].widgetId = widgetId
-    //     inputNode.input.value[inputIndex].nodeId = outputNodeId
-    //     inputNode.input.value[inputIndex].outputId = outputEp.outputJsId
-
-    //     outputNode.output.connNodes.push(inputNode)
-    // }
 
     console.log("connectionAdded")
     console.log(widgetList)
@@ -2381,6 +1146,8 @@ function connectionAdded(widgetId, outputNodeId, outputEp, inputNodeId, inputEp)
 }
 
 function connectionDetached(widgetId, outputNodeId, outputEp, inputNodeId, inputEp) {
+    
+    // 1. from widget
     // widgetId, inputEp, outputEp, conn_id
     var inputNode = getNodeById(widgetId, inputNodeId)
     var outputNode = getNodeById(widgetId, outputNodeId)
@@ -2393,7 +1160,7 @@ function connectionDetached(widgetId, outputNodeId, outputEp, inputNodeId, input
     delConnFromWidget(widgetId, connId)
 
 
-    // 
+    // 2. from nodes
     var inputIndepth = getInputNodeIndepth(inputNode, inputIndex)
     var outputIndepth = getOutputNodeIndepth(outputNode, outputIndex)
 
@@ -2406,71 +1173,6 @@ function connectionDetached(widgetId, outputNodeId, outputEp, inputNodeId, input
     inputIndepthNode.input.value[inputIndepthIndex] = null
     outputIndepthNode.output.connNodes.splice(outputIndepthNode.output.connNodes.indexOf(inputIndepthNode), 1)
 
-    // if node is widget, then also add connection to widget's node
-    // if (inputNode.type == "widget" && outputNode.type == "node") {
-    //     // 1. get widge type
-    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
-    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
-    //     // 2. get node from widget with this input
-    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
-    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
-    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
-    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
-    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = null
-
-    //     outputNode.output.connNodes.splice(outputNode.output.connNodes.indexOf(inputNodeOfWidget), 1)
-    // }
-    // else if (outputNode.type == "widget" && inputNode.type == "node") {
-    //     // 1. get widge type
-    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
-    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
-    //     // 2. get node from widget with this input
-    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
-    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
-    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
-    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
-    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNode.input.value[inputIndex] = null
-
-    //     outputNodeOfWidget.output.connNodes.splice(outputNodeOfWidget.output.connNodes.indexOf(inputNode), 1)
-
-    // }
-    // else if (inputNode.type == "widget" && outputNode.type == "widget"){
-    //     // 1. get widge type
-    //     var inWidgetType = widgetTypeList[inputNode.widgetType]
-    //     var inWidgetTypeInput = inWidgetType.inputs[inputIndex]
-    //     // 2. get node from widget with this input
-    //     var inWidgetIdOfWidgetType = getWidgetIdFromNodeId(inputNodeId)
-    //     var inWidgetOfWidgetType = widgetList[inWidgetIdOfWidgetType]
-    //     var inputNodeIdOfWidget = inWidgetOfWidgetType.newOldPair[inWidgetTypeInput.node]
-    //     var inputNodeIndexOfWidget = inWidgetTypeInput.index
-    //     var inputNodeOfWidget = getNodeById(inWidgetIdOfWidgetType, inputNodeIdOfWidget)
-
-    //     // 1. get widge type
-    //     var outWidgetType = widgetTypeList[outputNode.widgetType]
-    //     var outWidgetTypeOutput = outWidgetType.outputs[outputIndex]
-    //     // 2. get node from widget with this input
-    //     var outWidgetIdOfWidgetType = getWidgetIdFromNodeId(outputNodeId)
-    //     var outWidgetOfWidgetType = widgetList[outWidgetIdOfWidgetType]
-    //     var outputNodeIdOfWidget = outWidgetOfWidgetType.newOldPair[outWidgetTypeOutput.node]
-    //     var outputNodeIndexOfWidget = outWidgetTypeOutput.index
-    //     var outputNodeOfWidget = getNodeById(outWidgetIdOfWidgetType, outputNodeIdOfWidget)
-
-    //     // add input value to node
-    //     inputNodeOfWidget.input.value[inputNodeIndexOfWidget] = null
-
-    //     outputNodeOfWidget.output.connNodes.splice(outputNodeOfWidget.output.connNodes.indexOf(inputNodeOfWidget), 1)
-    // }
-    // else {
-    //     inputNode.input.value[inputIndex] = null
-
-    //     outputNode.output.connNodes.splice(outputNode.output.connNodes.indexOf(inputNode), 1)
-    // }
 
     console.log("connectionDetached")
     console.log(widgetList)
@@ -2480,7 +1182,6 @@ function enterWidgetFromNode(node) {
 
     // 1. create tab/canvas
     // 1.1 create tab
-    // var h = "widget" + node.id
     var h = getWidgetIdFromNodeId(node.id)
 
     var widget = getWidgetById(h)
@@ -2502,7 +1203,6 @@ function enterWidgetFromNode(node) {
     bindTab(tabId)
     
     // 1.2 create content
-    // var c = h + "Canvas"
     var c = getCanvasIdFromWidgetId(h)
     var d = document.createElement("div")
     d.className = "tab-pane fade in active"
@@ -2515,20 +1215,8 @@ function enterWidgetFromNode(node) {
     // 2. active tab
     $('#widgetTabs a[href=#' + h + ']').tab('show')
     
-    // 3. init widget of workspace
+    // 3. init widget
     enterWidget(h, true)
-
-    // TODO!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!. init one widget
-    // var widgetId = node.widgetId
-    // var widgetType = node.func
-    // var widget = initWidget(widgetId, widgetType)
-    // var widget = initWidget(h, widgetType)
-
-    // 4. draw nodes
-
-    // 5. draw conns
-
-
 
 
 }
@@ -2536,15 +1224,11 @@ function enterWidgetFromNode(node) {
 function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     var nodeType = nodeTypeList[mainType][subType]
 
-    // var nodeId = nodeList[mainType][subType].count
-    // nodeList[mainType][subType].count = nodeId + 1
-
     var nodeId = getNodeUUID(mainType, subType)
 
     // 0. init a node
     var node = {}
 
-    // name == id, maybe not?!
     node.id = nodeId
     node.name = nodeType.display
 
@@ -2565,7 +1249,6 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.input.name = nodeType.content.input.name.slice(0) // input name: not change, not unique
     node.input.type = nodeType.content.input.type.slice(0)
     node.input.count = nodeType.content.input.count
-    // node.input.value = inputs.value.slice(0) // input value should be up nodes output default
     node.input.value = [] // input value should be up nodes output default
     node.input.valuePair = {}
     node.input.id = node.input.name.map(function(value, index){ // input id: not change, unique
@@ -2575,7 +1258,6 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     if (inputs != null) {
         node.name = inputs.nodeName
         node.input.default = inputs.default.slice(0) // input default: not change, not unique
-        // node.input.id = inputs.id.slice(0) // input id: not change, unique
     }
     else {
         node.input.default = nodeType.content.input.default.slice(0) // input default: not change, not unique
@@ -2595,20 +1277,8 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
     node.output.value = null // output value should be result from server
     node.output.id = node.output.default.slice(0) // output id: not change, unique
 
-    // if (outputs != null) {
-    //     // node.output.name = outputs.name.slice(0) // name: not change, not unique
-    //     // node.output.type = outputs.type.slice(0)
-    //     // node.output.count = outputs.count
-    //     // node.output.default = outputs.default.slice(0)
-    //     node.output.id = outputs.id.slice(0) // output id: not change, unique
-    //     // node.output.value = outputs.value.slice(0) // output value should be result from server
-    // }
-    // else {
-    //     node.output.id = node.output.default.slice(0) // output id: not change, unique
-    // }
 
     node.status = STATUS.IDLE
-    // node.status = STATUS.BUSY
     node.found = false
     
     node.position = {}
@@ -2621,48 +1291,14 @@ function initNode(mainType, subType, widgetId, inputs, outputs, position) {
         node.position.left = null 
     }
 
-
-    // nodeList[mainType][subType][nodeName] = node
-    // nodeListByName[nodeName] = node
-
-    // widgetList[widgetId].nodes[node.id] = node
-
     return node
 } 
 
-
-// function editNodeInputs(node, inputs) {
-//     var mainType = node.mainType
-//     var subType = node.subType
-//     var nodeName = node.name
-
-//     nodeList[mainType][subType][nodeName].inputs = inputs
-// }
-
-// function editNodeOutputDefault(node, outputName) {
-//     node.output.default[0] = outputName
-// }
-
-// function editNodeOutput(node, output) {
-//     var mainType = node.mainType
-//     var subType = node.subType
-//     var nodeName = node.name
-//     nodeList[mainType][subType][nodeName].output = output
-// }
-
-// function deleteNode(node) {
-//     var mainType = node.mainType
-//     var subType = node.subType
-//     var nodeName = node.name
-//     nodeList[mainType][subType][nodeName] = null
-// }
 
 
 
 // from html event(e) to add one jsplumb node
 function addNode(mainType, subType, e) {
-
-
 
     // 0. add node info to node list
     // mainType, subType, widgetId, inputs, outputs
@@ -2674,31 +1310,16 @@ function addNode(mainType, subType, e) {
         var widgetId = getWidgetIdFromNodeId(newNode.id)
         initWidgetToList(currentWidgetId, newNode.id, widgetId)
         initWidget(widgetId, newNode.widgetType)
-        // addWidgetToList(newWidget)
         console.log("Add new widget-node!!!!!!!!!!!!!!!!!")
         console.log(widgetList)
     }
 
-    // var disName = newNode.display
-
-    // // 1. add node for jsplumb at canvas
-    // var nodeJs = {
-    //     id: newNode.name,
-    //     name: disName,
-    //     disName: disName,
-    //     inputsJs: newNode.input,
-    //     outputJs: newNode.output,
-    //     // inputsType: newNode.funcInputsType,
-    //     // output: [{id:newNode.outputName, name: newNode.outputName}],
-    //     // outputType: [newNode.outputType],
-    // }
 
     // offset of cursor
     // TODO: use node width/height to set diffX/diffY
     var diffX = 9 * 16 / 2
     var diffY = 4 * 16 / 2 + 36
 
-    // var canvasId = getWidgetById(currentWidgetId).container
     var canvasId = getCanvasIdFromWidgetId(currentWidgetId)
     var X = $('#' + canvasId).offset().left + diffX
     var Y = $('#accordion').offset().top + diffY
@@ -2728,7 +1349,7 @@ function getNodeById(widgetId, nodeId) {
     return widgetList[widgetId].nodes[nodeId]
 }
 
-// depracate
+// @depracate
 function getNodeByName(widgetId, nodeName) {
     return getNodeById(widgetId, nodeName)
 }
@@ -2772,9 +1393,6 @@ function showInputs(node) {
         t.value = getInputHtml(node, index)
         t.id = "text" + node.id + "input" + index
 
-        // if (node.type == "widget") {
-        //     $(t).attr("disabled", "true")
-        // }
 
         $(t).on('change input propertychange', function(e) {
             // console.log(e)
@@ -2833,42 +1451,6 @@ function showOutput(node) {
             dc.className = dc.className + " in active"
         }
 
-/*
-        var t = document.createElement("input")
-        t.type = "text"
-        t.className = "form-control"
-        t.value = node.output.default[i]
-        t.id = "text" + node.name + "output" + i
-
-        $(t).on('change input propertychange', function(e) {
-            // console.log(e)
-            var node = getNodeById(currentWidgetId, currentNodeId)
-
-            var notIdLength = ("text" + node.name + "output").length
-            node.output.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
-
-            // node.output.default[i] = $(this).val()
-
-            // console.log(node)
-
-            // change all nodes downside of status idle
-            setDownNodesIdle(currentWidgetId, node.name)
-
-            // if connect to a target, then change label name
-            jsplumbUtils.setConnectionLabels(window.instance, node)
-        });
-
-        dc.append(t)
-*/
-        // if (node.output.value != null) {
-        //     // var v = node.output.value[i]
-        //     var v = getOutputHtml(node, i)
-        //     var vDiv = document.createElement("div")
-        //     vDiv.innerHTML = v
-
-        //     dc.append(vDiv)    
-        // }
-
         var v = getOutputHtml(node, i)
         var vDiv = document.createElement("div")
         vDiv.innerHTML = v
@@ -2886,47 +1468,6 @@ function showOutput(node) {
     var tc = $("table").attr("class")
     $("table").attr("class", tc + " table table-striped")
 
-    // for (var i = node.output.default.length - 1; i >= 0; i--) {
-    //     var d = document.createElement("div")
-    //     d.className = "input-group"
-
-    //     var s = document.createElement("span")
-    //     s.className = "input-group-addon"
-    //     s.innerHTML = node.output.name[i]
-
-    //     var t = document.createElement("input")
-    //     t.type = "text"
-    //     t.className = "form-control"
-    //     t.value = node.output.default[i]
-    //     t.id = "text" + node.name + "output"
-
-    //     $(t).on('change', function(e) {
-    //         // console.log(e)
-    //         var node = getNodeById(currentNodeId)
-
-    //         var notIdLength = ("text" + node.name + "output").length
-    //         node.output.default[e.currentTarget.id.substring(notIdLength)] = $(this).val()
-
-    //         // node.output.default[i] = $(this).val()
-
-    //         // console.log(node)
-
-    //         // change all nodes downside of status idle
-    //         setDownNodesIdle(node.name)
-
-    //         // if connect to a target, then change label name
-    //         jsplumbUtils.setConnectionLabels(node)
-    //     });
-
-    //     d.append(s)
-    //     d.append(t)
-
-    //     $("#func-output").append(d)
-    // }
-
-
-
-    // $("#func-output").append(node.output.value[0])
 
 }
 
@@ -2961,8 +1502,6 @@ function getOutputHtml(node, index) {
         }
     }
 
-
-
 }
 
 function getUpInfoFromWidgetConns(widgetId) {
@@ -2991,34 +1530,7 @@ function getUpInfoFromWidgetConns(widgetId) {
     return upNodes
 }
 
-// function getUpInfoFromParentWidget(node, upInfo) {
 
-//     var widget = widgetList[node.widgetId]
-//     if (widget.sourceWidgetId != null) {
-                
-//         upInfo = getUpInfoFromWidgetConns(widget.sourceWidgetId, upInfo)
-//         upInfo = getUpInfoFromParentWidget(node, upInfo)
-
-//         var sourceWidget = widgetList[widget.sourceWidgetId]
-
-//         var souceNode = sourceWidget.nodes[widget.sourceNodeId]
-
-
-//         var inputs = widgetTypeList[node.subType].inputs
-//         for (var i = inputs.length - 1; i >= 0; i--) {
-//             var newNodeId = widget.newOldPair[inputs[i].node]
-
-            
-//         }
-
-
-//     }
-    
-
-
-
-//     return upInfo
-// }
 
 // @deprecated
 function getUpNodes(instance, nodeId) {
@@ -3040,9 +1552,7 @@ function setDownNodesIdle(widgetId, nodeId) {
     // 0. TODO: check circle
 
     // 1. TODO: get all instance down the node
-    // TEST: should be current running instance!!!
-    // var instance = window.instance
-    // var widget = getWidgetById(widgetId)
+    // TEST: NOT NEEDED! could get node by widgetId and nodeId! : should be current running instance!!!
 
     setDownNodesIdleInInstance(widgetId, nodeId)
 }
@@ -3050,7 +1560,6 @@ function setDownNodesIdle(widgetId, nodeId) {
 function setDownNodesIdleInInstance(widgetId, nodeId) {
     // var instance = widget.instance
     // 1. set down nodes
-    // var downList = getDownNodes(instance, nodeId)
     var node = getNodeById(widgetId, nodeId)
     var downList = node.output.connNodes
     console.log("Show down list from setDownNodesIdle")
@@ -3064,10 +1573,9 @@ function setDownNodesIdleInInstance(widgetId, nodeId) {
         }
     }
 
-    // var node = getNodeById(widget.id, nodeId)
-
     setNodeRunStatus(node, STATUS.IDLE)
 
+    // TODO: del var now or when run it?!
     // pushDelVar(node)
 
     return true
@@ -3079,7 +1587,6 @@ function pushDelVar(node) {
     console.log("runDelVarList")
     console.log(runDelVarList)
 
-    // node.output.value = null
 
 }
 
@@ -3101,62 +1608,6 @@ function showHelp(mainType, subType) {
 
 }
 
-/////////////////////////////////////////////////////
-// websocket
-
-$(document).ready(function() {
-    if (!window.console) window.console = {};
-    if (!window.console.log) window.console.log = function() {};
-
-    $("#scriptform").bind("submit", function() {
-        newScript($(this));
-        return false;
-    });
-
-    $("#scriptform").bind("keypress", function(e) {
-        if (e.keyCode == 13) {
-            newScript($(this));
-            return false;
-        }
-    });
-    // $("#message").select();
-    updater.start();
-
-    // 1. init widget/canvas/jsplumb
-    // All from a pseudo-node "workspace"! 
-    // TODO: refactor?!
-    var defaultNodeId = "workspace"
-    var defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
-    var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
-    var tabId = getTabIdFromWidgetId(defaultWidgetId)
-    // 2. init widget of workspace
-    initWidgetToList(null, null, defaultWidgetId)
-
-    enterWidget(defaultWidgetId, true)
-
-    // bind tab
-    bindTab(tabId)
-
-    // currentWidgetId = getPureString(defaultWidget)
-    // currentWidgetIdRunning = currentWidgetId
-    // var currentWidget = addWidgetToList(currentWidgetId)
-
-    // var jsInstance = initJsPlumb(canvasId)
-    // currentWidget.instance = jsInstance
-    // currentWidget.container = canvasId
-
-    // 3. bind events
-    // bindEventsOnReady()
-
-    // TODO: init node type list & node list from server
-    // initNodeList()
-    // TODO: from node type list, generate node tree
-
-
-    // bind output modal
-    bindOutputModal()
-
-});
 
 function bindOutputModal() {
 
@@ -3164,14 +1615,21 @@ function bindOutputModal() {
 
         $('#collapse-output').collapse('hide')
 
-        // $("#outputModalLabel").empty()
+        $("#outputModalLabel").text("")
         $("#outputModalBody").empty()
+
+        console.log("0 close ... current node is ")
+        console.log(node)
 
         if (currentNodeId == null || currentNodeId == undefined) {
             return 
         }
 
         var node = getNodeById(currentWidgetId, currentNodeId)
+
+        console.log("close ... current node is ")
+        console.log(node)
+
         $("#outputModalLabel").text(node.name)
 
         if (node.output.value != null) {
@@ -3232,30 +1690,6 @@ function bindOutputModal() {
 
     })
 }
-// function bindEventsOnReady() {
-
-//     $(".unm,.email").dblclick(function(){   
-//         id=$(this).attr("uid");   
-//         value=$(this).text();   
-//         f=$(this).attr("field");   
-//         text_id=$(this).attr("id");   
-//         if(value)   
-//         {   
-//             $(this).html("<input type='text' id="+id+"   name="+f+" value="+value+">");   
-//             $(".unm > input,.email>input").focus().blur(function(){   
-             
-//                     $.ajax({   
-//                      type: "POST",   
-//                      url: "save.php",   
-//                      data:   "id="+id+"&type="+f+"&value="+$("#"+id).val(),   
-//                      success: function(msg){ $("#"+text_id).text(msg); }   
-//                     });   
-//                 })   
-      
-//         }   
-           
-//     })   
-// }
 
 function bindTab(tabId) {
 
@@ -3301,7 +1735,7 @@ function cancelWidget() {
 }
 
 function confirmWidget() {
-    alert($("#widgetDivInput").val())
+    // alert($("#widgetDivInput").val())
 
     saveWidget($("#widgetDivInput").val())
 
@@ -3313,6 +1747,56 @@ function confirmWidget() {
                 </div>")
 }
 
+
+/////////////////////////////////////////////////////
+// websocket
+
+$(document).ready(function() {
+    if (!window.console) window.console = {};
+    if (!window.console.log) window.console.log = function() {};
+
+    $("#scriptform").bind("submit", function() {
+        newScript($(this));
+        return false;
+    });
+
+    $("#scriptform").bind("keypress", function(e) {
+        if (e.keyCode == 13) {
+            newScript($(this));
+            return false;
+        }
+    });
+    // $("#message").select();
+    updater.start();
+
+    // 1. init widget/canvas/jsplumb
+    // All from a pseudo-node "workspace"! 
+    // TODO: refactor?!
+    var defaultNodeId = "workspace"
+    var defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
+    var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
+    var tabId = getTabIdFromWidgetId(defaultWidgetId)
+    // 2. init widget of workspace
+    initWidgetToList(null, null, defaultWidgetId)
+
+    enterWidget(defaultWidgetId, true)
+
+    // bind tab
+    bindTab(tabId)
+
+
+    // 3. bind events
+    // bindEventsOnReady()
+
+    // TODO: init node type list & node list from server
+    // initNodeList()
+    // TODO: from node type list, generate node tree
+
+
+    // bind output modal
+    bindOutputModal()
+
+});
 
 // TODO: unified message assemble!!!
 function newScript(form) {
@@ -3362,7 +1846,7 @@ function parseMessage(message) {
 
     // TODO: dispatch message
     if (mChannel == "script") {
-        alert(mContent);
+        // alert(mContent);
         clearNodeInfo()
         // var node = $(mContent);
         // $("#console").remove()

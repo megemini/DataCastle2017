@@ -154,6 +154,7 @@ function initJsPlumb(container) {
 
     });
 
+    //TODO: change node name length!
     // change node name
     instance.on($("#" + container), "dblclick", ".nodeForEvent", function (e) {
         // alert("double")
@@ -223,7 +224,7 @@ function initJsPlumb(container) {
         // var state = instance.toggleTargetEnabled(targetDiv);
         // this.innerHTML = (state ? "disable" : "enable");
         // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
-        alert("close and current node id is " + currentNodeId)
+        alert("Node closed! Current node id is " + currentNodeId)
 
         
         // delete var
@@ -247,7 +248,7 @@ function initJsPlumb(container) {
         // console.log("targetDiv " + targetDiv.id)
 
         toId = targetDiv.id
-        alert(toId)
+        // alert(toId)
         console.log("enter widget!!!!!!!!")
         console.log(getNodeById(currentWidgetId, toId))
 
@@ -742,191 +743,3 @@ var jsplumbUtils = {
     },
 
 };
-
-
-/*
-jsPlumb.ready(function () {
-
-    var instance = window.instance = jsPlumb.getInstance({
-        // the overlays to decorate each connection with.  note that the label overlay uses a function to generate the label text; in this
-        // case it returns the 'labelText' member that we set on each connection in the 'init' method below.
-        ConnectionOverlays: connectionOverlays,
-        // drag options
-        DragOptions: dragOptions,
-        // default to a gradient stroke from blue to green.
-        // TODO: different gradient from node types
-        // PaintStyle: {
-        //     gradient: { stops: [
-        //         [ 0, "#0d78bc" ],
-        //         [ 1, "#558822" ]
-        //     ] },
-        //     stroke: "#558822",
-        //     strokeWidth: 2
-        // },
-        Container: "myCanvas"
-    });
-
-
-
-    // TODO: click event -> 1.click "x" close node 2.click node show info
-    // // click listener for the enable/disable link in the source box (the blue one).
-
-    // click node event
-    instance.on($("#myCanvas"), "click", ".nodeForEvent", function (e) {
-
-        if (typeof e.srcElement.id === "undefined" || e.srcElement.id === null || e.srcElement.id == "") {
-            // alert("nothing")
-            return
-        } 
-
-        // alert("e.srcElement.id" + e.srcElement.id)
-        var nodeId = e.srcElement.id
-        var node = getNodeById(nodeId)
-
-        if (typeof node === "undefined" || node === null) {
-            clearNodeInfo()
-        }
-        else {
-            showNodeInfo(node)
-
-        }
-
-        // console.log(node)
-
-        // TODO: get all nodes connected TO this node show connected nodes
-        // jsplumbUtils.getUpNodes(nodeId)
-
-
-        // TODO: get all nodes connected FROM this node show connected nodes
-        // jsplumbUtils.getDownNodes(nodeId)
-
-
-
-
-        setCurrentNode(nodeId)
-
-
-        console.log("current node is " + currentNodeId)
-
-        jsPlumbUtil.consume(e);
-
-    });
-
-    // // click listener for enable/disable in the small green boxes
-    instance.on($("#myCanvas"), "click", ".closeNode", function (e) {
-        
-
-        var targetDiv = (e.target || e.srcElement).parentNode;
-        // console.log(e)
-        // console.log("targetDiv " + targetDiv.id)
-
-        toId = targetDiv.id
-
-        // clear current node id and clear node info from console
-        if (currentNodeId == toId) {
-            // currentNodeId = null
-
-            setCurrentNode(null)
-
-            clearNodeInfo()
-        }
-
-
-        instance.remove(toId);
-
-        // var state = instance.toggleTargetEnabled(targetDiv);
-        // this.innerHTML = (state ? "disable" : "enable");
-        // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
-        alert("close and current node id is " + currentNodeId)
-
-        jsPlumbUtil.consume(e);
-    });
-
-    // TODO: Debug: bind to a connection event, just for the purposes of pointing out that it can be done.
-    var initConnection = function (connection) {
-
-
-        var sourceNodeId = connection.sourceId
-        // var targetNodeId = connection.targetId
-
-        var sourceNode = getNodeById(sourceNodeId)
-        // var targetNode = getNodeById(targetNodeId)
-
-        // TODO: 1. set label source output name
-        jsplumbUtils.setConnectionLabels(sourceNode)
-
-        // TODO: 2. set target node input of source output name
-        // NO NEED: get inputs when run node
-
-    };
-
-    // connection func
-    instance.bind("connection", function (connInfo, originalEvent) {
-
-        // TODO: if source and target not same, then detach
-        if (false) {
-            instance.detach(connInfo.connection);
-            return 
-        }
-
-        if (typeof console !== "undefined")
-            console.log("connection", connInfo.connection);
-
-        // listen for new connections; 
-        // initialise them the same way we initialise the connections at startup.
-        initConnection(connInfo.connection);
-    });
-
-    // detach func
-    instance.bind("connectionDetached", function (connInfo, originalEvent) {
-        alert("detach")    
-
-
-        // TODO: 1. remove input from target
-        // NO NEED: get inputs when run node!!!
-
-        // TODO: 2. set nodes idle
-        console.log("connectionDetached")
-        console.log(connInfo)
-        var nodeName = connInfo.connection.targetId
-        setDownNodesIdle(nodeName)
-    })
-
-    // toggle connection type
-    var basicType = {
-        connector: "StateMachine",
-        paintStyle: { stroke: "red", strokeWidth: 4 },
-        hoverPaintStyle: { stroke: "blue" },
-        overlays: [
-            "Arrow"
-        ]
-    };
-
-    instance.registerConnectionType("basic", basicType);
-
-    instance.bind("click", function (conn, originalEvent) {
-        conn.toggleType("basic");
-    });
-
-    // TODO: add one node then make it draggable
-    // // get the list of ".smallWindow" elements.            
-    // var smallWindows = jsPlumb.getSelector(".smallWindow");
-    // // make them draggable
-    // instance.draggable(smallWindows, {
-    //     filter:".enableDisableTarget"
-    // });
-
-
-    // TODO: input endpoint max connection: 1
-    //       output endpoint max connection: -1
-    // TODO: anchor
-    //       input: [1/inputs number, 0, 0, -1]
-    //       output: Bottom (only one ouput)
-    // TODO: connector: Flowchart
-
-
-    // highlight
-    // hljs.initHighlightingOnLoad();
-});	
-
-*/
