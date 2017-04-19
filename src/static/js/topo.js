@@ -9,18 +9,19 @@ var STATUS = {
 }
 
 var COLORSTATUS = {
-    IDLE : "rgba(255, 255, 255, 0.2)",
+    IDLE : "rgba(242, 242, 242, 0.9)",
     BUSY : "rgba(255, 0, 0, 0.4)",
     DONE : "rgba(0, 255, 0, 0.2)",
     WAIT : "rgba(255, 255, 111, 0.3)",
 }
 
 var COLORNODE = {
-    "Data"        : "rgba(100,221,23,1)",
+    "Data"        : "rgba(76,175,80,1)",
     "Model"       : "rgba(52,103,137, 1)",
     "Evaluate"    : "rgba(0,191,255,1)",
     "Visualize"   : "rgba(255,215,0,1)",
     "Customize"   : "rgba(139,69,19,1)",
+    "Keras"       : "rgba(208,0,0,1)",
 }
 
 

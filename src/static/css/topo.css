@@ -8,7 +8,6 @@
 .canvas {
 	/*from www.duitang.com time.jpg*/
     background: url('../img/canvas.jpg') repeat center #eee;
-
 }
 
 .node {
@@ -184,7 +183,7 @@
 }
 
 .tree-data {
-    filter: alpha(opacity=50);background-color:rgba(100,221,23,0.8);
+    filter: alpha(opacity=50);background-color:rgba(76,175,80,0.8);
 }
 
 .tree-model {
@@ -203,8 +202,8 @@
     filter: alpha(opacity=50);background-color:rgba(139,69,19,0.8);
 }
 
-.tree-nn {
-    filter: alpha(opacity=50);background-color:rgba(83,83,83,0.8);
+.tree-kerasnn {
+    filter: alpha(opacity=50);background-color:rgba(208,0,0,0.8);
 }
 
 .modal-button {

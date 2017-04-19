@@ -284,7 +284,7 @@ var nodeTypeList = {
     Evaluate: {
         Predict: {
             display: "Predict", 
-            description: "Predict. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
+            description: "Predict. \n Inputs: \n - model: Model \n - X: predict data, Data \n - threshold: default 0.5 \n - batch_size: for keras \n - verbose: for keras \n Output: predict",
             type: "node",
             content: {
                 // 1. basic infomation, from user edit
@@ -293,10 +293,10 @@ var nodeTypeList = {
                 module: "evaluate",
                 func: "eva_predict",
                 input: {
-                    name: ["model", "X"],
-                    type: ["Model", "Data"],
+                    name: ["model", "X", "threshold", "batch_size", "verbose"],
+                    type: ["Model", "Data", "Number", "Number", "Number"],
                     count: 2,
-                    default: [],
+                    default: ["0.5", "1", "0"],
                     value: null,
                 },
                 output:{
@@ -311,7 +311,7 @@ var nodeTypeList = {
 
         PredictProb: {
             display: "Predict Probability", 
-            description: "Predict Probability. \n Inputs: \n - model: Model \n - X: predict data, Data \n Output: predict",
+            description: "Predict Probability. \n Inputs: \n - model: Model \n - X: predict data, Data \n - batch_size: for keras \n - verbose: for keras \n Output: predict",
             type: "node",
             content: {
                 // 1. basic infomation, from user edit
@@ -320,10 +320,10 @@ var nodeTypeList = {
                 module: "evaluate",    
                 func: "eva_predict_proba",
                 input: {
-                    name: ["model", "X"],
-                    type: ["Model", "Data"],
+                    name: ["model", "X", "batch_size", "verbose"],
+                    type: ["Model", "Data", "Number", "Number"],
                     count: 2,
-                    default: [],
+                    default: ["1", "0"],
                     value: null,
                 },
                 output:{
@@ -523,6 +523,224 @@ var nodeTypeList = {
                     name: ["File1_data", "File2_data"],
                     type: ["Data", "Data"],
                     count: 2,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+    },
+
+    Keras: {
+        Sequential: {
+            display: "Keras Sequential", 
+            description: "Keras sequential model. \n Inputs: \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "get_sequential",
+                input: {                    
+                    name: [],
+                    type: [],
+                    count: 0,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Dense: {
+            display: "Keras Dense", 
+            description: "Keras Dense layer, regular densely-connected NN layer. \n Inputs: \n - Keras_model: Keras model \n - units: hidden units \n - activation: activation type \n - input_dim: input dimention \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "add_dense",
+                input: {                    
+                    name: ["Keras_model", "units", "activation", "input_dim"],
+                    type: ["KerasModel", "Number", "String", "Number"],
+                    count: 1,
+                    default: ["64", "'relu'", "0"],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Conv2D: {
+            display: "Keras Conv2D", 
+            description: "Keras Conv2D layer. 2D convolution layer. \n Inputs: \n - Keras_model, Keras model \n - filters: filters \n - kernel_size: kernel_size \n - strides: strides \n - activation: activation \n - input_shape: input_shape \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "add_conv2D",
+                input: {                    
+                    name: ["Keras_model", "filters", "kernel_size", "strides", "activation", "input_shape"],
+                    type: ["KerasModel", "Number", "Array", "Array", "String", "Array"],
+                    count: 1,
+                    default: ["0", "(0, 0)", "(1, 1)", "'relu'", "(0, 0)"],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Dropout: {
+            display: "Keras Dropout", 
+            description: "Keras Dropout layer. Applies Dropout to the input. \n Inputs: \n - Keras_model, Keras model \n - rate: dropout rate \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "add_dropout",
+                input: {                    
+                    name: ["Keras_model", "rate"],
+                    type: ["KerasModel", "Number"],
+                    count: 1,
+                    default: ["0.5"],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        MaxPooling2D: {
+            display: "Keras MaxPooling2D", 
+            description: "Keras MaxPooling2D layer. Max pooling operation for spatial data. \n Inputs: \n - Keras_model, Keras model \n - pool_size: pool size  \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "add_maxPooling2D",
+                input: {                    
+                    name: ["Keras_model", "pool_size"],
+                    type: ["KerasModel", "Array"],
+                    count: 1,
+                    default: ["(0, 0)"],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Flatten: {
+            display: "Keras Flatten", 
+            description: "Keras Flatten layer. Flattens the input. Does not affect the batch size. \n Inputs: \n - Keras_model, Keras model \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "add_flatten",
+                input: {                    
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: [],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Compile: {
+            display: "Keras Compile", 
+            description: "Keras Compile. Configures the learning process. \n Inputs: \n - Keras_model, Keras model \n - optimizer: An optimizer is one of the two arguments required for compiling a Keras model \n - loss: A loss function (or objective function, or optimization score function) \n Output: Keras model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "set_compile",
+                input: {                    
+                    name: ["Keras_model", "optimizer", "loss"],
+                    type: ["KerasModel", "String", "String"],
+                    count: 1,
+                    default: ["'sgd'","'binary_crossentropy'"],
+                    value: null,
+                },
+                output:{
+                    name: ["Keras_model"],
+                    type: ["KerasModel"],
+                    count: 1,
+                    default: null,
+                    value: null,
+                },                
+            },
+        },
+
+        Fit: {
+            display: "Keras Fit", 
+            description: "Keras Fit. Trains the model for a fixed number of epochs (iterations on a dataset). \n Inputs: \n - Keras_model, Keras model \n - X: features, Data \n - y: labels, Data \n- epochs: epochs \n - batch_size: batch_size \n Output: model",
+            type: "node",
+            content: {
+                // 1. basic infomation, from user edit
+                name: null,
+                // 2. func information, from funcutil.get_func_info(func)
+                module: "kerasnode",    
+                func: "model_fit",
+                input: {                    
+                    name: ["Keras_model", "X", "y", "epochs", "batch_size"],
+                    type: ["KerasModel", "Data", "Data", "Number", "Number"],
+                    count: 3,
+                    default: ["0","0"],
+                    value: null,
+                },
+                output:{
+                    name: ["model"],
+                    type: ["Model"],
+                    count: 1,
                     default: null,
                     value: null,
                 },                

@@ -1170,8 +1170,14 @@ pre.license {
     border: none
 }
 
-pre {
+/*pre {
     outline: 1px solid #ccc;
+    padding: 5px;
+    margin: 0
+}*/
+
+pre {
+    outline: 0px solid #ccc;
     padding: 5px;
     margin: 0
 }

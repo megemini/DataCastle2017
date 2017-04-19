@@ -18,5 +18,10 @@ from sklearn.metrics import roc_auc_score
 from xgboost.core import Booster
 
 
+import keras
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+
 
 __all__ = ['customize', 'data', 'evaluate', 'model', 'visualize',]

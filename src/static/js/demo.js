@@ -714,7 +714,7 @@ var jsplumbUtils = {
 
         d.style.left = x + "px";
         d.style.top = y + "px";
-        d.style.border = '3px solid ' + getNodeColorById(currentWidgetId, node.id)
+        d.style.border = '2px solid ' + getNodeColorById(currentWidgetId, node.id)
 
 
         var disLength = node.name.length * 8 + 64
