@@ -80,3 +80,7 @@
 
 ## 2017/4/21
 - [ ] Keras 
+- [x] Widget Modal
+- [ ] Clear node/widget after delete
+- [ ] Close tab
+- [x] Alert js

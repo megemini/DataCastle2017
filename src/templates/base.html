@@ -21,77 +21,39 @@
   <link rel="stylesheet" href="../static/css/jsplumbtoolkit-demo.css">
   <link rel="stylesheet" href="../static/css/demo.css">
   <link rel="stylesheet" href="../static/css/topo.css">
-<!-- 
-  <link rel="stylesheet" type="text/css" href="http://cdn.bootcss.com/highlight.js/8.0/styles/monokai_sublime.min.css">
-  <script src="http://cdn.bootcss.com/highlight.js/8.0/highlight.min.js"></script>  
-  <script type="text/javascript">hljs.initHighlightingOnLoad();</script> -->
+  <link rel="stylesheet" href="../static/css/amaran.min.css">
+  <link rel="stylesheet" href="../static/css/animate.min.css">
+  
 
   {% block head %}{% end %}
 </head>
 <body>
 
-  <!-- <div id="nav"> -->
-    <!-- <div id="content" class="row"> -->
-      <div class="navbar navbar-top navbar-fixed-top" role="navigation">
-
-      
-        <div class="container">
-          <div class="navbar-header">
-<!--             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-              <span class="sr-only">Toggle navigation</span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button> -->
-
-            
-            <!-- <div class="community"></div> -->
-            <!-- <h1 onclick="run()">RUN</h1> -->
-
-
-          </div>
-
-          <div class="navbar-collapse collapse nav-wrapper">
-
-            <ul class="nav navbar-nav">
-<!--               <li><a href="../../">DEMOS</a></li>
-              <li><a href="../../doc/home.html">DOCS</a></li>
-              <li><a href="../../apidocs/index.html">API</a></li>
-              <li><a href="../../download">DOWNLOAD</a></li>
-              <li><a href="http://beta.jsplumbtoolkit.com/contact.html">CONTACT</a></li>
-              <li><a href="https://blog.jsplumbtoolkit.com">BLOG</a></li> -->
-
-            </ul>
-
-<!--             <div class="social-nav hidden-xs">
-              <a href="http://twitter.com/jsplumblib" class="link"><span class="icon-twitter"></span></a>
-              <a href="http://github.com/sporritt/jsplumb/" class="link"><span class="icon-github"></span></a>
-              <a href="http://www.linkedin.com/company/jsplumb" class="link"><span class="icon-linkedin"></span></a>
-
-            </div> -->
-          </div><!--/.nav-collapse -->
-
-
-        </div>
-
-        <div class="logo">
-          <img src="../static/img/mars.png">
-        </div>
-
-        <div class="run_button">
-          <img  id="run_button_img" src="../static/img/run.png" onclick="run()">
-        </div>
-
+  <div class="navbar navbar-top navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
       </div>
-
-    <!-- </div> -->
-
-    <div id="body" class="container-fluid">
-      <div class="col-xs-2">{% block tree %}{% end %}</div>
-      <div class="col-xs-7">{% block body %}{% end %}</div>
-      <div class="col-xs-3">{% block console-form %}{% end %}</div>
+      <div class="navbar-collapse collapse nav-wrapper">
+        <ul class="nav navbar-nav">
+        </ul>
+      </div>
     </div>
-  <!-- </div> -->
+
+    <div class="logo">
+      <img src="../static/img/mars.png">
+    </div>
+
+    <div class="run_button">
+      <img  id="run_button_img" src="../static/img/run.png" onclick="run()">
+    </div>
+  </div>
+
+  <div id="body" class="container-fluid">
+    <div class="col-xs-2">{% block tree %}{% end %}</div>
+    <div class="col-xs-7">{% block body %}{% end %}</div>
+    <div class="col-xs-3">{% block console-form %}{% end %}</div>
+  </div>
+
   
   {% block bottom %}{% end %}
 </body>

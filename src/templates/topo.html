@@ -156,9 +156,6 @@
 <div class="row">
 	<ul id="widgetTabs" class="nav nav-tabs">
 		<li class="active">
-<!-- 			<a href="#workspaceWidget" data-toggle="tab" id="workspaceWidgetTab">
-				Workspace
-			</a> -->
 			<a href="#workspaceWidget" data-toggle="tab" id="workspaceWidgetTab">
 				Workspace
 			</a>
@@ -166,14 +163,10 @@
 	</ul>
 
 	<div class="save-widget" id="saveWidget">
-
 		<div class="input-group" id="canvasButton"> 
-<!-- 			<button class="btn btn-default" onclick="saveCanvas()" id="saveCanvasButton">debug</button>    -->
-			<button class="btn btn-default" onclick="inputWidgetName()" id="widgetButton">Widget</button>    
+			<button class="btn btn-default" data-toggle="modal" data-target="#widgetModal">Widget</button>
 		</div>
 	</div>
-
-
 </div>
 
 <div class="row">
@@ -186,16 +179,9 @@
 	</div>
 </div>
 
-<!-- <div class="jtk-demo-main"> -->
-
-<!-- demo -->
-<!--             <div class="jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas" id="myCanvas"></div> -->
-<!-- /demo -->
-
-<!-- </div> -->
 
 
-
+<script src="../static/js/jquery.amaran.js"></script>
 <script src="../static/js/nodes.js"></script>
 <script src="../static/js/jsplumb.min.js"></script>
 <script src="../static/js/demo.js"></script>
@@ -282,11 +268,50 @@
                 <h4 class="modal-title" id="outputModalLabel"></h4>
             </div>
             <div class="modal-body" id="outputModalBody"></div>
-<!--             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-            </div> -->
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
+</div>
+
+
+<div class="modal fade" id="widgetModal" tabindex="-1" role="dialog" aria-labelledby="widgetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="widgetModalLabel">Widget</h4>
+            </div>
+            <div class="modal-body" id="widgetModalBody">
+
+            	<form class="form-horizontal" role="form">
+				  <div class="form-group">
+				    <label class="col-sm-2 control-label">Name</label>
+				    <div class="col-sm-8">
+				      <input class="form-control" id="widgetModalInputName" type="text" placeholder="Widget Name">
+				    </div>
+				  </div>
+
+				  <div class="form-group">
+				    <label class="col-sm-2 control-label">Description</label>
+				    <div class="col-sm-8">
+				    	<textarea class="form-control" rows="3" placeholder="Widget Description" id="widgetModalInputDescription"></textarea>
+				    </div>
+				  </div>
+
+				  <div class="form-group">
+				  	<label class="col-sm-2 control-label">Outputs</label>
+				    <div class="col-sm-8" id="widgetModalCheckbox">
+
+				    </div>
+				  </div>
+            	</form>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCanvas()">Save</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
 </div>
 
 {% end %}

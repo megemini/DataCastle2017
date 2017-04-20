@@ -32,6 +32,12 @@
     cursor: pointer;
 }
 
+.canvas-button {
+    position: absolute;
+    right: 24px;
+    top: 50px;
+}
+
 /*TODO: Z-INDEX!!!*/
 .endpointSourceLabel {
 /*    background-color: white;

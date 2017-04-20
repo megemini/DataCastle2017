@@ -224,9 +224,9 @@ function initJsPlumb(container) {
         // var state = instance.toggleTargetEnabled(targetDiv);
         // this.innerHTML = (state ? "disable" : "enable");
         // jsPlumb[state ? "removeClass" : "addClass"](targetDiv, "element-disabled");
-        alert("Node closed! Current node id is " + currentNodeId)
+        // alert("Node closed! Current node id is " + currentNodeId)
+        $.amaran({content: {color: COLORALERT.INFO, message: "Node removed! Current node id is " + currentNodeId, position: 'bottom right'}, inEffect: "slideRight"})
 
-        
         // delete var
         pushDelVar(getNodeById(currentWidgetId, toId)) // use currentWidgetId, because it is user's action, so, it must be fore-end
 
@@ -337,7 +337,9 @@ var initConnection = function (instance, connection) {
 
 // TODO: show connection info
 var showConn = function (conn) {
-    alert(conn.label)
+    // alert(conn.label)
+    $.amaran({content: {color: COLORALERT.INFO, message: conn.label, position: 'bottom right'}, inEffect: "slideRight"})
+
     // alert("show connection info")
     console.log("connection info: ", conn);
     console.log("Connect output: ", conn.component.source)

@@ -24,6 +24,10 @@ var COLORNODE = {
     "Keras"       : "rgba(208,0,0,1)",
 }
 
+var COLORALERT = {
+    INFO    : "rgba(76,175,80,1)",
+    ALERT   : "rgba(208,0,0,1)",
+}
 
 var runNodesList = []
 var runNodeMessage = []
@@ -55,6 +59,7 @@ function moveNodes() {
 
 function run() {
     // alert("runrunrunrunrunrunrunrunrunrunrunrunrunrun")
+    $.amaran({content: {color: COLORALERT.INFO, message: 'Running!', position: 'bottom right'}, inEffect: "slideRight"})
 
     // TODO : OK!: test for down side nodes idle
 
@@ -74,7 +79,9 @@ function runFlow() {
 
     // 0. check current node to run
     if (currentNodeId == null) {
-        alert("Please choose a node!")
+        // alert("Please choose a node!")
+        $.amaran({content: {color: COLORALERT.ALERT, message: 'Please choose a node!', position: 'bottom right'}, inEffect: "slideRight"})
+
         runFlowDone()
         return true
     }
@@ -98,7 +105,8 @@ function runFlow() {
     if (!enqueueFlag) {
         showNodeInfo(node)
         runFlowDone()
-        alert("Some nodes need inputs! Please check!")
+        // alert("Some nodes need inputs! Please check!")
+        $.amaran({content: {color: COLORALERT.ALERT, message: 'Some nodes need inputs! Please check!', position: 'bottom right'}, inEffect: "slideRight"})
         return true
     }
 
@@ -564,8 +572,16 @@ function addWidgetToList(widget) {
 }
 
 function resetCurrentWidget() {
+
+    for (var i = 0; i < widgetList[currentWidgetId].nodes.length; i++) {
+        delNodeFromWidget(widgetList[currentWidgetId].nodes[i])
+    }
+
     widgetList[currentWidgetId].nodes = {}
     widgetList[currentWidgetId].conns = {}
+
+
+    
 }
 
 // when enter a new widget, then add to list!
@@ -606,8 +622,27 @@ function delNodeFromWidget(widgetId, nodeId) {
     console.log(currentWidgetId)
     console.log(currentNodeId)
 
+    var node = widgetList[widgetId].nodes[nodeId]
+
+    if (node.type == "widget") {
+        var widgetIdFromNodeId = getWidgetIdFromNodeId(node.id)
+        if (widgetList[widgetIdFromNodeId].instance != undefined || widgetList[widgetIdFromNodeId].instance != null) {
+
+            closeTab(widgetIdFromNodeId)
+        }
+        
+        delWidgetFromList(widgetIdFromNodeId)
+        
+    }
+
+
+    delete node
+
+    console.log("remove node!!!!!")
+
     widgetList[widgetId].nodes[nodeId] = null
     delete widgetList[widgetId].nodes[nodeId]
+
 }
 
 function addConnToWidget(widgetId, conn) {
@@ -650,7 +685,11 @@ function getWidgetById(widgetId) {
 }
 
 // TODO: save and construct widget in and like widget type list
-function saveWidget(widgetName) {
+function saveWidget(widgetDict) {
+
+    var widgetName = widgetDict.widgetName
+    var widgetDescription = widgetDict.widgetDescription
+    var widgetOutput = widgetDict.outputList
 
     // 0. get widget name
     var widgetId = getPureString(widgetName)
@@ -704,14 +743,14 @@ function saveWidget(widgetName) {
 
         // outputs
         // push output
-        for (var i = 0; i < node.output.default.length; i++) {
-            newWidgetType.outputs.push({
-                name: node.name + "_" + node.output.name[i],
-                type: node.output.type[i],
-                node: nodeId,
-                index: i,
-            })
-        }
+        // for (var i = 0; i < node.output.default.length; i++) {
+        //     newWidgetType.outputs.push({
+        //         name: node.name + "_" + node.output.name[i],
+        //         type: node.output.type[i],
+        //         node: nodeId,
+        //         index: i,
+        //     })
+        // }
 
         // conns
         // 3. get up connections, if has connection then (4), if not then (5)
@@ -752,6 +791,31 @@ function saveWidget(widgetName) {
             }
         }
     }
+
+
+    for (var i = 0; i < widgetOutput.length; i++) {
+        var outputCheck = widgetOutput[i]
+        var node = getNodeById(currentWidgetId, outputCheck.nodeId)
+        
+        newWidgetType.outputs.push({
+            name: node.name + "_" + node.output.name[outputCheck.outputIndex],
+            type: node.output.type[outputCheck.outputIndex],
+            node: outputCheck.nodeId,
+            index: outputCheck.outputIndex,
+        })
+
+    }
+
+
+    // for (var i = 0; i < node.output.default.length; i++) {
+    //     newWidgetType.outputs.push({
+    //         name: node.name + "_" + node.output.name[i],
+    //         type: node.output.type[i],
+    //         node: nodeId,
+    //         index: i,
+    //     })
+    // }
+
 
     newWidgetType.inputs.push(inputNull)
     newWidgetType.inputs.push(inputNot)
@@ -822,7 +886,7 @@ function saveWidget(widgetName) {
 
     var newNodeType = {
             display: widgetName, 
-            description: widgetName,
+            description: widgetDescription,
             type: "widget",
             content: {
                 // 1. basic infomation, from user edit
@@ -861,7 +925,9 @@ function saveWidget(widgetName) {
 
 
     // TODO: change all alert!!!
-    alert("Widget added!")
+    // alert("Widget added!")
+    $.amaran({content: {color: COLORALERT.INFO, message: 'Widget added!', position: 'bottom right'}, inEffect: "slideRight"})
+
 
     return
 }
@@ -1029,6 +1095,28 @@ function enterWidget(widgetId, newCanvas) {
     console.log(window.instance.getContainer())
 }
 
+function closeTab(widgetId) {
+    var sourceWidgetId = widgetList[widgetId].sourceWidgetId
+
+    var l = getTabIdFromWidgetId(widgetId)
+    $("#" + l).hide()
+
+
+    // jsplumbUtils.emptyCanvas(widgetList[widgetId].instance)
+
+    // widgetList[widgetId].instance = null
+    // widgetList[widgetId].container = null
+
+
+    // console.log("close tab enter widget")
+
+
+
+    enterWidget(sourceWidgetId, false)
+
+    $('#widgetTabs a[href=#' + sourceWidgetId + ']').tab('show')
+}
+
 function drawWidgetNodes(widget) {
 
     // TODO: draw nodes
@@ -1184,26 +1272,27 @@ function enterWidgetFromNode(node) {
     // 1. create tab/canvas
     // 1.1 create tab
     var h = getWidgetIdFromNodeId(node.id)
+    var tabId = getTabIdFromWidgetId(h)
 
     var widget = getWidgetById(h)
     if (widget.container != null) {
 
         console.log(widget.container)
 
+        $("#" + tabId).show()
         $('#widgetTabs a[href=#' + h + ']').tab('show')
         return 
     }
 
-    // 2.
+    // 1.2.
     var l = document.createElement("li")
-    var tabId = getTabIdFromWidgetId(h)
     l.innerHTML =  "<a href='#" + h + "' data-toggle='tab' id='" + tabId + "'>"  + node.name + "</a> "
 
     $("#widgetTabs").append(l)
 
     bindTab(tabId)
     
-    // 1.2 create content
+    // 1.3 create content
     var c = getCanvasIdFromWidgetId(h)
     var d = document.createElement("div")
     d.className = "tab-pane fade in active"
@@ -1212,6 +1301,21 @@ function enterWidgetFromNode(node) {
         "<div class='jtk-demo-canvas canvas-wide source-target-demo jtk-surface jtk-surface-nopan canvas' id='" +
         c + "'></div></div>" 
     $("#widgetTabContent").append(d)
+
+    // 1.4 buttons
+    var buttonsDiv = document.createElement("div")
+    buttonsDiv.className = "canvas-button"
+
+    var closeButton = document.createElement("button")
+    closeButton.className = "btn btn-default btn-xs"
+    closeButton.onclick = function () {
+        closeTab(currentWidgetId)
+    }
+    $(closeButton).text("X")
+
+    $(buttonsDiv).append(closeButton)
+
+    $(d).append(buttonsDiv)
 
     // 2. active tab
     $('#widgetTabs a[href=#' + h + ']').tab('show')
@@ -1609,7 +1713,38 @@ function showHelp(mainType, subType) {
 
 }
 
+function bindWidgetModal() {
 
+    $('#widgetModal').on('show.bs.modal', function () {
+        $('#widgetModalInputName').val("")
+        $('#widgetModalInputDescription').val("")
+        $('#widgetModalCheckbox').empty()
+
+        for (var key in widgetList[currentWidgetId].nodes) {
+            var node = widgetList[currentWidgetId].nodes[key]
+
+
+            // outputs
+            // push output
+            for (var i = 0; i < node.output.default.length; i++) {
+                var dc = document.createElement("div")
+                dc.className = "checkbox"
+
+                var cl = document.createElement("label")
+                cl.innerHTML = "<input type=\"checkbox\" checked node-id=\"" + node.id + "\" node-output-index=\"" + i + "\">" + node.name + "_" + node.output.name[i],
+
+                dc.append(cl)
+
+                $('#widgetModalCheckbox').append(dc)
+            }
+
+        }
+    })
+
+    $('#widgetModal').on('hidden.bs.modal', function () {
+
+    })
+}
 function bindOutputModal() {
 
     $('#outputModal').on('show.bs.modal', function () {
@@ -1712,6 +1847,7 @@ function bindTab(tabId) {
 
 }
 
+// @deprecated
 function inputWidgetName() {
 
     $("#saveWidget").empty()
@@ -1727,6 +1863,7 @@ function inputWidgetName() {
     console.log(widgetList)
 }
 
+// @deprecated
 function cancelWidget() {
     $("#saveWidget").empty()
 
@@ -1735,6 +1872,7 @@ function cancelWidget() {
                 </div>")
 }
 
+// @deprecated
 function confirmWidget() {
     // alert($("#widgetDivInput").val())
 
@@ -1748,6 +1886,37 @@ function confirmWidget() {
                 </div>")
 }
 
+function saveCanvas() {
+    var widgetDict = {}
+
+    var outputList = []
+
+    var checkList = $("#widgetModalCheckbox input[type='checkbox']")
+
+    for (var i = 0; i < checkList.length; i++) {
+        var cb = checkList[i]
+        if (cb.checked) {
+            var output = {}
+            output.nodeId = $(cb).attr("node-id")
+            output.outputIndex = $(cb).attr("node-output-index")
+
+            outputList.push(output)
+        }
+    }
+
+    widgetDict.outputList = outputList
+    widgetDict.widgetName = $('#widgetModalInputName').val()
+    widgetDict.widgetDescription = $('#widgetModalInputDescription').val()
+
+
+    console.log("check box")
+    console.log(widgetDict)
+
+    $('#widgetModal').modal('hide')
+
+    saveWidget(widgetDict)
+
+}
 
 /////////////////////////////////////////////////////
 // websocket
@@ -1794,7 +1963,8 @@ $(document).ready(function() {
     // TODO: from node type list, generate node tree
 
 
-    // bind output modal
+    // bind modal
+    bindWidgetModal()
     bindOutputModal()
 
 });
