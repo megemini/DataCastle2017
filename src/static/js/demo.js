@@ -338,7 +338,7 @@ var initConnection = function (instance, connection) {
 // TODO: show connection info
 var showConn = function (conn) {
     // alert(conn.label)
-    $.amaran({content: {color: COLORALERT.INFO, message: conn.label, position: 'bottom right'}, inEffect: "slideRight"})
+    // $.amaran({content: {color: COLORALERT.INFO, message: conn.label, position: 'bottom right'}, inEffect: "slideRight"})
 
     // alert("show connection info")
     console.log("connection info: ", conn);

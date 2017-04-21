@@ -159,7 +159,7 @@ var nodeTypeList = {
                     name: ["data", "by"],
                     type: ["Data", "String"],
                     count: 1,
-                    default: ["None"],
+                    default: ["''"],
                     value: null,
                 },
                 output:{

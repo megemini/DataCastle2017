@@ -45,6 +45,10 @@ var currentWidgetIdRunning = null // back-end running widget
 var currentInstanceRunning = null
 
 
+var defaultNodeId = null
+var defaultWidgetId = null
+var defaultTabId = null
+
 /////////////////////////////////////////////////////////////////
 
 function moveNodes() {
@@ -410,10 +414,14 @@ function runOneStepDone(message) {
 
         if (status == "ok") {
             setNodeRunStatus(node, STATUS.DONE)
+
+            $.amaran({content: {color: COLORALERT.INFO, message: 'Run ' + node.name + ' fine!', position: 'bottom right'}, inEffect: "slideRight"})
         }
         else if (status == "error") {
             setDownNodesIdle(node.widgetId, node.id)
             runFlowDone()
+
+            $.amaran({content: {color: COLORALERT.ALERT, message: 'Run ' + node.name + ' error!', position: 'bottom right'}, inEffect: "slideRight"})
         }
     }
 
@@ -543,6 +551,10 @@ function getCanvasIdFromWidgetId(widgetId) {
 
 function getTabIdFromWidgetId(widgetId) {
     return widgetId + "Tab"
+}
+
+function getTabCloseIdFromTabId(tabId) {
+    return tabId + "Close"
 }
 
 function getWidgetIdFromTabId(tabId) {
@@ -1096,6 +1108,8 @@ function enterWidget(widgetId, newCanvas) {
 }
 
 function closeTab(widgetId) {
+    if (widgetId == null) widgetId = currentWidgetId
+
     var sourceWidgetId = widgetList[widgetId].sourceWidgetId
 
     var l = getTabIdFromWidgetId(widgetId)
@@ -1273,6 +1287,7 @@ function enterWidgetFromNode(node) {
     // 1.1 create tab
     var h = getWidgetIdFromNodeId(node.id)
     var tabId = getTabIdFromWidgetId(h)
+    var tabCloseId = getTabCloseIdFromTabId(tabId)
 
     var widget = getWidgetById(h)
     if (widget.container != null) {
@@ -1287,6 +1302,7 @@ function enterWidgetFromNode(node) {
     // 1.2.
     var l = document.createElement("li")
     l.innerHTML =  "<a href='#" + h + "' data-toggle='tab' id='" + tabId + "'>"  + node.name + "</a> "
+        
 
     $("#widgetTabs").append(l)
 
@@ -1303,19 +1319,23 @@ function enterWidgetFromNode(node) {
     $("#widgetTabContent").append(d)
 
     // 1.4 buttons
-    var buttonsDiv = document.createElement("div")
-    buttonsDiv.className = "canvas-button"
+    // var buttonsDiv = document.createElement("div")
+    // buttonsDiv.className = "canvas-button"
 
-    var closeButton = document.createElement("button")
-    closeButton.className = "btn btn-default btn-xs"
-    closeButton.onclick = function () {
-        closeTab(currentWidgetId)
-    }
-    $(closeButton).text("X")
+    // var closeButton = document.createElement("button")
+    // closeButton.className = "btn btn-default btn-xs"
+    // closeButton.onclick = function () {
+    //     closeTab(currentWidgetId)
+    // }
+    // $(closeButton).text("X")
 
-    $(buttonsDiv).append(closeButton)
+    // $(buttonsDiv).append(closeButton)
 
-    $(d).append(buttonsDiv)
+    // $(d).append(buttonsDiv)
+
+    // $("#" + tabCloseId).onclick = function () {
+    //     closeTab(currentWidgetId)
+    // }
 
     // 2. active tab
     $('#widgetTabs a[href=#' + h + ']').tab('show')
@@ -1843,6 +1863,16 @@ function bindTab(tabId) {
 
       enterWidget(widgetId, false)
 
+      if (tabId !== defaultTabId) {
+        $("#" + tabId).append("<img src='../static/img/closetab.png' class='closeTab' onclick='closeTab(null)'>")
+      }
+
+    })
+
+    $("#" + tabId).on('hide.bs.tab', function (e) {
+
+        $("#" + tabId + " img").remove()
+
     })
 
 }
@@ -1942,17 +1972,17 @@ $(document).ready(function() {
     // 1. init widget/canvas/jsplumb
     // All from a pseudo-node "workspace"! 
     // TODO: refactor?!
-    var defaultNodeId = "workspace"
-    var defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
+    defaultNodeId = "workspace"
+    defaultWidgetId = getWidgetIdFromNodeId(defaultNodeId)
     var canvasId = getCanvasIdFromWidgetId(defaultWidgetId)
-    var tabId = getTabIdFromWidgetId(defaultWidgetId)
+    defaultTabId = getTabIdFromWidgetId(defaultWidgetId)
     // 2. init widget of workspace
     initWidgetToList(null, null, defaultWidgetId)
 
     enterWidget(defaultWidgetId, true)
 
     // bind tab
-    bindTab(tabId)
+    bindTab(defaultTabId)
 
 
     // 3. bind events
@@ -2027,9 +2057,12 @@ function parseMessage(message) {
         }
 
         // node.slideDown();
+        $.amaran({content: {color: COLORALERT.INFO, message: 'Script returned!', position: 'bottom right'}, inEffect: "slideRight"})
+
     }
     else if (mChannel == "flow") {
         runOneStepDone(message)
+        
     }
    
 }
