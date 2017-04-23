@@ -37,6 +37,9 @@ class Application(tornado.web.Application):
 
 
 class HomeHandler(tornado.web.RequestHandler):
+    """
+    Main page handler
+    """
     def get(self):
 
         # TODO: manage session/kernel id
@@ -46,7 +49,7 @@ class HomeHandler(tornado.web.RequestHandler):
 
 class RunCommandHandler(tornado.web.RequestHandler):
     """
-
+    Command handler
     """
     def handle_response(self, response):
         logging.info("response from jupyter of command interrupt")
@@ -73,7 +76,6 @@ class RunCommandHandler(tornado.web.RequestHandler):
                 url="http://localhost:" + jport +"/api/kernels/"+ kernel_id +"/interrupt", 
                 method="POST",
                 body="")
-                # allow_nonstandard_methods=True)
 
             logging.info(request)
 

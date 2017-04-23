@@ -13,19 +13,18 @@ from tornado import gen
 from tornado.options import define, options
 
 from util import fileutil, scriptutil
-# from func import *
-# import func
+
 
 define("jport", default=8009, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
-# define("kernel-id", default=None, help="The id of an existing kernel for connecting and executing code. If not specified, a new kernel will be created.")
 
 
-# Ref:
-# jupyter kernel gateway python demo
-# tornado Chat demo 
-# http://www.jianshu.com/p/6e890428744c
 class RunSocketHandler(tornado.websocket.WebSocketHandler):
+    """
+    Socket handler
+
+    TODO: parallel pool
+    """
     waiters = set()
     cache = []
     cache_size = 200
@@ -44,7 +43,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         # TODO: init with jupyter(import/session management)
-        # TODO: close ws and shutdown kernel from jupyter?!
+        # TODO: close ws and shutdown kernel from jupyter
         # self.ws.close()
         RunSocketHandler.waiters.remove(self)
 
@@ -93,14 +92,6 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
             run_results["kernelId"] = parsed["kernelId"]
 
         
-
-        # ws_temp = None     
-        # if self.ws == None:
-        #     ws_temp = yield self.get_jupyter_ws()
-
-        # if ws_temp[2] == True:
-        #     run_results["kernelId"] = ws_temp[0]
-
         # 2. run script from web
         # TODO: run flow should use js script list one-by-one
         # TODO: compare id, then return
@@ -123,18 +114,6 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
 
         run_results["status"] = run_status and "ok" or "error"
-        # logging.info("type(run_results content) is ")
-        # logging.info(run_temp)
-        # logging.info(type(run_temp))
-
-        # run_results["status"] = run_temp[2]
-
-        # if run_temp[1] == "image":
-        #     run_results["content"] = tornado.escape.to_basestring(
-        #         self.render_string("image.html", results=(run_temp[0])))
-        # else:
-        #     run_results["content"] = tornado.escape.to_basestring(
-        #         self.render_string("console.html", results=(run_temp[0])))
 
         RunSocketHandler.update_cache(run_results)
         RunSocketHandler.send_updates(run_results)
@@ -196,78 +175,59 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         yield self.run_script(scriptutil.init_script(), "init")
 
 
-        # TEST!!!
+        # TODO: temp for test!!!
         RunSocketHandler.kernel_id = self.kernel_id
 
         raise gen.Return([self.kernel_id, "text", True])
 
     @gen.coroutine
-    def run_flow(self, flow):
+    def run_flow(self, content):
         """
         Input message structure:
-        var flow = {
-            "id": uid,
-            "channel": "flow",
-            "content": {        
-                node: node.id,
-                module: node.module,
-                func: node.func,
-                input: node.input.value,
-                output: node.output.default,
-            },
-        }
 
-        Output message structure:
-        var output = {
-            "id": uid,
-            "channel": "flow",
-            "status": True/False
-            "content": {
-                output1: xxxx, # for outputs
-                output2: xxxx,
+            var flow = {
+                "id": uid,
+                "kernelId": kernelId,
+                "channel": "flow",
+                "content": {        
+                    widget: node.widgetId,
+                    node: node.id,
+                    module: node.module,
+                    func: node.func,
+                    input: node.input.valuePair,
+                    output: node.output.default,
+                    delete: runDelVarList,
+                },
+            }
 
-                output: xxxx, # for script
-                func: xxxx, # for func
-            },
-        }
+            Output message structure:
+            var output = {
+                "id": uid,
+                "kernelId": kernelId,
+                "channel": "flow",
+                "status": True/False
+                "content": {
+                    output1: xxxx, # for outputs
+                    output2: xxxx,
+                    output: xxxx, # for script
+                    func: xxxx, # for func
+                },
+            }
         """
 
         logging.info("Running flow")
-        logging.info(flow)
+        logging.info(content)
         logging.info('Sending message ')
 
-        # TODO: run flow util stop/end
-        # l = len(shell)
-        # while l > 0:
-        #     l = l -1
-        #     yield True
-
-
-        # Get inputs from flow
+        # TODO: run flow content util stop/end
+        # Get inputs from flow content
         # ALL inputs are STRING!!!
 
-        # file_path = fileutil.get_path("user_info_train.txt")
-
-        # head_user_info = "['id', 'gender', 'job', 'education', 'marital', 'household']"
-
-        # # 
-        # logging.info(file_path)
-        # logging.info(data.get_csv(file_path))
-
-        # inputs = {
-        #     'file': {'value': file_path, 'type': 's'}, 
-        #     # 'names': {'value': head_user_info, 'type': 'o'}
-        #     }
-
-        # logging.info("data get csv")
-        # logging.info(func.data.get_csv)
-
-        # output = "output_csv_1"
-        s_module = flow["module"]
-        s_func = flow["func"]
-        s_input = flow["input"]
-        s_output = flow["output"]
-        s_delete = flow["delete"]
+        s_module = content["module"]
+        s_func = content["func"]
+        s_input = content["input"]
+        s_output = content["output"]
+        s_delete = content["delete"]
 
         # 1. delete vars
         if len(s_delete) > 0: 
@@ -275,7 +235,6 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         yield self.run_script(scriptutil.get_delete_script(s_output), "func")
 
-        # f1 = scriptutil.get_script(data.get_csv, inputs, output)
 
         # 2. run func
         script = scriptutil.get_script(s_module, s_func, s_input, s_output)
@@ -299,6 +258,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
 
     def assemble_result(self, result, name):
+        """
+        Assembel result from script
+        """
 
         content = None
 
@@ -355,12 +317,9 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
         except Exception as e:
             raise gen.Return(self.assemble_result(["Write jupyter message error!", "text", False], name))
 
-
-
         # Read all messages from jupyter, 
         # and find the response of this msg_id to return
         while 1:
-            # try:
             msg = yield self.ws.read_message()
 
             logging.info("read msg!!!!!!!!!!!")
@@ -427,8 +386,7 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("msg['content']['payload']:")
                     raise gen.Return(self.assemble_result(["Process: OK!", "text", True], name))
 
-
-                    # TODO: msg_type of assign a var!!!!!!!!!!!!!!
+                    # TODO: msg_type of assign a var!
 
 
 

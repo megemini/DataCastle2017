@@ -176,7 +176,6 @@ function getRunQueueFromNode(node) {
         // if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
         //     upNodeList = upInfo[node.id].nodes
         // }
-        // for (var i = node.input.value.length - 1; i >= 0; i--) {
         for (var i = 0; i < node.input.value.length; i++) {
             var input = node.input.value[i]
             if (!(typeof input == "undefined" || input == null)) {
@@ -184,12 +183,6 @@ function getRunQueueFromNode(node) {
                 upNodeList.push(input)
             }
         }
-     
-
-        // console.log("shift node is ")
-        // console.log(n)
-        // console.log("uplist ")
-        // console.log(upList)
 
         // check whether all inputs feeded
         if (upNodeList.length != node.input.count) {
@@ -197,46 +190,13 @@ function getRunQueueFromNode(node) {
             runQueue = []
             break
         }
-        else { // if inputs OK, then assemble inputs
-            // var endpointsList = jsplumbUtils.getNodeEndpoints(n.name)
-            // for (var i = endpointsList.length - 1; i >= 0; i--) {
-            //     console.log("endpoint is ")
-            //     console.log(endpointsList[i].inputJsName)
-            //     console.log(endpointsList[i])
-            // }
-            // var inputAssembleList = {}
+        else { 
+            // if inputs OK, then assemble inputs
 
             // 1.1 get pair from endpoint
 
-            // @deprecated
-            // var outInPair = jsplumbUtils.getOutInPairsFromEps(currentInstanceRunning, node.id)
-            // var upInputList = outInPair.upInputList
-            // var upOutputList = outInPair.upOutputList
-            // var upInputList = []
-            // var upOutputList = []
-            // if (!(typeof upInfo[node.id] == "undefined" || upInfo[node.id] == null)) {
-            //     upInputList = upInfo[node.id].upInputList
-            //     upOutputList = upInfo[node.id].upOutputList
-            // }
-             
+            // 1.2 assemble input output
 
-            // var lenIn = upInputList.length
-            // var lenOut = upOutputList.length
-
-            // if (lenIn != lenOut) {
-            //     enqueueFlag = false
-            //     runQueue = []
-            //     break
-            // }
-
-            // // 1.2 assemble input output
-            // for (var i = lenIn - 1; i >= 0; i--) {
-            //     // inputAssembleList[i] = upInputList[i] + "=" + upOutputList[i]
-            //     inputAssembleList[upInputList[i]] = upOutputList[i]
-            // }
-
-            // console.log("inputAssembleList node")
-            // console.log(inputAssembleList)
 
             var inputAssembleList = {}
             // 1. get pair from input, and push to run queue
@@ -297,6 +257,8 @@ function stopFlow() {
 
         // . all done
         runFlowDone()
+
+        $.amaran({content: {color: COLORALERT.ALERT, message: 'Running stoped!', position: 'bottom right'}, inEffect: "slideRight"})
 
     }
 
@@ -385,7 +347,7 @@ function runOneStepDone(message) {
 
     var node = runNodesList.shift()
 
-    if (message != null) {
+    if (message != null && node !== undefined && node !== null) {
         var status = message.status
 
         // TODO:GET AND SET FIRST OUTPUT VALUE
@@ -885,7 +847,7 @@ function saveWidget(widgetDict) {
     var newNodeOutput = {}
     newNodeOutput.name = []
     newNodeOutput.type = []
-    // for (var i = newWidgetType.outputs.length - 1; i >= 0; i--) {
+
     for (var i = 0; i < newWidgetType.outputs.length; i++) {
         var output = newWidgetType.outputs[i]
         newNodeOutput.name.push(output.name)
@@ -1487,6 +1449,8 @@ function showNodeInfo(node) {
 }
 
 function showDescription(node) {
+    if (node === undefined || node === null) return
+
     // TODO:func-description
     $("#func-description").empty()
     var d = document.createElement("pre")
@@ -1500,7 +1464,6 @@ function showDescription(node) {
 function showInputs(node) {
     $("#func-inputs").empty()
 
-    // for (var i = node.input.default.length - 1; i >= 0; i--) {
     for (var i = 0; i < node.input.default.length; i++) {
         var index = node.input.count + i
 
