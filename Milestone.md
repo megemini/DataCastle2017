@@ -84,3 +84,7 @@
 - [ ] Clear node/widget after delete
 - [ ] Close tab
 - [x] Alert js
+
+## 2017/4/24
+- [x] Run all nodes from current widget.
+- [ ] Node balance... 

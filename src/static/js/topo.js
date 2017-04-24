@@ -81,56 +81,69 @@ function run() {
 
 function runFlow() {
 
+    var node = {}
     // 0. check current node to run
     if (currentNodeId == null) {
         // alert("Please choose a node!")
-        $.amaran({content: {color: COLORALERT.ALERT, message: 'Please choose a node!', position: 'bottom right'}, inEffect: "slideRight"})
+        // $.amaran({content: {color: COLORALERT.ALERT, message: 'Please choose a node!', position: 'bottom right'}, inEffect: "slideRight"})
 
-        runFlowDone()
-        return true
+        // runFlowDone()
+        // return true
+
+        // if current node is null, then run all with .
+        node.type = "widget"
+        node.id = getNodeIdFromWidgetId(currentWidgetId)
+    }
+    else {
+        // TODO: unshift up nodes until all is start node!!!
+        node = getNodeById(currentWidgetId, currentNodeId)
+
+        // 1. this node is done, then just show the info
+        if (node.status == STATUS.DONE) {
+            showNodeInfo(node)
+            runFlowDone()
+            return true
+        }
     }
 
-    // TODO: unshift up nodes until all is start node!!!
-    var node = getNodeById(currentWidgetId, currentNodeId)
-
-    // 1. this node is done, then just show the info
-    if (node.status == STATUS.DONE) {
-        showNodeInfo(node)
-        runFlowDone()
-        return true
-    }
 
     // TODO : OK!: can not run widget!!!
-
 
     // get all node, from widget to widget!
     var enqueueFlag = getRunQueueFromNode(node)
 
-    if (!enqueueFlag) {
-        showNodeInfo(node)
+    if (runNodesList.length == 0) {
         runFlowDone()
-        // alert("Some nodes need inputs! Please check!")
-        $.amaran({content: {color: COLORALERT.ALERT, message: 'Some nodes need inputs! Please check!', position: 'bottom right'}, inEffect: "slideRight"})
-        return true
+    }
+    else {
+
+        if (!enqueueFlag) {
+            showNodeInfo(runNodesList[0])
+            runFlowDone()
+            // alert("Some nodes need inputs! Please check!")
+            $.amaran({content: {color: COLORALERT.ALERT, message: 'Some nodes need inputs! Please check!', position: 'bottom right'}, inEffect: "slideRight"})
+            return true
+        }
+
+        console.log("run nodes list is ")
+        console.log(runNodesList)
+
+
+        // 2.2 get enqueue list then change icon to stop
+        $("#run_button_img").attr("src", "../static/img/stop.png"); 
+
+        // 2.3 change nodes color for wait
+        for (var i = runNodesList.length - 1; i >= 0; i--) {
+            setNodeRunStatus(runNodesList[i], STATUS.WAIT)
+        }
+
+
+        // 2.4 first run del var/import
+        runDelVar()
+        // 2.5 run nodes upside-down, one-by-one
+        runOneStep(runNodesList[0])
     }
 
-    console.log("run nodes list is ")
-    console.log(runNodesList)
-
-
-    // 2.2 get enqueue list then change icon to stop
-    $("#run_button_img").attr("src", "../static/img/stop.png"); 
-
-    // 2.3 change nodes color for wait
-    for (var i = runNodesList.length - 1; i >= 0; i--) {
-        setNodeRunStatus(runNodesList[i], STATUS.WAIT)
-    }
-
-
-    // 2.4 first run del var/import
-    runDelVar()
-    // 2.5 run nodes upside-down, one-by-one
-    runOneStep(runNodesList[0])
     
 }
 
@@ -377,7 +390,7 @@ function runOneStepDone(message) {
         if (status == "ok") {
             setNodeRunStatus(node, STATUS.DONE)
 
-            $.amaran({content: {color: COLORALERT.INFO, message: 'Run ' + node.name + ' fine!', position: 'bottom right'}, inEffect: "slideRight"})
+            $.amaran({content: {color: COLORALERT.INFO, message: 'Run ' + node.name + ' done!', position: 'bottom right'}, inEffect: "slideRight"})
         }
         else if (status == "error") {
             setDownNodesIdle(node.widgetId, node.id)
@@ -411,6 +424,8 @@ function runFlowDone() {
     }
 
     runNodesList = []
+
+    $.amaran({content: {color: COLORALERT.INFO, message: 'Running all done!', position: 'bottom right'}, inEffect: "slideRight"})
 }
 
 function setNodeRunStatus(node, status) {
@@ -1442,6 +1457,8 @@ function getNodeByName(widgetId, nodeName) {
 }
 
 function showNodeInfo(node) {
+
+    if (node === undefined || node === null || node.input === undefined || node.input === null || node.output === undefined || node.output === null) return
 
     showDescription(node)
     showInputs(node)

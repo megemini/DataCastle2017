@@ -114,6 +114,24 @@ function initJsPlumb(container) {
     });
 
 
+
+    // click node event
+    instance.on($("#" + container), "click", function (e) {
+        // alert("container clicked")
+
+        console.log("canvas clicked")
+        // console.log(e)
+        // console.log(getCanvasIdFromWidgetId(currentWidgetId))
+
+        if (e.srcElement.id == getCanvasIdFromWidgetId(currentWidgetId)) {
+
+            setCurrentNode(null)
+        }
+
+        jsPlumbUtil.consume(e);
+
+    });
+
     // TODO: click event -> 1.click "x" close node 2.click node show info
     // // click listener for the enable/disable link in the source box (the blue one).
 
