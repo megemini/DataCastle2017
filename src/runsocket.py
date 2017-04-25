@@ -14,6 +14,7 @@ from tornado.options import define, options
 
 from util import fileutil, scriptutil
 
+from runtask import Runtask
 
 define("jport", default=8009, help="jupyter kernel gateway port", type=int)
 define("lang", default="python", help="The kernel language if a new kernel will be created.")
@@ -103,6 +104,10 @@ class RunSocketHandler(tornado.websocket.WebSocketHandler):
 
         elif channel == "script":
             run_list = yield self.run_script(parsed["content"], "output")
+
+        elif channel == "graph":
+            Runtask(parsed["content"])
+            return 
 
         # status default is True
         logging.info(run_list)

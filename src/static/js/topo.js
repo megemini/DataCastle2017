@@ -80,6 +80,8 @@ function run() {
 
 
 function runFlow() {
+    // _2.5 TODO: test for node parallel task
+    runGraph()
 
     var node = {}
     // 0. check current node to run
@@ -90,7 +92,7 @@ function runFlow() {
         // runFlowDone()
         // return true
 
-        // if current node is null, then run all with .
+        // if current node is null, then run all with pseudo node.
         node.type = "widget"
         node.id = getNodeIdFromWidgetId(currentWidgetId)
     }
@@ -140,6 +142,7 @@ function runFlow() {
 
         // 2.4 first run del var/import
         runDelVar()
+
         // 2.5 run nodes upside-down, one-by-one
         runOneStep(runNodesList[0])
     }
@@ -300,6 +303,82 @@ function runDelVar() {
     // TODO: run del var as script
 }
 
+function getAssembleId(widgetId, nodeId) {
+    return widgetId + "_" + nodeId
+}
+
+function getIdsFromAssembleId(id) {
+    return id.split("_")
+}
+
+function runGraph() {
+    // TODO: go here PARALLEL!!!
+    return 
+
+    // TODO: pseudo node
+    var node = {}
+    node.type = "widget"
+    node.id = getNodeIdFromWidgetId(currentWidgetId)
+    var nodes = getAllNodes(node, [])
+    console.log("run graph")
+    console.log(nodes)
+
+    var nodesId = []
+    var edges = []
+
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i]
+        var nodeAssembleId = getAssembleId(node.widgetId, node.id)
+
+        nodesId.push(nodeAssembleId)
+
+        for (var j = 0; j < node.input.value.length; j++) {
+            if (node.input.value[j] !== null && node.input.value[j] !== undefined) {
+                edges.push([getAssembleId(node.input.value[j].widgetId, node.input.value[j].nodeId), nodeAssembleId])
+
+            }
+        }
+    }    
+
+    console.log(nodesId)
+    console.log(edges)
+    console.log(getIdsFromAssembleId(edges[0][0]))
+
+    var uid = getFlowId("testwidget", node.id)
+
+    var content = {
+            "nodesId": nodesId,
+            "edges": edges,
+        }
+
+    var flow = getScript(uid, "graph", content)
+
+    runNodeMessage[uid] = flow
+
+    // 4. send this message
+    var message = JSON.stringify(flow)
+    console.log("send graph")
+    updater.socket.send(message);
+
+}
+
+// TODO: 
+function getScript(uid, channel, content) {
+
+    var flow = {
+        "id": uid,
+        "kernelId": kernelId,
+        "channel": channel,
+        "content": content,
+    }
+
+    return flow
+}
+
+function getFlowId(widgetId, nodeId) {
+    return widgetId + nodeId + new Date().getTime()
+}
+
 function runOneStep(node) {
 
     // 0. if stop run, then return
@@ -327,7 +406,8 @@ function runOneStep(node) {
         delete: runDelVarList,
     }
 
-    var uid = node.widgetId + node.id + new Date().getTime()
+    // var uid = node.widgetId + node.id + new Date().getTime()
+    var uid = getFlowId(node.widgetId, node.id)
     // alert(uid)
 
     var flow = {

@@ -88,3 +88,9 @@
 ## 2017/4/24
 - [x] Run all nodes from current widget.
 - [ ] Node balance... 
+
+## 2017/4/27
+- [ ] DAG with NetworkX
+- [ ] Flow script refactor
+- [ ] Parallel tasks with ipyparallel, one user <--> one kernel <--> one client <--> multi engines
+- [ ] HDF5 or just dataframe 
