@@ -7,16 +7,20 @@
     * jquery
     * bootstrap
 * With dependency
+    * ipyparallel==6.0.2
     * jupyter-kernel-gateway==1.2.0
+    * Keras==2.0.3
     * matplotlib==1.5.3
+    * networkx==1.11
     * numpy==1.11.3
     * pandas==0.19.2
     * scikit-learn==0.18.1
     * scipy==0.18.1
     * seaborn==0.7.1
-    * tensorflow-gpu==1.0.0
+    * tensorflow==1.0.0
     * tornado==4.4.2
     * xgboost==0.6a2
+
 
 ## 2017/03/28
 - [x] Web <-> management server <-> Jupyter kernel gateway
