@@ -349,7 +349,34 @@ function runGraph() {
     var content = {
             "nodesId": nodesId,
             "edges": edges,
+            "nodes": {},
+            "delete": runDelVarList,
         }
+
+    for (var i = 0; i < nodesId.length; i++) {
+        var nodeAssembleId = nodesId[i]
+        var widgetIdnodeId = getIdsFromAssembleId(nodeAssembleId)
+        var node = getNodeById(widgetIdnodeId[0], widgetIdnodeId[1])
+        content["nodes"][nodeAssembleId] = {
+            widget: node.widgetId,
+            node: node.id,
+            module: node.module,
+            func: node.func,
+            input: node.input.valuePair,
+            output: node.output.default,
+        }
+    }
+
+
+    // content["nodes"] =  {
+    //     widget: node.widgetId,
+    //     node: node.id,
+    //     module: node.module,
+    //     func: node.func,
+    //     input: node.input.valuePair,
+    //     output: node.output.default,
+    //     delete: runDelVarList,
+    // }
 
     var flow = getScript(uid, "graph", content)
 
@@ -410,12 +437,14 @@ function runOneStep(node) {
     var uid = getFlowId(node.widgetId, node.id)
     // alert(uid)
 
-    var flow = {
-        "id": uid,
-        "kernelId": kernelId,
-        "channel": "flow",
-        "content": content,
-    }
+    // var flow = {
+    //     "id": uid,
+    //     "kernelId": kernelId,
+    //     "channel": "flow",
+    //     "content": content,
+    // }
+
+    var flow = getScript(uid, "flow", content)
 
     runNodeMessage[uid] = flow
 

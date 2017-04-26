@@ -103,4 +103,39 @@ def init_script():
 def init_script_import():
 	pass
 
+def init_parallel_script():
+	"""
+	Init jupyter import
+	"""
+	init_list = [
+		"import networkx as nx",
+		"import seaborn as sns",
+		"sns.set_style('whitegrid')",
+		"from ipyparallel import Client",
+		"rc = Client()",
+		"results = {}",
+		"lview = rc.load_balanced_view()",
+		"with rc[:].sync_imports():"
+		"	import numpy",
+		"	import pandas",
+		"	import matplotlib.pyplot",
+		"	import seaborn",
+		"	import xgboost",
+		"	import keras",
+		"	from sklearn.preprocessing import StandardScaler",
+		"	from sklearn.model_selection import train_test_split",
+		"	from sklearn.ensemble import RandomForestClassifier",
+		"	from sklearn.metrics import roc_auc_score",
+		"	from xgboost.core import Booster",
+		"	from keras.models import Sequential",
+		"	from keras.layers import Dense, Dropout, Flatten",
+		"	from keras.layers import Conv2D, MaxPooling2D",
+		"	from ipyparallel import Client",
+		"%px np = numpy",
+		"%px pd = pandas",
+		"%px plt = matplotlib.pyplot",
+		"%px xgb = xgboost",
+	]
+
+	return "\n".join(init_list)
 
