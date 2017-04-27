@@ -6,6 +6,8 @@
 
 """
 
+__all__ = ['show_hist', 'show_scatter', 'show_plot']
+
 def show_hist(data, bins=10, orientation='vertical'):
 	# df = pd.concat([dataX,dataY], axis=1)
 	# df.hist(bins=bins, orientation=orientation).get_figure()

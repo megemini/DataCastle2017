@@ -6,6 +6,8 @@
 
 """
 
+__all__ = ['cls_rfc', 'cls_xgb']
+
 def cls_rfc(X, y, n_estimators=10):
 	model = RandomForestClassifier(n_estimators=n_estimators)
 

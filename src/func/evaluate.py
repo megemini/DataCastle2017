@@ -6,7 +6,7 @@
 
 """
 
-
+__all__ = ['eva_predict', 'eva_predict_proba', 'eva_roc_auc_score']
 
 def eva_predict(model, X, threshold=0.5, batch_size=1, verbose=0):
 	

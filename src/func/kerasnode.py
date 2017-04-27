@@ -6,6 +6,8 @@
 
 """
 
+__all__ = ['get_sequential', 'add_dense', 'add_conv2D', 'add_dropout', 'add_maxPooling2D', 'add_flatten', 'set_compile', 'model_fit']
+
 def get_sequential():
 	return Sequential()
 
