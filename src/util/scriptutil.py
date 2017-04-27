@@ -10,6 +10,7 @@ sys.path.append('../')
 
 import logging
 import func
+import script
 
 from util import funcutil
 
@@ -56,20 +57,20 @@ def get_script(module_name, func_name, inputs, output):
 
 	logging.info(paras_input)
 
-	script = (
+	func_script = (
 		func_source + "\n" + # need move to init_script
 		paras_output + " = " + func_name + "(" + paras_input + ")" # not return output
 		# + "\n" + output
 		)
 
-	return script
+	return func_script
 
 def get_delete_script(delete):
-	script = ""
+	func_script = ""
 	for var in delete:
-		script = script + "if '" + var + "' in dir(): del " + var + "\n"
+		func_script = func_script + "if '" + var + "' in dir(): del " + var + "\n"
 	 
-	return script
+	return func_script
 
 
 def get_para_string(para):
@@ -103,16 +104,20 @@ def init_script():
 def init_script_import():
 	pass
 
-def init_parallel_script():
+def init_parallel_script(func_dict):
 	"""
-	Init jupyter import
+	Init jupyter parallel import
+	with funcs
+
 	"""
 	init_list = [
 		"import networkx as nx",
 		"import seaborn as sns",
 		"sns.set_style('whitegrid')",
 		"from ipyparallel import Client",
+		"dag = nx.DiGraph()",
 		"rc = Client()",
+		"jobs = {}",
 		"results = {}",
 		"lview = rc.load_balanced_view()",
 		"with rc[:].sync_imports():"
@@ -136,6 +141,20 @@ def init_parallel_script():
 		"%px plt = matplotlib.pyplot",
 		"%px xgb = xgboost",
 	]
+
+	for module_name in func.__all__:
+		# import funcs 
+		for func_name in module_name.__all__:
+			func_ref = getattr(getattr(func, module_name), func_name)
+			_, _, _, func_source  = funcutil.get_func_info(func_ref)
+			init_list.append(func_source)
+
+	for module_name, func_list in func_dict.items():
+		# import scripts for parallel
+		for func_name in func_list:
+			func_ref = getattr(getattr(script, module_name), func_name)
+			_, _, _, func_source  = funcutil.get_func_info(func_ref)
+			init_list.append(func_source)
 
 	return "\n".join(init_list)
 
