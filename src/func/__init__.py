@@ -4,7 +4,7 @@ import func.customize
 import func.evaluate
 import func.model
 import func.visualize
-
+import func.kerasnode
 
 
 import numpy as np
@@ -24,4 +24,4 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 
 
-__all__ = ['customize', 'data', 'evaluate', 'model', 'visualize',]
+__all__ = ['customize', 'data', 'evaluate', 'model', 'visualize', 'kerasnode']
